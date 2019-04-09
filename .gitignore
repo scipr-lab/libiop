@@ -1,0 +1,37 @@
+# Ignore all
+*
+
+# Unignore all with extensions
+!*.*
+
+# Unignore all dirs
+!*/
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+*.a
+
+# Extra sage files
+*.sage.py
+
+# Editor files
+.idea/
+.vscode
+*.cbp
+
+build/
+.DS_Store
+CMakeCache.txt
+CMakeFiles/
+CTestTestfile.cmake
+Makefile
+Testing/
+cmake_install.cmake
+gmock.pc
+gmock_main.pc
+gtest.pcz
+gtest_main.pc
+gtest.pc
