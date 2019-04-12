@@ -1,13 +1,18 @@
 # Fields
 
-This folder contains implementations of various binary fields.
-The irreducible polynomial of order `d` chosen is the lexicographically smallest
+This folder contains implementations of various binary fields,
+and some helper methods to distinguish these binary fields from the supported smooth prime fields from libff.
+(These are distinguished as either "additive" or "multiplicative" field types from the utils file)
+
+For the binary fields, the irreducible polynomial of order `d` chosen is the lexicographically smallest
 such polynomial of the given degree.
-The fields implementation provided in this library will utilize Intel intrinsics
-if available, and otherwise will fall back to a pure C++ implementation.
+The field implementations provided in this library will utilize Intel intrinsics
+if available, and otherwise will fall back to a pure C++ implementation.<sup>[1]</sup>
 The implementation of field arithmetic will work for any irreducible polynomial
 such that there is no term with degree greater than `d / 2` other than `x^d`.
 The reason for this constraint is described in the multiplication section.
+
+<sup>[1]</sup>: More precisely, it depends on if the 128 bit carryless instruction is supported. This has the corresponnding CPUID flag: `PCLMULQDQ`.
 
 ## Encoding
 An element of a binary field can be represented as `d` bits,

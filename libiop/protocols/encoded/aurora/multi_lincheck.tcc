@@ -122,7 +122,6 @@ multi_lincheck<FieldT>::multi_lincheck(
     const domain_handle &codeword_domain_handle,
     const domain_handle &constraint_domain_handle,
     const domain_handle &variable_domain_handle,
-    const domain_handle &summation_domain_handle,
     const std::size_t input_variable_dim,
     const std::vector<std::shared_ptr<sparse_matrix<FieldT> >> matrices,
     const oracle_handle_ptr fz_handle,
@@ -132,7 +131,6 @@ multi_lincheck<FieldT>::multi_lincheck(
     codeword_domain_handle_(codeword_domain_handle),
     constraint_domain_handle_(constraint_domain_handle),
     variable_domain_handle_(variable_domain_handle),
-    summation_domain_handle_(summation_domain_handle),
     num_matrices_(matrices.size()),
     params_(params)
 {
@@ -145,7 +143,14 @@ multi_lincheck<FieldT>::multi_lincheck(
     const field_subset<FieldT> codeword_domain = this->IOP_.get_domain(this->codeword_domain_handle_);
     const field_subset<FieldT> constraint_domain = this->IOP_.get_domain(this->constraint_domain_handle_);
     const field_subset<FieldT> variable_domain = this->IOP_.get_domain(this->variable_domain_handle_);
-    const field_subset<FieldT> summation_domain = this->IOP_.get_domain(this->summation_domain_handle_);
+    field_subset<FieldT> summation_domain;
+    if (constraint_domain.dimension() > variable_domain.dimension()) {
+        this->summation_domain_handle_ = this->constraint_domain_handle_;
+        summation_domain = constraint_domain;
+    } else {
+        this->summation_domain_handle_ = this->variable_domain_handle_;
+        summation_domain = variable_domain;
+    }
 
     this->constituent_oracle_handles_.emplace_back(fz_handle);
     for (std::size_t i = 0; i < Mz_handles.size(); i++) {

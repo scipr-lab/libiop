@@ -63,9 +63,10 @@ protected:
     const domain_handle codeword_domain_handle_;
     const domain_handle constraint_domain_handle_;
     const domain_handle variable_domain_handle_;
-    const domain_handle summation_domain_handle_;
     const std::size_t num_matrices_;
     const multi_lincheck_parameters<FieldT> params_;
+
+    domain_handle summation_domain_handle_;
 
     std::size_t lincheck_degree_;
     std::vector<oracle_handle_ptr> constituent_oracle_handles_;
@@ -82,7 +83,6 @@ public:
                    const domain_handle &codeword_domain_handle,
                    const domain_handle &constraint_domain_handle,
                    const domain_handle &variable_domain_handle,
-                   const domain_handle &summation_domain_handle,
                    const std::size_t input_variable_dim,
                    const std::vector<std::shared_ptr<sparse_matrix<FieldT> >> matrices,
                    const oracle_handle_ptr fz_handle,

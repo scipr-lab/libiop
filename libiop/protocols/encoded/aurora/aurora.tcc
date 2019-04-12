@@ -225,17 +225,6 @@ encoded_aurora_protocol<FieldT>::encoded_aurora_protocol(
     this->variable_domain_ = this->IOP_.get_domain(this->variable_domain_handle_);
     this->codeword_domain_ = this->IOP_.get_domain(this->codeword_domain_handle_);
 
-    if (this->constraint_domain_.dimension() > this->variable_domain_.dimension())
-    {
-        this->summation_domain_handle_ = this->constraint_domain_handle_;
-        this->summation_domain_ = this->constraint_domain_;
-    }
-    else
-    {
-        this->summation_domain_handle_ = this->variable_domain_handle_;
-        this->summation_domain_ = this->variable_domain_;
-    }
-
     /** \bar{f}_{1,v} is a polynomial of degree k+1, which is interpolated from
      * non-power-of-two evaluations. There is a fast method to interpolate this
      * polynomial if the degree of f is a power of two. Hence we require that
@@ -310,7 +299,6 @@ void encoded_aurora_protocol<FieldT>::register_witness_oracles()
         this->codeword_domain_handle_,
         this->constraint_domain_handle_,
         this->variable_domain_handle_,
-        this->summation_domain_handle_,
         this->input_variable_domain_.dimension(),
         matrices,
         std::make_shared<virtual_oracle_handle>(this->fz_oracle_handle_),

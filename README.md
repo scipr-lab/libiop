@@ -11,7 +11,7 @@ The library provides a tool chain for transforming certain types of probabilisti
 * The __Aurora__ protocol from [[BCRSVW]](https://eprint.iacr.org/2018/828), whose argument size is O(log<sup>2</sup> N);
 * The __Ligero__ protocol from [[AHIV]](https://acmccs.github.io/papers/p2087-amesA.pdf), whose argument size is O(N<sup>0.5</sup>).
 
-Both of these zkSNARKs support R1CS, an NP-complete relation that generalizes arithmetic circuit satisfiability. An important component of Aurora, which is of independent interest, is the [FRI proximity test](https://eccc.weizmann.ac.il/report/2017/134/).
+Both of these zkSNARKs support R1CS, an NP-complete relation that generalizes arithmetic circuit satisfiability. An important component of Aurora, which is of independent interest, is the [FRI proximity test](https://eccc.weizmann.ac.il/report/2017/134/). These protocols all support binary extension fields, and smooth prime fields.
 
 <span style="color:red">**WARNING:**</span> This is an academic proof-of-concept prototype, and in particular has not received careful code review. <br> This implementation is NOT ready for production use.
 
@@ -128,7 +128,7 @@ For example, to run all of the tests for the Aurora protocol, do the following:
 
 ## Profiling
 
-The folder ['libiop/profiling']('libiop/profiling') contains tooling to produce protocol execution traces with timing and argument size information.
+The folder [`libiop/profiling`](libiop/profiling) contains tooling to produce protocol execution traces with timing and argument size information.
 For example, we can create traces for Aurora and Ligero over a 181 bit prime field, with RS extra dimensions=3 with the following commands:
 
 ```bash

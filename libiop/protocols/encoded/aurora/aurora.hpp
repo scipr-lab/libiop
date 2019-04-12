@@ -1,6 +1,6 @@
 /**@file
 *****************************************************************************
-Aurora protocol for R1CS
+RS-encoded Aurora protocol for R1CS
 *****************************************************************************
 * @author     This file is part of libiop (see AUTHORS)
 * @copyright  MIT license (see LICENSE file)
@@ -21,6 +21,25 @@ Aurora protocol for R1CS
 #include "libiop/relations/r1cs.hpp"
 
 namespace libiop {
+
+/** Notation key
+ *   L         : Codeword domain - The domain which the codewords lie in.
+ *   H_1       : Constraint domain - identifies every constraint uniquely.
+ *   H_2       : Variable domain - identifies each variable uniquely,
+ *               The input variables occur at the first k locations.
+ *  H_1 U H_2  : Summation domain - This is the domain that multi_lincheck has sumcheck sum over.
+ *               Only used in this file insofar as is needed for parameterization.
+ *  H_2^{<= k} : Input variable domain - the first k elements of the variable domain,
+ *               identifies the primary input of the R1CS instance.
+ *  multi_lincheck : Runs n different lincheck instances together.
+ *                   This is useful from an abstraction point of view, and an efficiency point of view.
+ *                   See lincheck.md which describes the efficiency gain.
+ *  fw, fz,
+ *  fAz, fBz, fCz : These are all as described in the paper.
+ *                  In particular they are low degree extensions of w, z, Az, etc. to corresponding correct domain.
+ *                  In the case of fw, its not quite the low degree extension of w, but instead slightly adjusted
+ *                  so that the evaluations at the witness positions work out correctly when constructing fz.
+ */
 
 template<typename FieldT>
 class fz_virtual_oracle;
@@ -69,12 +88,9 @@ protected:
     r1cs_constraint_system<FieldT> constraint_system_;
     encoded_aurora_parameters<FieldT> params_;
 
-    domain_handle summation_domain_handle_; /* set either to constraint or variable domain depending which is larger */
-
     field_subset<FieldT> constraint_domain_,
         variable_domain_,
         codeword_domain_,
-        summation_domain_,
         input_variable_domain_; /* mostly for convenience to avoid calling this->IOP_.get_domain(..._handle) every time */
 
     oracle_handle fw_handle_;

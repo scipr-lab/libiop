@@ -33,17 +33,9 @@ void run_black_box_multi_lincheck_test(
     bool exp_pass)
 {
     std::size_t make_zk_int = make_zk ? 1 : 0;
-    /* Set up input to the protocol */
-    field_subset<FieldT> summation_domain;
-    if (constraint_domain.dimension() > variable_domain.dimension()) {
-        summation_domain = constraint_domain;
-    } else {
-        summation_domain = variable_domain;
-    }
 
     iop_protocol<FieldT> IOP;
     const domain_handle codeword_domain_handle = IOP.register_domain(codeword_domain);
-    const domain_handle summation_domain_handle = IOP.register_domain(summation_domain);
     const domain_handle constraint_domain_handle = IOP.register_domain(constraint_domain);
     const domain_handle variable_domain_handle = IOP.register_domain(variable_domain);
 
@@ -56,7 +48,7 @@ void run_black_box_multi_lincheck_test(
     const std::size_t b = make_zk ? query_bound : 0;
     const std::size_t fz_degree = variable_domain.num_elements() + b;
     const std::size_t Mz_degree = constraint_domain.num_elements() + b;
-    oracle_handle_ptr fz_handle = 
+    oracle_handle_ptr fz_handle =
         std::make_shared<oracle_handle>(IOP.register_oracle(codeword_domain_handle, fz_degree, make_zk));
     std::vector<oracle_handle_ptr> Mz_handles;
     for (std::size_t i = 0; i < matrices.size(); i++) {
@@ -76,13 +68,12 @@ void run_black_box_multi_lincheck_test(
         codeword_domain_handle,
         constraint_domain_handle,
         variable_domain_handle,
-        summation_domain_handle,
         input_variable_domain.dimension(),
         lincheck_matrices,
         fz_handle,
         Mz_handles,
         params);
-    
+
     multi_lincheck.register_challenge();
     multi_lincheck.register_proof();
     IOP.seal_interaction_registrations();
@@ -101,7 +92,7 @@ void run_black_box_multi_lincheck_test(
 }
 
 
-/* This test ensures the lincheck codeword has correct evaluations over the systematic domain. 
+/* This test ensures the lincheck codeword has correct evaluations over the systematic domain.
  * Only works in the case with one matrix.*/
 template<typename FieldT>
 void test_single_lincheck_q(const polynomial<FieldT> &q_alpha_poly,
@@ -109,7 +100,7 @@ void test_single_lincheck_q(const polynomial<FieldT> &q_alpha_poly,
     const std::vector<FieldT> &r_Mz,
     const std::vector<FieldT> &Mz_over_codeword_dom,
     const std::vector<FieldT> &fz_over_codeword_dom,
-    const r1cs_sparse_matrix<FieldT> &M, 
+    const r1cs_sparse_matrix<FieldT> &M,
     const field_subset<FieldT> &codeword_domain,
     const field_subset<FieldT> &summation_domain,
     const field_subset<FieldT> &constraint_domain,
@@ -201,7 +192,7 @@ void run_multi_lincheck_test(
     const std::size_t b = make_zk ? query_bound : 0;
     const std::size_t fz_degree = variable_domain.num_elements() + b;
     const std::size_t Mz_degree = constraint_domain.num_elements() + b;
-    const std::size_t lincheck_degree = summation_domain.num_elements() + 
+    const std::size_t lincheck_degree = summation_domain.num_elements() +
         std::max({fz_degree, Mz_degree}) - 1;
     const bool cache_evaluations = false;
     std::shared_ptr<lagrange_cache<FieldT>> lagrange_coefficients_cache =
@@ -231,7 +222,7 @@ void run_multi_lincheck_test(
 
     if (Mzs_over_codeword_domain.size() == 1) {
         test_single_lincheck_q(poly_lincheck_q, alpha, r_Mz,
-            Mzs_over_codeword_domain[0], fz_over_codeword_domain, 
+            Mzs_over_codeword_domain[0], fz_over_codeword_domain,
             matrices[0], codeword_domain, summation_domain,
             constraint_domain, variable_domain, input_variable_domain.dimension());
 
@@ -289,7 +280,7 @@ std::vector<FieldT> LDE_fz(std::vector<FieldT> z,
 
 // TODO: better Adapt these to multi-lincheck instances
 template<typename FieldT>
-void run_random_single_lincheck_instance(std::size_t constraint_domain_dim, 
+void run_random_single_lincheck_instance(std::size_t constraint_domain_dim,
                                          std::size_t variable_domain_dim,
                                          std::size_t input_variable_domain_dim,
                                          bool make_zk,
@@ -370,9 +361,9 @@ TEST(MultiplicativeSucceedingTests, LincheckTest) {
             std::size_t input_variable_domain_dim = variable_domain_dim - 2;
             for (std::size_t make_zk_param = 0; make_zk_param < 2; make_zk_param++) {
                 run_random_single_lincheck_instance<FieldT>(
-                    constraint_domain_dim, 
+                    constraint_domain_dim,
                     variable_domain_dim,
-                    input_variable_domain_dim, 
+                    input_variable_domain_dim,
                     (make_zk_param == 1),
                     multiplicative_coset_type);
             }
@@ -384,13 +375,13 @@ TEST(MultiplicativeSucceedingTests, LincheckTest) {
 // one element is wrong in fz
 // TODO: Add more failing scenarios
 template<typename FieldT>
-void run_failing_single_lincheck_instances(std::size_t constraint_domain_dim, 
+void run_failing_single_lincheck_instances(std::size_t constraint_domain_dim,
                                   std::size_t variable_domain_dim,
                                   std::size_t input_variable_domain_dim,
                                   field_subset_type domain_type,
                                   bool make_zk) {
-    EXPECT_GE(constraint_domain_dim, variable_domain_dim) << "Due to " << 
-        "r1cs_example_generator logic, only num_constraint number of variables " << 
+    EXPECT_GE(constraint_domain_dim, variable_domain_dim) << "Due to " <<
+        "r1cs_example_generator logic, only num_constraint number of variables " <<
         "have non-zero corresponding columns";
     const std::size_t num_constraints = 1 << constraint_domain_dim;
     const std::size_t num_inputs = (1 << input_variable_domain_dim) - 1;
