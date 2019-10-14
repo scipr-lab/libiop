@@ -2,9 +2,11 @@
 
 #include "libiop/algebra/exponentiation.hpp"
 #include "libiop/algebra/field_subset/field_subset.hpp"
+#include "libiop/algebra/field_subset/basis_utils.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/polynomials/linearized_polynomial.hpp"
 #include "libiop/algebra/fft.hpp"
+#include "libiop/algebra/utils.hpp"
 
 namespace libiop {
 
@@ -46,7 +48,51 @@ FieldT vanishing_polynomial<FieldT>::evaluation_at_point(const FieldT &evalpoint
     } else if (this->type_ == multiplicative_coset_type) {
         return libiop::power(evalpoint, this->vp_degree_) - this->vp_offset_;
     }
+    throw std::logic_error("vanishing_polynomial<FieldT>::evaluation_at_point: "
+        " this shouldn't happen");
+}
+
+template<typename FieldT>
+FieldT vanishing_polynomial<FieldT>::formal_derivative_at_point(const FieldT &evalpoint) const {
+    /** This calculates (DZ_S)(x) */
+    if (this->type_ == multiplicative_coset_type)
+    {
+        /** In the multiplicative case, the formal derivative is |S|x^{|S| - 1} */
+        return FieldT(this->vp_degree_) *
+            libiop::power(evalpoint, this->vp_degree_ - 1);
+    }
+    else if (this->type_ == affine_subspace_type)
+    {
+        /** The formal derivative in the additive case is the linear coefficient of Z_S,
+         *  due to Z_S being a linearized polynomial.
+         *  To see this, consider any monomial x^{2^i}.
+         *  Its formal derivative is 2^i x^{(2^i) - 1},
+         *  which for i != 0 is zero, as we are in a binary field.
+         *  Consequently the formal derivative is just the linear coefficient */
+        return this->linearized_polynomial_.coefficients()[1];
+    }
     return FieldT::zero();
+}
+
+template<typename FieldT>
+std::vector<FieldT> vanishing_polynomial<FieldT>::unique_evaluations_over_field_subset(const field_subset<FieldT> &S) const {
+    assert(S.num_elements() % this->vp_degree_ == 0);
+    field_subset<FieldT> unique_domain = this->associated_k_to_1_map_at_domain(S);
+    std::vector<FieldT> evals = unique_domain.all_elements();
+    // In the additive case, the associated k to 1 map is the vanishing polynomial,
+    // so the unique domain's evaluations is {Z_H(x) | x in S}
+    // In the multiplicative case, the associated k to 1 map is Z_H(x) + h_offset^|H|
+    // Hence te unique domain's evaluations are:
+    //   {Z_H(x) + h_offset^|H| | x in S}
+    // So we subtract h^|H| from all evals. h^|H| is the vp offset
+    if (S.type() == multiplicative_coset_type)
+    {
+        for (size_t i = 0; i < evals.size(); i++)
+        {
+            evals[i] -= this->vp_offset_;
+        }
+    }
+    return evals;
 }
 
 template<typename FieldT>
@@ -72,30 +118,45 @@ std::vector<FieldT> vanishing_polynomial<FieldT>::evaluations_over_coset(const m
     if (this->type_ != multiplicative_coset_type) {
         throw std::invalid_argument("evaluations_over_coset can only be used on multiplicative_coset vanishing polynomials.");
     }
-    // P is of the form X^|G| - vp_offset_, for |G| some power of 2, and |S| is also a power of 2
+    // P is of the form X^|G| - vp_offset
     const std::size_t order_s = S.num_elements();
     const std::size_t order_g = this->vp_degree_;
-    // Evaluations are the same as vanishing polynomial over subgroup case, but multiplied by shift^|G|
+    // points in S are of the form hg^i, where h is the shift of the coset, and g is its generator.
+    // We cache h^|G|
     const FieldT shift_to_order_g = libiop::power(S.shift(), order_g);
     std::vector<FieldT> evals;
-    if (order_s <= order_g) {
+    evals.reserve(order_s);
+    if (order_g % order_s == 0)
+    {
+        // In this case |S| <= |G|, and |G| % |S| = 0.
+        // Therefore g^{i|G|} = 1, consequently
+        // P(s) = h^|G| - vp_offset, for all s \in S
         evals.resize(order_s, shift_to_order_g - this->vp_offset_);
         return evals;
     }
-    // |G| divides |S|, therefore X^|G| is a homomorphism from S to a subgroup of order |S| / |G|.
-    // Since P = x^|G| - 1, and since 1 is independent of X, it follows that there are
-    // only |S| / |G| distinct evaluations, and these repeat.
-    evals.reserve(order_s);
-    const std::size_t order_s_over_g = order_s / order_g;
+    size_t evaluation_repetitions = 1;
+    size_t number_of_distinct_evaluations = order_s;
+    if (order_s % order_g == 0)
+    {
+        // In this case |G| divides |S|,
+        // therefore X^|G| is a homomorphism from S to a subgroup of order |S| / |G|.
+        // Since P = x^|G| - 1, and since 1 is independent of X, it follows that there are
+        // only |S| / |G| distinct evaluations, and these repeat.
+        // TODO: (low priority as none of our protocols need this)
+        // The number of distinct evaluations is order_s / GCD(order_s, order_g)
+        number_of_distinct_evaluations = order_s / order_g;
+        evaluation_repetitions = order_g;
+    }
     const FieldT generator_to_order_g = libiop::power(S.generator(), order_g);
-    FieldT cur = FieldT::one();
-    for (std::size_t i = 0; i < order_s_over_g; i++) {
-        evals.emplace_back(cur * shift_to_order_g - this->vp_offset_);
+    FieldT cur = shift_to_order_g;
+    for (std::size_t i = 0; i < number_of_distinct_evaluations; i++)
+    {
+        evals.emplace_back(cur - this->vp_offset_);
         cur = cur * generator_to_order_g;
     }
-    // Place these |S| / |G| distinct evaluations in the remaining locations.
-    for (std::size_t i = 1; i < order_g; i++) {
-        for (std::size_t j = 0; j < order_s_over_g; j++) {
+    // Place these distinct evaluations in the remaining locations.
+    for (std::size_t i = 1; i < evaluation_repetitions; i++) {
+        for (std::size_t j = 0; j < number_of_distinct_evaluations; j++) {
             evals.emplace_back(evals[j]);
         }
     }
@@ -117,6 +178,96 @@ FieldT vanishing_polynomial<FieldT>::constant_coefficient() const {
 }
 
 template<typename FieldT>
+std::shared_ptr<polynomial_base<FieldT>>
+    vanishing_polynomial<FieldT>::associated_k_to_1_map()
+{
+    if (this->type() == affine_subspace_type)
+    {
+        linearized_polynomial<FieldT> copy = this->linearized_polynomial_;
+        return std::make_shared<linearized_polynomial<FieldT>>(copy);
+    }
+    else if (this->type_ == multiplicative_coset_type)
+    {
+        /** This returns the polynomial x^{|H|}.
+         *  It does this by altering vp_offset, making a copy of this vanishing polynomial,
+         *  restoring the previous vp_offset, and returning the copy. */
+        const FieldT vp_offset_copy = this->vp_offset_;
+        this->vp_offset_ = FieldT::zero();
+        std::shared_ptr<polynomial_base<FieldT>> copy =
+            std::static_pointer_cast<polynomial_base<FieldT>>(std::make_shared<vanishing_polynomial<FieldT>>(*this));
+        this->vp_offset_ = vp_offset_copy;
+        return copy;
+    }
+    throw std::logic_error("should not happen");
+}
+
+template<typename FieldT>
+field_subset<FieldT> vanishing_polynomial<FieldT>::associated_k_to_1_map_at_domain(const field_subset<FieldT> domain) const
+{
+    if (domain.type() != this->type())
+    {
+        throw std::invalid_argument("domain type doesn't match vp domain type");
+    }
+    vanishing_polynomial<FieldT> copy = *this;
+    std::shared_ptr<polynomial_base<FieldT>> k_to_1_map = copy.associated_k_to_1_map();
+    if (this->type() == affine_subspace_type)
+    {
+        /** The vanishing polynomial is a k to 1 map for the input subspace, not the whole domain.
+         *  Consequently we have to evaluate the vanishing polynomial at each basis vector,
+         *  and then remove any duplicates or zero values.
+        */
+        const std::vector<FieldT> domain_basis = domain.basis();
+        const std::vector<FieldT> transformed_basis =
+            transform_basis_by_polynomial<FieldT>(k_to_1_map, domain_basis);
+        /** Now we remove duplicates from the transformed basis.
+         *  Currently there is no FieldT::hash, so this does naive duplicate removal, and is log(n)^2 */
+        std::vector<FieldT> returned_basis;
+        for (size_t i = 0; i < transformed_basis.size(); i++)
+        {
+            bool is_dup = false;
+            /** The basis element was in the kernel of the vanishing polynomial. */
+            if (transformed_basis[i] == FieldT::zero())
+            {
+                continue;
+            }
+            for (size_t j = 0; j < returned_basis.size(); j++)
+            {
+                if (returned_basis[j] == transformed_basis[i])
+                {
+                    is_dup = true;
+                    break;
+                }
+            }
+            if (!is_dup)
+            {
+                returned_basis.emplace_back(transformed_basis[i]);
+            }
+        }
+        const FieldT transformed_offset = k_to_1_map->evaluation_at_point(domain.offset());
+        return field_subset<FieldT>(affine_subspace<FieldT>(returned_basis, transformed_offset));
+    }
+    else if (this->type_ == multiplicative_coset_type)
+    {
+        const FieldT new_shift = k_to_1_map->evaluation_at_point(domain.shift());
+        /** The multiplicative vanishing polynomial with no offset is a
+         *  k to 1 map over any domain of order divisible by k. */
+        if (domain.num_elements() % this->vp_degree_ == 0)
+        {
+            const size_t new_domain_size = domain.num_elements() / this->vp_degree_;
+            return field_subset<FieldT>(new_domain_size, new_shift);
+        }
+        else if (gcd(domain.num_elements(), this->vp_degree_) == 1)
+        {
+            const FieldT new_generator = libiop::power(domain.generator(), this->vp_degree_);
+            return field_subset<FieldT>(multiplicative_coset<FieldT>(domain.num_elements(), new_shift, new_generator));
+        }
+        throw std::invalid_argument("We currently don't implement associated_k_to_1_map_of_domain(domain)"
+            "when gcd(domain.num_elements(), vp_degree) is not in {1, vp_degree}");
+    }
+    throw std::logic_error("should not happen");
+}
+
+template<typename FieldT>
 polynomial<FieldT> vanishing_polynomial<FieldT>::operator*(const polynomial<FieldT> &p) const
 {
     if (this->type_ == affine_subspace_type) {
@@ -133,11 +284,8 @@ polynomial<FieldT> vanishing_polynomial<FieldT>::operator*(const polynomial<Fiel
 template<typename FieldT>
 linearized_polynomial<FieldT> vanishing_polynomial<FieldT>::get_linearized_polynomial() const {
     if (this->type_ == multiplicative_coset_type) {
-        std::vector<FieldT> coefficients(libiop::log2(this->vp_degree_) + 1, FieldT::zero());
-        coefficients.emplace_back(FieldT::one());
-        coefficients[0] = -this->vp_offset_;
-        linearized_polynomial<FieldT> result(std::move(coefficients));
-        return result;
+        throw std::invalid_argument(
+            "linearized polynomials can't be constructed for multiplicative vanishing polynomials");
     }
     return this->linearized_polynomial_;
 }

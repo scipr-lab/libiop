@@ -1,7 +1,8 @@
 /**@file
  *****************************************************************************
- Implementation of Gao-Mateer for the additive FFT,
- and wrappers to libfqfft for the multiplicative FFT.
+ Implementation of Gao-Mateer for the additive FFT/IFFT,
+ implementation of Nlog(d) Cooley-Tukey for the multiplicative FFT,
+ and wrappers to libfqfft for the multiplicative IFFT.
  *****************************************************************************
  * @author     This file is part of libiop (see AUTHORS)
  * @copyright  MIT license (see LICENSE file)
@@ -14,6 +15,7 @@
 #include "libiop/algebra/field_subset/field_subset.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
 #include "libiop/algebra/field_subset/subgroup.hpp"
+#include "libiop/common/common.hpp"
 
 namespace libiop {
 
@@ -72,6 +74,18 @@ std::vector<FieldT> IFFT_over_field_subset(const std::vector<typename libiop::en
 template<typename FieldT>
 std::vector<FieldT> IFFT_over_field_subset(const std::vector<typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type> evals,
                                              field_subset<FieldT> domain);
+
+template<typename FieldT>
+std::vector<FieldT> IFFT_of_known_degree_over_field_subset(
+    const std::vector<typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type> evals,
+    size_t degree_bound,
+    field_subset<FieldT> domain);
+
+template<typename FieldT>
+std::vector<FieldT> IFFT_of_known_degree_over_field_subset(
+    const std::vector<typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type> evals,
+    size_t degree_bound,
+    field_subset<FieldT> domain);
 
 } // namespace libiop
 

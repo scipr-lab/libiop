@@ -7,9 +7,27 @@
 namespace libiop {
 
 /* polynomial_base<FieldT> */
+template<typename FieldT>
+polynomial_base<FieldT>::polynomial_base()
+{
+}
+
+/* polynomial<FieldT> */
+template<typename FieldT>
+polynomial<FieldT>::polynomial() :
+    polynomial_base<FieldT>()
+{
+}
 
 template<typename FieldT>
-bool polynomial_base<FieldT>::coefficients_equivalent_with(const polynomial_base<FieldT> &other) const
+polynomial<FieldT>::polynomial(std::vector<FieldT> &&coefficients) :
+    polynomial_base<FieldT>(),
+    coefficients_(std::move(coefficients))
+{
+}
+
+template<typename FieldT>
+bool polynomial<FieldT>::coefficients_equivalent_with(const polynomial<FieldT> &other) const
 {
     /** Coefficients may begin with many zeros */
     const std::size_t min_size = std::min<std::size_t>(this->coefficients_.size(),
@@ -27,14 +45,14 @@ bool polynomial_base<FieldT>::coefficients_equivalent_with(const polynomial_base
 }
 
 template<typename FieldT>
-void polynomial_base<FieldT>::multiply_coefficients_by(const FieldT &other)
+void polynomial<FieldT>::multiply_coefficients_by(const FieldT &other)
 {
     std::for_each(this->coefficients_.begin(), this->coefficients_.end(),
                   [other](FieldT &el) { el *= other; });
 }
 
 template<typename FieldT>
-void polynomial_base<FieldT>::add_coefficients_of(const polynomial_base<FieldT> &other)
+void polynomial<FieldT>::add_coefficients_of(const polynomial<FieldT> &other)
 {
     this->coefficients_.reserve(other.coefficients_.size()); /* this is no-op if *this has enough terms already */
     for (size_t i = 0; i < other.coefficients_.size(); ++i)
@@ -48,108 +66,6 @@ void polynomial_base<FieldT>::add_coefficients_of(const polynomial_base<FieldT> 
             this->coefficients_.emplace_back(other.coefficients_[i]);
         }
     }
-}
-
-template<typename FieldT>
-polynomial_base<FieldT>::polynomial_base()
-{
-}
-
-template<typename FieldT>
-polynomial_base<FieldT>::polynomial_base(std::vector<FieldT> &&coefficients) :
-    coefficients_(std::move(coefficients))
-{
-}
-
-template<typename FieldT>
-void polynomial_base<FieldT>::reserve(const std::size_t degree_bound)
-{
-    this->coefficients_.reserve(degree_bound);
-}
-
-template<typename FieldT>
-std::size_t polynomial_base<FieldT>::capacity() const
-{
-    return this->coefficients_.capacity();
-}
-
-template<typename FieldT>
-void polynomial_base<FieldT>::add_term(FieldT &&coeff)
-{
-    this->coefficients_.emplace_back(coeff);
-}
-
-template<typename FieldT>
-void polynomial_base<FieldT>::remove_term(const std::size_t index)
-{
-    this->coefficients_.erase(this->coefficients_.begin() + index);
-}
-
-template<typename FieldT>
-std::size_t polynomial_base<FieldT>::num_terms() const
-{
-    return this->coefficients_.size();
-}
-
-template<typename FieldT>
-std::size_t polynomial_base<FieldT>::minimal_num_terms() const
-/** minimal_num_terms returns the degree of the polynomial,
- * excluding higher order terms having 0 coefficients.
- */
-{
-    auto it = std::find_if(this->coefficients_.rbegin(),
-                           this->coefficients_.rend(),
-                           [](const FieldT &el) { return !el.is_zero(); });
-
-    if (it == this->coefficients_.rend())
-    {
-        return 0;
-    }
-    else
-    {
-        return ((this->coefficients_.size()) -
-                std::distance(this->coefficients_.rbegin(), it));
-    }
-}
-
-template<typename FieldT>
-bool polynomial_base<FieldT>::num_terms_at_most(const std::size_t bound) const
-{
-    return (this->coefficients_.size() < bound ||
-            std::all_of(this->coefficients_.begin() + bound,
-                        this->coefficients_.end(),
-                        [](const FieldT &el) { return el.is_zero(); }));
-}
-
-template<typename FieldT>
-const FieldT& polynomial_base<FieldT>::operator[](const std::size_t index) const
-{
-    return this->coefficients_[index];
-}
-
-template<typename FieldT>
-FieldT& polynomial_base<FieldT>::operator[](const std::size_t index)
-{
-    return this->coefficients_[index];
-}
-
-template<typename FieldT>
-const std::vector<FieldT>& polynomial_base<FieldT>::coefficients() const
-{
-    return this->coefficients_;
-}
-
-/* polynomial<FieldT> */
-template<typename FieldT>
-polynomial<FieldT>::polynomial() :
-    polynomial_base<FieldT>()
-{
-}
-
-template<typename FieldT>
-polynomial<FieldT>::polynomial(std::vector<FieldT> &&coefficients) :
-    polynomial_base<FieldT>(std::move(coefficients))
-{
 }
 
 template<typename FieldT>
@@ -194,15 +110,93 @@ FieldT polynomial<FieldT>::evaluation_at_point(const FieldT &evalpoint) const
 }
 
 template<typename FieldT>
-std::vector<FieldT> polynomial<FieldT>::evaluations_over_subspace(const affine_subspace<FieldT> &S) const
+std::vector<FieldT> polynomial<FieldT>::evaluations_over_field_subset(const field_subset<FieldT> &S) const
 {
-    return additive_FFT_wrapper<FieldT>(this->coefficients(), S);
+    return FFT_over_field_subset<FieldT>(this->coefficients(), S);
+}
+
+template<typename FieldT>
+void polynomial<FieldT>::reserve(const std::size_t degree_bound)
+{
+    this->coefficients_.reserve(degree_bound);
+}
+
+template<typename FieldT>
+std::size_t polynomial<FieldT>::capacity() const
+{
+    return this->coefficients_.capacity();
+}
+
+template<typename FieldT>
+void polynomial<FieldT>::add_term(FieldT &&coeff)
+{
+    this->coefficients_.emplace_back(coeff);
+}
+
+template<typename FieldT>
+void polynomial<FieldT>::remove_term(const std::size_t index)
+{
+    this->coefficients_.erase(this->coefficients_.begin() + index);
+}
+
+template<typename FieldT>
+std::size_t polynomial<FieldT>::num_terms() const
+{
+    return this->coefficients_.size();
+}
+
+template<typename FieldT>
+std::size_t polynomial<FieldT>::minimal_num_terms() const
+/** minimal_num_terms returns the degree of the polynomial,
+ * excluding higher order terms having 0 coefficients.
+ */
+{
+    auto it = std::find_if(this->coefficients_.rbegin(),
+                           this->coefficients_.rend(),
+                           [](const FieldT &el) { return !el.is_zero(); });
+
+    if (it == this->coefficients_.rend())
+    {
+        return 0;
+    }
+    else
+    {
+        return ((this->coefficients_.size()) -
+                std::distance(this->coefficients_.rbegin(), it));
+    }
+}
+
+template<typename FieldT>
+bool polynomial<FieldT>::num_terms_at_most(const std::size_t bound) const
+{
+    return (this->coefficients_.size() < bound ||
+            std::all_of(this->coefficients_.begin() + bound,
+                        this->coefficients_.end(),
+                        [](const FieldT &el) { return el.is_zero(); }));
 }
 
 template<typename FieldT>
 std::size_t polynomial<FieldT>::degree() const
 {
     return (this->coefficients_.size() == 0 ? 0 : this->coefficients_.size()-1);
+}
+
+template<typename FieldT>
+const FieldT& polynomial<FieldT>::operator[](const std::size_t index) const
+{
+    return this->coefficients_[index];
+}
+
+template<typename FieldT>
+FieldT& polynomial<FieldT>::operator[](const std::size_t index)
+{
+    return this->coefficients_[index];
+}
+
+template<typename FieldT>
+const std::vector<FieldT>& polynomial<FieldT>::coefficients() const
+{
+    return this->coefficients_;
 }
 
 template<typename FieldT>

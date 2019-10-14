@@ -22,6 +22,7 @@ namespace libiop {
  *  In the additive case this polynomial is the vanishing polynomial of the localizer domain.
  *  In the multiplicative case, it is the polynomial x^{2^{n}}, n being the localization parameter.
  *  Note that the localizer domain is of size 2^n, so we derive the polynomial from the localizer domain.
+ *  TODO: Delete this class in favor of vanishing polynomial . associated k to 1 map.
  */
 template<typename FieldT>
 class localizer_polynomial {

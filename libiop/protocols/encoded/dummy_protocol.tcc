@@ -13,18 +13,19 @@ dummy_oracle<FieldT>::dummy_oracle(const std::size_t num_oracles) :
 }
 
 template<typename FieldT>
-std::vector<FieldT> dummy_oracle<FieldT>::evaluated_contents(
-    const std::vector<std::vector<FieldT> > &constituent_oracle_evaluations) const
+std::shared_ptr<std::vector<FieldT>> dummy_oracle<FieldT>::evaluated_contents(
+    const std::vector<std::shared_ptr<std::vector<FieldT>>> &constituent_oracle_evaluations) const
 {
     if (constituent_oracle_evaluations.size() != this->num_oracles_)
     {
         throw std::invalid_argument("Expected same number of evaluations as in registration.");
     }
 
-    std::vector<FieldT> result = constituent_oracle_evaluations[0];
-    for (size_t i = 0; i < result.size(); ++i)
+    std::shared_ptr<std::vector<FieldT>> result = std::make_shared<std::vector<FieldT>>();
+    result->reserve(constituent_oracle_evaluations[0]->size());
+    for (size_t i = 0; i < result->size(); ++i)
     {
-        result[i] = FieldT::zero();
+        result->emplace_back(FieldT::zero());
     }
 
     return result;

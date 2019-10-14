@@ -118,10 +118,10 @@ void direct_LDT_protocol<FieldT>::calculate_and_submit_proof()
     /* Send coefficients of every provided polynomial */
     for (size_t i = 0; i < this->poly_handles_.size(); i++)
     {
-        std::vector<FieldT> evaluations = this->IOP_.get_oracle_evaluations(this->poly_handles_[i]);
+        std::shared_ptr<std::vector<FieldT>> evaluations = this->IOP_.get_oracle_evaluations(this->poly_handles_[i]);
 
         /* Get coefficients, and resize it to be the correct size. */
-        std::vector<FieldT> poly_coefficients = IFFT_over_field_subset<FieldT>(evaluations, this->codeword_domain_);
+        std::vector<FieldT> poly_coefficients = IFFT_over_field_subset<FieldT>(*evaluations.get(), this->codeword_domain_);
         poly_coefficients.resize(this->params_.poly_degree_bound());
 
         this->IOP_.submit_prover_message(this->prover_coefficients_handles_[i], std::move(poly_coefficients));

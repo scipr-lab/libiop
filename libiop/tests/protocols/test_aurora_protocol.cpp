@@ -7,7 +7,7 @@
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/polynomials/vanishing_polynomial.hpp"
 #include "libiop/common/common.hpp"
-#include "libiop/protocols/encoded/aurora/aurora.hpp"
+#include "libiop/protocols/encoded/r1cs_rs_iop/r1cs_rs_iop.hpp"
 #include "libiop/relations/examples/r1cs_examples.hpp"
 #include "libiop/relations/r1cs.hpp"
 #include "libiop/relations/variable.hpp"
@@ -21,7 +21,7 @@ for (std::size_t constraint_domain_dim = 7; constraint_domain_dim < 9; constrain
 for (std::size_t variable_domain_dim = 7; variable_domain_dim < 9; variable_domain_dim++) {
     std::size_t input_variable_domain_dim = variable_domain_dim - 2;
     for (std::size_t make_zk_param = 0; make_zk_param < 2; make_zk_param++) {
-        
+
         const bool make_zk = make_zk_param ? true : false;
         printf("running components test with constraint dim %lu, variable dim %lu, make_zk %s, is_multiplicative %s\n",
             constraint_domain_dim, variable_domain_dim,
@@ -31,15 +31,17 @@ for (std::size_t variable_domain_dim = 7; variable_domain_dim < 9; variable_doma
         const std::size_t num_constraints = 1 << constraint_domain_dim;
         const std::size_t num_inputs = (1 << input_variable_domain_dim) - 1;
         const std::size_t num_variables = (1 << variable_domain_dim) - 1;
-        
+
         r1cs_example<FieldT> r1cs_params = generate_r1cs_example<FieldT>(
             num_constraints, num_inputs, num_variables);
+        std::shared_ptr<r1cs_constraint_system<FieldT>> cs =
+            std::make_shared<r1cs_constraint_system<FieldT>>(r1cs_params.constraint_system_);
 
         /* Set up the blueprint for the protocol */
 
         const std::size_t RS_extra_dimensions = 2; /* \rho = 1/4 */
 
-        const std::size_t codeword_domain_dim = RS_extra_dimensions + 
+        const std::size_t codeword_domain_dim = RS_extra_dimensions +
             + (make_zk ? 2 : 1)
             + std::max(constraint_domain_dim, variable_domain_dim);
 
@@ -65,21 +67,23 @@ for (std::size_t variable_domain_dim = 7; variable_domain_dim < 9; variable_doma
         const domain_handle constraint_domain_handle = IOP.register_domain(constraint_domain);
         const domain_handle variable_domain_handle = IOP.register_domain(variable_domain);
         const domain_handle codeword_domain_handle = IOP.register_domain(codeword_domain);
-    
+
         const size_t dummy_security_parameter = 64;
+        const bool holographic = false;
         const encoded_aurora_parameters<FieldT> params(dummy_security_parameter,
                                                        codeword_domain_dim,
                                                        constraint_domain_dim,
                                                        summation_domain.dimension(),
                                                        query_bound,
                                                        make_zk,
+                                                       holographic,
                                                        domain_type);
 
         encoded_aurora_protocol<FieldT> proto(IOP,
                                               constraint_domain_handle,
                                               variable_domain_handle,
                                               codeword_domain_handle,
-                                              r1cs_params.constraint_system_,
+                                              cs,
                                               params);
 
         proto.register_challenge();

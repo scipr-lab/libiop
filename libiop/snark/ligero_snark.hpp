@@ -15,9 +15,9 @@
 #include "libiop/algebra/fields/utils.hpp"
 #include "libiop/protocols/ligero_iop.hpp"
 #include "libiop/relations/r1cs.hpp"
-#include "libiop/snark/common/bcs16_common.hpp"
-#include "libiop/snark/common/bcs16_prover.hpp"
-#include "libiop/snark/common/bcs16_verifier.hpp"
+#include "libiop/snark/common/bcs_common.hpp"
+#include "libiop/snark/common/bcs_prover.hpp"
+#include "libiop/snark/common/bcs_verifier.hpp"
 
 namespace libiop {
 
@@ -34,7 +34,7 @@ struct ligero_snark_parameters {
 };
 
 template<typename FieldT>
-using ligero_snark_argument = bcs16_transformation_transcript<FieldT>;
+using ligero_snark_argument = bcs_transformation_transcript<FieldT>;
 
 template<typename FieldT>
 ligero_snark_argument<FieldT> ligero_snark_prover(const r1cs_constraint_system<FieldT> &constraint_system,

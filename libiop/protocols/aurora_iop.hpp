@@ -14,7 +14,7 @@ Full protocol for R1CS (encoded R1CS + FRI LDT)
 #include <vector>
 
 #include "libiop/iop/iop.hpp"
-#include "libiop/protocols/encoded/aurora/aurora.hpp"
+#include "libiop/protocols/encoded/r1cs_rs_iop/r1cs_rs_iop.hpp"
 #include "libiop/protocols/ldt/fri/fri_ldt.hpp"
 #include "libiop/protocols/ldt/ldt_reducer.hpp"
 #include "libiop/relations/r1cs.hpp"
@@ -59,7 +59,7 @@ class aurora_iop_parameters {
     size_t variable_domain_dim() const;
     size_t codeword_domain_dim() const;
     size_t query_bound() const;
-    size_t locality() const;
+    std::vector<size_t> locality_vector() const;
 
     long double achieved_soundness() const;
     void print() const;

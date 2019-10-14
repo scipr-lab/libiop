@@ -25,11 +25,39 @@ FieldT power(const FieldT &base, const std::size_t exponent)
 }
 
 template<typename FieldT>
+std::vector<FieldT> subspace_to_power_of_two(const affine_subspace<FieldT> &S,
+                                             const size_t power_of_two)
+{
+    /* exponent is 2^i, so we multiply in all subset sums of
+       linearized polynomial 2^i. doing this for affine subspaces
+       requires a trick; see comment at
+       linearized_polynomial::evaluations_over_subspace */
+    std::vector<FieldT> basis_powers(S.basis());
+    for (auto &el : basis_powers)
+    {
+        el = libiop::power(el, power_of_two);
+    }
+
+    const FieldT offset_power = libiop::power(S.offset(), power_of_two);
+    return all_subset_sums<FieldT>(basis_powers, offset_power);
+}
+
+template<typename FieldT>
 std::vector<FieldT> subspace_element_powers(const affine_subspace<FieldT> &S,
                                             const std::size_t exponent)
 {
+    /** We evaluate x^{2^i} over the entire subspace
+     *  for every bit `i` that appears in exponent.
+     *  We then take the product of them all to get
+     *  the subspace to the power of the exponent.
+     *
+     *  In the case where the exponent is a power of two, we skip the multiplications.
+     */
+    if (is_power_of_2(exponent))
+    {
+        return subspace_to_power_of_two(S, exponent);
+    }
     std::vector<FieldT> result(S.num_elements(), FieldT::one());
-
     for (std::size_t i = 0; i < 8 * sizeof(exponent); ++i)
     {
         if (!(exponent & (1ull << i)))
@@ -37,20 +65,8 @@ std::vector<FieldT> subspace_element_powers(const affine_subspace<FieldT> &S,
             continue;
         }
 
-        /* exponent has 2^i set, so we multiply in all subset sums of
-           linearized polynomial 2^i. doing this for affine subspaces
-           requires a trick; see comment at
-           linearized_polynomial::evaluations_over_subspace */
-        const std::size_t two_to_i = (1ull << i);
-        std::vector<FieldT> basis_powers(S.basis());
-        for (auto &el : basis_powers)
-        {
-            el = libiop::power(el, two_to_i);
-        }
-
-        const FieldT offset_power = libiop::power(S.offset(), two_to_i);
         const std::vector<FieldT> subspace_to_two_to_i =
-            all_subset_sums<FieldT>(basis_powers, offset_power);
+            subspace_to_power_of_two(S, 1ull << i);
 
         for (std::size_t j = 0; j < S.num_elements(); ++j)
         {

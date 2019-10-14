@@ -238,10 +238,9 @@ std::vector<FieldT> lagrange_coefficients(const affine_subspace<FieldT> &domain,
     */
 
     vanishing_polynomial<FieldT> Z(domain);
-    /* (Z_{V - offset} / X)(0) is the coefficient for the linear term in Z_{V - offset}.
-     * Since the affine shift only affects the constant coefficient,
-     * 1 / c is the coefficient for the linear term in Z_V. */
-    const FieldT c = Z.get_linearized_polynomial().coefficients()[1].inverse();
+    /* (Z_{V - offset} / X)(0) is the formal derivative of Z_V,
+     * as the affine shift only affects the constant coefficient. */
+    const FieldT c = Z.formal_derivative_at_point(FieldT::zero()).inverse();
     const FieldT k = Z.evaluation_at_point(interpolation_point);
 
     std::vector<FieldT> V =

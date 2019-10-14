@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
+#include "libiop/algebra/fft.hpp"
 #include "libiop/algebra/exponentiation.hpp"
 #include "libiop/algebra/fields/gf64.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"
@@ -48,12 +49,20 @@ void run_vanishing_polynomial_evaluations_test(
     const field_subset<FieldT> &vp_domain, const field_subset<FieldT> &evaluation_domain) {
     const vanishing_polynomial<FieldT> P(vp_domain);
     const std::vector<FieldT> evals = P.evaluations_over_field_subset(evaluation_domain);
+    ASSERT_EQ(evals.size(), evaluation_domain.num_elements());
     for (std::size_t i = 0; i < evaluation_domain.num_elements(); i++) {
         const FieldT expected = P.evaluation_at_point(evaluation_domain.element_by_index(i));
         ASSERT_TRUE(evals[i] == expected) << "evaluations didn't match on element " << i <<
             ", evaluation domain type: " << evaluation_domain.type() <<
-            ", vp domain dim: " << vp_domain.dimension() <<
-            ", eval domain dim: " << evaluation_domain.dimension();
+            ", vp domain size: " << vp_domain.num_elements() <<
+            ", eval domain size: " << evaluation_domain.num_elements();
+    }
+    if (is_power_of_2(evaluation_domain.num_elements()))
+    {
+        const polynomial<FieldT> P_as_poly(IFFT_over_field_subset<FieldT>(evals, evaluation_domain));
+        size_t minimal_num_terms = P_as_poly.minimal_num_terms();
+        size_t actual_degree = (minimal_num_terms == 0) ? 0 : minimal_num_terms - 1;
+        ASSERT_LE(actual_degree, P.degree());
     }
 }
 
@@ -79,6 +88,46 @@ TEST(PolynomialTest, MultiplicativeVanishingPolynomialTest) {
     }
 }
 
+TEST(PolynomialTest, MultiplicativeVanishingPolynomialNonPowerOf2DomainsTest) {
+    edwards_pp::init_public_params();
+    typedef edwards_Fr FieldT;
+    // vector of some select factors of |F| - 1.
+    std::vector<size_t> factors({128, 3, 5, 7, 17, 29, 53, 79, 113});
+
+    for (size_t vp_factor_start_index = 0; vp_factor_start_index < 3; vp_factor_start_index++)
+    {
+        for (size_t num_vp_factors = 1; num_vp_factors <= 1; ++num_vp_factors)
+        {
+            size_t vp_order = 1;
+            for (size_t i = 0; i < num_vp_factors; i++)
+            {
+                vp_order *= factors[i + vp_factor_start_index];
+            }
+            const field_subset<FieldT> vp_domain(vp_order);
+            const field_subset<FieldT> vp_domain_coset(vp_order,
+                FieldT::multiplicative_generator);
+            for (size_t S_factor_start_point = 0; S_factor_start_point < 3; S_factor_start_point++)
+            {
+                for (size_t num_S_factors = 1; num_S_factors <= 1; ++num_S_factors)
+                {
+                    size_t S_order = 1;
+                    for (size_t i = 0; i < num_S_factors; i++)
+                    {
+                        S_order *= factors[i + S_factor_start_point];
+                    }
+                    const field_subset<FieldT> S(S_order);
+                    const field_subset<FieldT> S_coset(
+                        S_order, FieldT::multiplicative_generator);
+                    run_vanishing_polynomial_evaluations_test<FieldT>(vp_domain, S);
+                    run_vanishing_polynomial_evaluations_test<FieldT>(vp_domain, S_coset);
+                    run_vanishing_polynomial_evaluations_test<FieldT>(vp_domain_coset, S);
+                    run_vanishing_polynomial_evaluations_test<FieldT>(vp_domain_coset, S_coset);
+                }
+            }
+        }
+    }
+}
+
 TEST(PolynomialTest, MultiplicativeVanishingPolynomialDivisionTest) {
     edwards_pp::init_public_params();
     typedef edwards_Fr FieldT;
@@ -91,7 +140,7 @@ TEST(PolynomialTest, MultiplicativeVanishingPolynomialDivisionTest) {
         {
             const field_subset<FieldT> S(1ull << (dim_P + 1));
             const polynomial<FieldT> poly = polynomial<FieldT>::random_polynomial(1ull << dim_P);
-            const std::pair<polynomial<FieldT>, polynomial<FieldT>> div_pair = 
+            const std::pair<polynomial<FieldT>, polynomial<FieldT>> div_pair =
                 polynomial_over_vanishing_polynomial<FieldT>(
                 polynomial<FieldT>(poly), vp);
             const std::vector<FieldT> quotient_evals = FFT_over_field_subset<FieldT>(div_pair.first.coefficients(), S);

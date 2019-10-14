@@ -3,6 +3,7 @@ add_library(
 
   common/common.cpp
   common/profiling.cpp
+  algebra/fields/gf32.cpp
   algebra/fields/gf64.cpp
   algebra/fields/gf128.cpp
   algebra/fields/gf192.cpp
@@ -62,14 +63,17 @@ target_link_libraries(benchmark_vector_op iop benchmark)
 
 add_executable(instrument_algebra profiling/instrument_algebra.cpp)
 add_executable(instrument_aurora_snark profiling/instrument_aurora_snark.cpp)
+add_executable(instrument_fractal_snark profiling/instrument_fractal_snark.cpp)
 add_executable(instrument_fri_snark profiling/instrument_fri_snark.cpp)
 add_executable(instrument_ligero_snark profiling/instrument_ligero_snark.cpp)
 if("${CPPDEBUG}")
   target_link_libraries(instrument_aurora_snark iop gtest_main)
+  target_link_libraries(instrument_fractal_snark iop gtest_main)
   target_link_libraries(instrument_fri_snark iop)
   target_link_libraries(instrument_ligero_snark iop)
 else()
   target_link_libraries(instrument_aurora_snark iop ${Boost_LIBRARIES} gtest_main)
+  target_link_libraries(instrument_fractal_snark iop ${Boost_LIBRARIES} gtest_main)
   target_link_libraries(instrument_fri_snark iop ${Boost_LIBRARIES})
   target_link_libraries(instrument_ligero_snark iop ${Boost_LIBRARIES})
 endif()
@@ -87,6 +91,9 @@ target_link_libraries(test_exponentiation iop gtest_main)
 add_executable(test_fft tests/algebra/test_fft.cpp)
 target_link_libraries(test_fft iop gtest_main)
 target_link_libraries(test_fft iop gmp gmpxx)
+
+add_executable(test_gf32 tests/algebra/test_gf32.cpp)
+target_link_libraries(test_gf32 iop gtest_main)
 
 add_executable(test_gf64 tests/algebra/test_gf64.cpp)
 target_link_libraries(test_gf64 iop gtest_main)
@@ -112,6 +119,15 @@ target_link_libraries(test_linearized_polynomial iop gtest_main)
 add_executable(test_vanishing_polynomial tests/algebra/test_vanishing_polynomial.cpp)
 target_link_libraries(test_vanishing_polynomial iop gtest_main)
 
+add_executable(test_lagrange_polynomial tests/algebra/test_lagrange_polynomial.cpp)
+target_link_libraries(test_lagrange_polynomial iop gtest_main)
+
+add_executable(test_bivariate_embedding tests/algebra/test_bivariate_embedding.cpp)
+target_link_libraries(test_bivariate_embedding iop gtest_main)
+
+add_executable(test_successor_ordering tests/algebra/test_successor_ordering.cpp)
+target_link_libraries(test_successor_ordering iop gtest_main)
+
 add_executable(test_algebra_utils tests/algebra/test_algebra_utils.cpp)
 target_link_libraries(test_algebra_utils iop gtest_main)
 
@@ -126,17 +142,20 @@ target_link_libraries(test_iop_query_position iop gtest_main)
 add_executable(test_aurora_protocol tests/protocols/test_aurora_protocol.cpp)
 target_link_libraries(test_aurora_protocol iop gtest_main)
 
-add_executable(test_aurora_rowcheck tests/protocols/test_aurora_rowcheck.cpp)
-target_link_libraries(test_aurora_rowcheck iop gtest_main)
+add_executable(test_r1cs_to_lincheck_reduction tests/protocols/test_r1cs_to_lincheck_reduction.cpp)
+target_link_libraries(test_r1cs_to_lincheck_reduction iop gtest_main)
 
-add_executable(test_aurora_multi_lincheck tests/protocols/test_aurora_multi_lincheck.cpp)
-target_link_libraries(test_aurora_multi_lincheck iop gtest_main)
+add_executable(test_basic_lincheck tests/protocols/test_basic_lincheck.cpp)
+target_link_libraries(test_basic_lincheck iop gtest_main)
 
-add_executable(test_aurora_protocol_components tests/protocols/test_aurora_protocol_components.cpp)
-target_link_libraries(test_aurora_protocol_components iop gtest_main)
+add_executable(test_boundary_constraint tests/protocols/test_boundary_constraint.cpp)
+target_link_libraries(test_boundary_constraint iop gtest_main)
 
-add_executable(test_aurora_sumcheck tests/protocols/test_aurora_sumcheck.cpp)
-target_link_libraries(test_aurora_sumcheck iop gtest_main)
+add_executable(test_holographic_lincheck tests/protocols/test_holographic_lincheck.cpp)
+target_link_libraries(test_holographic_lincheck iop gtest_main)
+
+add_executable(test_sumcheck tests/protocols/test_sumcheck.cpp)
+target_link_libraries(test_sumcheck iop gtest_main)
 
 add_executable(test_direct_ldt tests/protocols/test_direct_ldt.cpp)
 target_link_libraries(test_direct_ldt iop gtest_main)
@@ -146,6 +165,12 @@ target_link_libraries(test_fri iop gtest_main)
 
 add_executable(test_fri_aux tests/protocols/test_fri_aux.cpp)
 target_link_libraries(test_fri_aux iop gtest_main)
+
+add_executable(test_fri_optimizer tests/protocols/test_fri_optimizer.cpp)
+target_link_libraries(test_fri_optimizer iop gtest_main)
+
+add_executable(test_fractal_protocol tests/protocols/test_fractal_protocol.cpp)
+target_link_libraries(test_fractal_protocol iop gtest_main)
 
 add_executable(test_ligero_interleaved_lincheck_et tests/protocols/test_ligero_interleaved_lincheck_et.cpp)
 target_link_libraries(test_ligero_interleaved_lincheck_et iop gtest_main)
@@ -162,10 +187,25 @@ target_link_libraries(test_ligero_interleaved_rowcheck iop gtest_main)
 add_executable(test_ldt_reducer tests/protocols/test_ldt_reducer.cpp)
 target_link_libraries(test_ldt_reducer iop gtest_main)
 
+add_executable(test_fractal_indexer tests/protocols/test_fractal_indexer.cpp)
+target_link_libraries(test_fractal_indexer iop gtest_main)
+
+add_executable(test_rational_linear_combination tests/protocols/test_rational_linear_combination.cpp)
+target_link_libraries(test_rational_linear_combination iop gtest_main)
+
+add_executable(test_rational_sumcheck tests/protocols/test_rational_sumcheck.cpp)
+target_link_libraries(test_rational_sumcheck iop gtest_main)
+
+add_executable(test_rowcheck tests/protocols/test_rowcheck.cpp)
+target_link_libraries(test_rowcheck iop gtest_main)
+
 # relations
 
 add_executable(test_r1cs tests/relations/test_r1cs.cpp)
 target_link_libraries(test_r1cs iop gtest_main)
+
+add_executable(test_identity_matrices tests/relations/test_identity_matrices.cpp)
+target_link_libraries(test_identity_matrices iop gtest_main)
 
 # snark
 add_executable(test_bcs_transformation tests/snark/test_bcs_transformation.cpp)
@@ -173,6 +213,9 @@ target_link_libraries(test_bcs_transformation iop gtest_main)
 
 add_executable(test_aurora_snark tests/snark/test_aurora_snark.cpp)
 target_link_libraries(test_aurora_snark iop gtest_main)
+
+add_executable(test_fractal_snark tests/snark/test_fractal_snark.cpp)
+target_link_libraries(test_fractal_snark iop gtest_main)
 
 add_executable(test_ligero_snark tests/snark/test_ligero_snark.cpp)
 target_link_libraries(test_ligero_snark iop gtest_main)

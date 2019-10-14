@@ -2,12 +2,13 @@
 #include <benchmark/benchmark.h>
 
 #include "libiop/algebra/polynomials/polynomial.hpp"
+#include "libiop/algebra/fft.hpp"
 #include "libiop/algebra/fields/gf64.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
 #include "libiop/algebra/utils.hpp"
 #include "libiop/common/common.hpp"
-#include "libiop/algebra/fft.hpp"
-#include "libiop/protocols/encoded/aurora/aurora.hpp"
+#include "libiop/iop/iop.hpp"
+#include "libiop/protocols/encoded/sumcheck/sumcheck.hpp"
 #include "libiop/relations/examples/r1cs_examples.hpp"
 #include "libiop/relations/r1cs.hpp"
 

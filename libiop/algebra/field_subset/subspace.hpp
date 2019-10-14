@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <vector>
+#include "libiop/algebra/fields/utils.hpp"
 
 namespace libiop {
 
@@ -17,7 +18,7 @@ template<typename FieldT>
 class linear_subspace {
 protected:
     std::vector<FieldT> basis_;
-
+    bool is_standard_basis_;
 public:
     linear_subspace() = default;
     linear_subspace(const std::vector<FieldT> &basis);
@@ -37,9 +38,13 @@ public:
         const size_t coset_index, const size_t intra_coset_index, const size_t coset_size) const;
     // TODO: add a check for linear independence
 
+    bool is_standard_basis() const;
     static linear_subspace<FieldT> standard_basis(const std::size_t dimension);
     // TODO: check if the elements are actually linearly independent
     static linear_subspace<FieldT> random_linear_subspace(const std::size_t dimension);
+
+    bool operator==(const linear_subspace<FieldT> &other) const;
+    bool operator!=(const linear_subspace<FieldT> &other) const;
 };
 
 template<typename FieldT>
@@ -49,7 +54,7 @@ protected:
 
 public:
     affine_subspace() = default;
-    affine_subspace(const std::vector<FieldT> &basis, const FieldT &offset);
+    affine_subspace(const std::vector<FieldT> &basis, const FieldT &offset = FieldT(0));
     affine_subspace(const linear_subspace<FieldT> &base_space, const FieldT &offset = FieldT(0));
     affine_subspace(linear_subspace<FieldT> &&base_space, const FieldT &offset = FieldT(0));
 
@@ -58,19 +63,16 @@ public:
     std::vector<FieldT> all_elements() const;
     FieldT element_by_index(const std::size_t index) const;
 
+    bool element_in_subset(const FieldT x) const;
+    FieldT element_outside_of_subset() const;
+
     static affine_subspace<FieldT> shifted_standard_basis(
         const std::size_t dimension,
         const FieldT& offset);
     static affine_subspace<FieldT> random_affine_subspace(const std::size_t dimension);
+
+    bool operator==(const affine_subspace<FieldT> &other) const;
 };
-
-template<typename FieldT>
-linear_subspace<FieldT> standard_basis(const std::size_t dimension);
-
-template<typename FieldT>
-affine_subspace<FieldT> shifted_standard_basis(
-    const std::size_t dimension,
-    const FieldT& offset);
 
 } // namespace libiop
 

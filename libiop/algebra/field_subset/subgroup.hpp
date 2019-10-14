@@ -22,6 +22,7 @@ template<typename FieldT>
 class multiplicative_subgroup_base {
 protected:
     std::shared_ptr<std::vector<FieldT>> elems_;
+    std::shared_ptr<std::vector<FieldT>> fft_cache_;
 
     FieldT g_;
     u_long order_;
@@ -35,8 +36,9 @@ public:
     multiplicative_subgroup_base<FieldT>& operator=(const multiplicative_subgroup_base<FieldT> &other) = default;
     multiplicative_subgroup_base<FieldT>& operator=(multiplicative_subgroup_base<FieldT> &&other) = default;
 
-    multiplicative_subgroup_base(FieldT order); // FIXME: Do we need a basis? Don't think so because we just need the dimension-th roots of unity as a basis for H (?)
-    multiplicative_subgroup_base(std::size_t order);
+    multiplicative_subgroup_base(FieldT order);
+    multiplicative_subgroup_base(size_t order);
+    multiplicative_subgroup_base(size_t order, FieldT generator);
 
     FieldT generator() const;
     u_long order() const; // FIXME: Does it work as u_long? Or should it be a FieldT/bigint?
@@ -45,6 +47,7 @@ public:
     std::size_t num_elements() const;
 
     virtual std::vector<FieldT> all_elements() const = 0;
+    std::shared_ptr<std::vector<FieldT>> fft_cache() const;
     virtual FieldT element_by_index(const std::size_t index) const = 0;
     std::size_t reindex_by_subgroup(const std::size_t reindex_subgroup_dim, const std::size_t index) const;
     std::size_t coset_index(const std::size_t position, const std::size_t coset_size) const;
@@ -54,9 +57,14 @@ public:
 
     libfqfft::basic_radix2_domain<FieldT> FFT_eval_domain() const;
 
+    bool operator==(const multiplicative_subgroup_base<FieldT> &other) const;
+    bool operator!=(const multiplicative_subgroup_base<FieldT> &other) const;
+
 protected:
-    void construct_internal(typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type order);
-    void construct_internal(typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type order);
+    void construct_internal(typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type order,
+        const FieldT generator = FieldT::zero());
+    void construct_internal(typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type order,
+        const FieldT generator = FieldT::zero());
 };
 
 template<typename FieldT>
@@ -82,15 +90,19 @@ public:
     multiplicative_coset(FieldT order);
     multiplicative_coset(std::size_t order);
     multiplicative_coset(FieldT order, FieldT shift);
-    multiplicative_coset(std::size_t order, FieldT shift);
+    multiplicative_coset(size_t order, FieldT shift);
+    multiplicative_coset(size_t order, FieldT shift, FieldT generator);
 
     std::vector<FieldT> all_elements() const;
     FieldT element_by_index(const std::size_t index) const;
 
+    bool element_in_subset(const FieldT x) const;
+    FieldT element_outside_of_subset() const;
+
     FieldT shift() const;
+
+    bool operator==(const multiplicative_coset<FieldT> &other) const;
 };
-
-
 
 }
 

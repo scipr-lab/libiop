@@ -53,30 +53,31 @@ TEST(AdditiveTest, SimpleTest) {
 
 TEST(MultiplicativeSubgroupTest, SimpleTest) {
     edwards_pp::init_public_params();
-
     typedef edwards_Fr FieldT;
 
-    for (size_t m = 1; m <= 11; ++m)
+    for (size_t domain_dim = 1; domain_dim < 10; domain_dim++)
     {
-        std::vector<FieldT> poly_coeffs = elementwise_random_vector<FieldT>(1ull<<m);
-        
-        field_subset<FieldT> domain(1ull<<m);
+        for (size_t poly_dim = 1; poly_dim <= domain_dim; poly_dim++)
+        {
+            std::vector<FieldT> poly_coeffs = elementwise_random_vector<FieldT>(1ull<<domain_dim);
+            field_subset<FieldT> domain(1ull << domain_dim);
 
-        /* Multiplicative equals naive */
-        const std::vector<FieldT> naive_result =
-            naive_FFT<FieldT>(poly_coeffs, domain);
-        const std::vector<FieldT> multiplicative_result =
-            multiplicative_FFT<FieldT>(poly_coeffs, domain.coset());
+            /* Multiplicative equals naive */
+            const std::vector<FieldT> naive_result =
+                naive_FFT<FieldT>(poly_coeffs, domain);
+            const std::vector<FieldT> multiplicative_result =
+                multiplicative_FFT<FieldT>(poly_coeffs, domain.coset());
 
-        EXPECT_EQ(naive_result, multiplicative_result);
+            EXPECT_EQ(naive_result, multiplicative_result);
 
-        /* Inverse interpolates naive */
-        const std::vector<FieldT> new_naive_result =
-            naive_FFT<FieldT>(poly_coeffs, domain);
-        const std::vector<FieldT> interpolation =
-            multiplicative_IFFT<FieldT>(new_naive_result, domain.coset());
+            /* Inverse interpolates naive */
+            const std::vector<FieldT> new_naive_result =
+                naive_FFT<FieldT>(poly_coeffs, domain);
+            const std::vector<FieldT> interpolation =
+                multiplicative_IFFT<FieldT>(new_naive_result, domain.coset());
 
-        EXPECT_EQ(interpolation, poly_coeffs);
+            EXPECT_EQ(interpolation, poly_coeffs);
+        }
     }
 }
 
@@ -89,18 +90,15 @@ TEST(MultiplicativeCosetTest, SimpleTest) {
     {
         std::vector<FieldT> poly_coeffs = elementwise_random_vector<FieldT>(1ull<<m);
         FieldT shift = FieldT::random_element();
-        
+
         field_subset<FieldT> domain = field_subset<FieldT>(
             multiplicative_coset<FieldT>(1ull<<m, shift));
-        field_subset<FieldT> other_domain = field_subset<FieldT>(
-            multiplicative_coset<FieldT>(1ull<<m, shift * 2));
 
         /* Multiplicative equals naive */
         const std::vector<FieldT> naive_result =
             naive_FFT<FieldT>(poly_coeffs, domain);
         const std::vector<FieldT> multiplicative_result =
             multiplicative_FFT<FieldT>(poly_coeffs, domain.coset());
-
         EXPECT_EQ(naive_result, multiplicative_result);
 
         /* Inverse interpolates naive */
@@ -108,7 +106,6 @@ TEST(MultiplicativeCosetTest, SimpleTest) {
             naive_FFT<FieldT>(poly_coeffs, domain);
         const std::vector<FieldT> interpolation =
             multiplicative_IFFT<FieldT>(new_naive_result, domain.coset());
-
         EXPECT_EQ(interpolation, poly_coeffs);
     }
 }

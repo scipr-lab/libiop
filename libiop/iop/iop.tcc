@@ -63,7 +63,8 @@ void iop_protocol<FieldT>::update_rounds_and_direction(const iop_message_directi
 }
 
 template<typename FieldT>
-oracle_handle iop_protocol<FieldT>::register_oracle(const domain_handle &domain, const std::size_t degree, const bool make_zk)
+void iop_protocol<FieldT>::assert_oracle_can_be_registered(
+    const domain_handle &domain, const std::size_t degree)
 {
     if (this->registration_state_ != registration_state_interactive)
     {
@@ -80,15 +81,47 @@ oracle_handle iop_protocol<FieldT>::register_oracle(const domain_handle &domain,
     {
         throw std::invalid_argument("attempting to register oracle whose degree exceeds domain size");
     }
+}
 
+template<typename FieldT>
+oracle_handle iop_protocol<FieldT>::register_oracle(const domain_handle &domain, const std::size_t degree, const bool make_zk)
+{
+    this->assert_oracle_can_be_registered(domain, degree);
     this->update_rounds_and_direction(direction_from_prover);
+    if (this->is_holographic_ && this->num_interaction_rounds_ == 0)
+    {
+        throw std::invalid_argument(
+            "Cannot register non-index oracles in round 0 of a holographic IOP");
+    }
 
     oracle_registration registration(domain, degree, make_zk);
     this->oracle_registrations_.emplace_back(std::move(registration));
     this->oracles_.emplace_back(oracle<FieldT>()); /* prepare an empty slot */
     this->oracles_present_.push_back(false);
+    this->next_oracle_uid_ += 1;
 
-    return oracle_handle(this->oracle_registrations_.size()-1);
+    return oracle_handle(this->oracle_registrations_.size()-1, this->next_oracle_uid_ - 1);
+}
+
+template<typename FieldT>
+oracle_handle iop_protocol<FieldT>::register_index_oracle(const domain_handle &domain, const std::size_t degree)
+{
+    if (this->num_prover_rounds_done_ != 0)
+    {
+        throw std::invalid_argument("index oracles must be created in the 0th round");
+    }
+    this->update_rounds_and_direction(direction_from_prover);
+    this->is_holographic_ = true;
+    const bool make_zk = false;
+    const bool indexed = true;
+
+    oracle_registration registration(domain, degree, make_zk, indexed);
+    this->oracle_registrations_.emplace_back(std::move(registration));
+    this->oracles_.emplace_back(oracle<FieldT>()); /* prepare an empty slot */
+    this->oracles_present_.push_back(false);
+    this->next_oracle_uid_ += 1;
+
+    return oracle_handle(this->oracle_registrations_.size()-1, this->next_oracle_uid_ - 1);
 }
 
 template<typename FieldT>
@@ -99,16 +132,7 @@ virtual_oracle_handle iop_protocol<FieldT>::register_virtual_oracle(
         std::shared_ptr<virtual_oracle<FieldT> > contents,
         const bool cache_evaluated_contents)
 {
-    if (this->registration_state_ != registration_state_interactive)
-    {
-        throw std::logic_error("attempted to register an oracle after "
-                               "interactive registrations sealed");
-    }
-
-    if (domain.id() >= this->domains_.size())
-    {
-        throw std::invalid_argument("domain not registered");
-    }
+    this->assert_oracle_can_be_registered(domain, degree);
 
     virtual_oracle_registration registration(domain,
                                              degree,
@@ -117,8 +141,10 @@ virtual_oracle_handle iop_protocol<FieldT>::register_virtual_oracle(
     this->virtual_oracles_.emplace_back(contents);
     this->virtual_oracle_evaluation_cache_.emplace_back(std::map<std::size_t, FieldT>());
     this->virtual_oracle_should_cache_evaluated_contents_.push_back(cache_evaluated_contents);
+    this->next_oracle_uid_ += 1;
 
-    return virtual_oracle_handle(this->virtual_oracle_registrations_.size()-1);
+    return virtual_oracle_handle(
+        this->virtual_oracle_registrations_.size()-1, this->next_oracle_uid_ - 1);
 }
 
 template<typename FieldT>
@@ -269,7 +295,7 @@ const oracle<FieldT>& iop_protocol<FieldT>::submit_oracle(const oracle_handle &h
     }
 
     if (this->domains_[this->oracle_registrations_[handle.id()].domain().id()].num_elements() !=
-        contents.evaluated_contents().size())
+        contents.evaluated_contents()->size())
     {
         throw std::invalid_argument("oracle evaluations don't match the domain size");
     }
@@ -278,6 +304,40 @@ const oracle<FieldT>& iop_protocol<FieldT>::submit_oracle(const oracle_handle &h
     this->oracles_present_[handle.id()] = true;
 
     return (this->oracles_[handle.id()]);
+}
+
+template<typename FieldT>
+void iop_protocol<FieldT>::submit_prover_index(iop_prover_index<FieldT> &index)
+{
+    if (this->num_prover_rounds_done_ != 0)
+    {
+        throw std::invalid_argument("The IOP prover index should only be for round 0");
+    }
+    const std::size_t oracle_id_begin = 0;
+    const std::size_t oracle_id_end = this->num_oracles_at_end_of_round_[0];
+    if (index.all_oracle_evals_.size() != oracle_id_end - oracle_id_begin)
+    {
+        printf("Got: %lu\nExpected: %lu\n",
+            index.all_oracle_evals_.size(), oracle_id_end - oracle_id_begin);
+        throw std::invalid_argument("The IOP prover index provided the wrong number of evaluations");
+    }
+
+    for (size_t i = oracle_id_begin; i < oracle_id_end; i++)
+    {
+        oracle_handle ith_handle(i);
+        this->submit_oracle(ith_handle, oracle<FieldT>(std::move(index.all_oracle_evals_[i])));
+        std::vector<FieldT>().swap(index.all_oracle_evals_[i]);
+    }
+
+    const size_t prover_message_id_begin = 0;
+    const size_t prover_message_id_end = this->num_prover_messages_at_end_of_round_[0];
+    for (size_t i = prover_message_id_begin; i < prover_message_id_end; i++)
+    {
+        prover_message_handle ith_handle(i);
+        std::vector<FieldT> prover_message = index.prover_messages_[i];
+        this->submit_prover_message(ith_handle, std::move(prover_message));
+    }
+    this->signal_index_submissions_done();
 }
 
 template<typename FieldT>
@@ -312,6 +372,23 @@ void iop_protocol<FieldT>::submit_prover_message(const prover_message_handle &ha
 
     this->prover_messages_[handle.id()] = contents;
     this->prover_messages_present_[handle.id()] = true;
+}
+
+template<typename FieldT>
+void iop_protocol<FieldT>::signal_index_registrations_done()
+{
+    if (!this->is_holographic_ || this->num_interaction_rounds_ != 0)
+    {
+        throw std::invalid_argument("Should only be used to end round 0 of a holographic IOP");
+    }
+    this->update_rounds_and_direction(direction_from_verifier);
+    assert(this->num_interaction_rounds_ == 1);
+}
+
+template<typename FieldT>
+void iop_protocol<FieldT>::signal_index_submissions_done()
+{
+    this->signal_prover_round_done();
 }
 
 template<typename FieldT>
@@ -551,7 +628,7 @@ domain_handle iop_protocol<FieldT>::get_oracle_domain(const oracle_handle_ptr &h
 }
 
 template<typename FieldT>
-std::vector<FieldT> iop_protocol<FieldT>::get_oracle_evaluations(const oracle_handle_ptr &handle)
+std::shared_ptr<std::vector<FieldT>> iop_protocol<FieldT>::get_oracle_evaluations(const oracle_handle_ptr &handle)
 {
     if (std::dynamic_pointer_cast<oracle_handle>(handle))
     {
@@ -559,6 +636,7 @@ std::vector<FieldT> iop_protocol<FieldT>::get_oracle_evaluations(const oracle_ha
     }
     else if (std::dynamic_pointer_cast<virtual_oracle_handle>(handle))
     {
+        /** If virtual oracle has caching enabled, and is cached, use the cache. */
         if (this->virtual_oracle_should_cache_evaluated_contents_[handle->id()] &&
             this->virtual_oracle_evaluated_contents_cache_.count(handle->id()) == 1)
         {
@@ -567,13 +645,13 @@ std::vector<FieldT> iop_protocol<FieldT>::get_oracle_evaluations(const oracle_ha
         const virtual_oracle_registration& reg =
             this->virtual_oracle_registrations_[handle->id()];
 
-        std::vector<std::vector<FieldT> > constituent_evaluations;
+        std::vector<std::shared_ptr<std::vector<FieldT>> > constituent_evaluations;
         for (auto &constituent_handle : reg.constituent_oracles())
         {
             constituent_evaluations.emplace_back(this->get_oracle_evaluations(constituent_handle));
         }
 
-        const std::vector<FieldT> result = this->virtual_oracles_[handle->id()]->evaluated_contents(constituent_evaluations);
+        const std::shared_ptr<std::vector<FieldT>> result = this->virtual_oracles_[handle->id()]->evaluated_contents(constituent_evaluations);
 
         if (this->virtual_oracle_should_cache_evaluated_contents_[handle->id()])
         {
@@ -606,7 +684,7 @@ FieldT iop_protocol<FieldT>::get_oracle_evaluation_at_point(const oracle_handle_
             this->oracle_id_to_query_positions_[handle->id()].insert(evaluation_position);
         }
 
-        return this->oracles_[handle->id()].evaluated_contents()[evaluation_position];
+        return this->oracles_[handle->id()].evaluated_contents()->operator[](evaluation_position);
     }
     else if (std::dynamic_pointer_cast<virtual_oracle_handle>(handle))
     {

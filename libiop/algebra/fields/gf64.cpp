@@ -28,6 +28,11 @@ gf64::gf64(const uint64_t value) : value_(value)
 {
 }
 
+std::vector<uint64_t> gf64::as_words() const
+{
+    return std::vector<uint64_t>({this->value_});
+}
+
 gf64& gf64::operator+=(const gf64 &other)
 {
     this->value_ ^= other.value_;
@@ -202,11 +207,6 @@ bool gf64::operator==(const gf64 &other) const
 bool gf64::operator!=(const gf64 &other) const
 {
     return !(this->operator==(other));
-}
-
-uint64_t gf64::value() const
-{
-    return (this->value_);
 }
 
 void gf64::print() const

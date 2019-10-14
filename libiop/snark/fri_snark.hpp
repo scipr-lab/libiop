@@ -12,9 +12,9 @@ for profiling FRI).
 #include <cstddef>
 #include <iostream>
 
-#include "libiop/snark/common/bcs16_common.hpp"
-#include "libiop/snark/common/bcs16_prover.hpp"
-#include "libiop/snark/common/bcs16_verifier.hpp"
+#include "libiop/snark/common/bcs_common.hpp"
+#include "libiop/snark/common/bcs_prover.hpp"
+#include "libiop/snark/common/bcs_verifier.hpp"
 
 namespace libiop {
 
@@ -36,17 +36,19 @@ struct FRI_snark_parameters {
 };
 
 template<typename FieldT>
-using FRI_snark_proof = bcs16_transformation_transcript<FieldT>;
+using FRI_snark_proof = bcs_transformation_transcript<FieldT>;
 
 template<typename FieldT>
-FRI_snark_proof<FieldT> FRI_snark_prover(const oracle_handle_ptr &poly_handle,
-                                         const FRI_snark_parameters<FieldT> &parameters);
+void FRI_snark_print_detailed_argument_size(
+    FRI_snark_parameters<FieldT> params,
+    FRI_snark_proof<FieldT> argument);
 
 template<typename FieldT>
-bool FRI_snark_verifier(const oracle_handle_ptr &poly_handle,
-                        const FRI_snark_proof<FieldT> &proof,
+FRI_snark_proof<FieldT> FRI_snark_prover(const FRI_snark_parameters<FieldT> &parameters);
+
+template<typename FieldT>
+bool FRI_snark_verifier(const FRI_snark_proof<FieldT> &proof,
                         const FRI_snark_parameters<FieldT> &parameters);
-
 
 } // namespace libiop
 

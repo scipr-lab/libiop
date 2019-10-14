@@ -25,8 +25,8 @@ protected:
     std::size_t num_oracles_;
 public:
     dummy_oracle(const std::size_t num_oracles);
-    virtual std::vector<FieldT> evaluated_contents(
-        const std::vector<std::vector<FieldT> > &constituent_oracle_evaluations) const;
+    virtual std::shared_ptr<std::vector<FieldT>> evaluated_contents(
+        const std::vector<std::shared_ptr<std::vector<FieldT>>> &constituent_oracle_evaluations) const;
     virtual FieldT evaluation_at_point(
         const std::size_t evaluation_position,
         const FieldT evaluation_point,

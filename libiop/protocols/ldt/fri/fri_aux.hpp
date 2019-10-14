@@ -21,8 +21,8 @@
 namespace libiop {
 
 template<typename FieldT>
-std::vector<FieldT> evaluate_next_f_i_over_entire_domain(
-    const std::vector<FieldT> &f_i_evals,
+std::shared_ptr<std::vector<FieldT>> evaluate_next_f_i_over_entire_domain(
+    const std::shared_ptr<std::vector<FieldT>> &f_i_evals,
     const field_subset<FieldT> &f_i_domain,
     const size_t coset_size,
     const FieldT x_i);
@@ -59,6 +59,10 @@ std::vector<query_position_handle> calculate_next_coset_query_positions(
     const field_subset<FieldT> &localized_domain,
     const size_t prev_localization_parameter,
     const size_t cur_localization_parameter);
+
+/* return all partitions of this number (that is, all possible FRI localization parameter vectors
+   for log2(tested degree)) */
+std::vector<std::vector<size_t>> all_localization_vectors(size_t dimension_to_reduce);
 
 } // namespace libiop
 

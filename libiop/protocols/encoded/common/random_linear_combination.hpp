@@ -14,9 +14,7 @@ Virtual oracle for random linear combinations of other oracles
 #include <memory>
 #include <vector>
 
-#include "libiop/relations/sparse_matrix.hpp"
 #include "libiop/algebra/lagrange.hpp"
-
 
 namespace libiop {
 
@@ -28,8 +26,8 @@ protected:
 public:
     random_linear_combination_oracle(const std::size_t num_oracles);
     void set_random_coefficients(const std::vector<FieldT>& random_coefficients);
-    virtual std::vector<FieldT> evaluated_contents(
-        const std::vector<std::vector<FieldT> > &constituent_oracle_evaluations) const;
+    virtual std::shared_ptr<std::vector<FieldT>> evaluated_contents(
+        const std::vector<std::shared_ptr<std::vector<FieldT>>> &constituent_oracle_evaluations) const;
     virtual FieldT evaluation_at_point(
         const std::size_t evaluation_position,
         const FieldT evaluation_point,

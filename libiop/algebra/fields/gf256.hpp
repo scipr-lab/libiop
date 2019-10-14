@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 
 namespace libiop {
 
@@ -28,6 +29,8 @@ public:
     explicit gf256(const uint64_t value_low);
     explicit gf256(const uint64_t value_high, const uint64_t value_midh,
                    const uint64_t value_midl, const uint64_t value_low);
+    /** Returns the constituent bits in 64 bit words, in little-endian order */
+    std::vector<uint64_t> as_words() const;
 
     gf256& operator+=(const gf256 &other);
     gf256& operator-=(const gf256 &other);

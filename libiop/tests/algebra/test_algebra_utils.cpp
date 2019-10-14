@@ -36,8 +36,8 @@ TEST(MultiplicativeBatchInverseTest, SimpleTest) {
     typedef libff::alt_bn128_Fr FieldT;
 
     const std::size_t sz = 100;
-    const std::vector<FieldT> vec = random_vector<FieldT>(sz);
-    const std::vector<FieldT> vec_inv = batch_inverse<FieldT>(vec);
+    std::vector<FieldT> vec = random_vector<FieldT>(sz);
+    std::vector<FieldT> vec_inv = batch_inverse<FieldT>(vec);
 
     for (std::size_t i = 0; i < sz; ++i)
     {
@@ -50,6 +50,15 @@ TEST(MultiplicativeBatchInverseTest, SimpleTest) {
     for (std::size_t i = 0; i < sz; ++i)
     {
         EXPECT_TRUE(vec[i] * vec_inv2[i] == FieldT(1));
+    }
+
+    vec[0] = FieldT::zero();
+    const bool input_can_contain_zeroes = true;
+    vec_inv = batch_inverse<FieldT>(vec, input_can_contain_zeroes);
+    ASSERT_TRUE(vec_inv[0] == FieldT::zero());
+    for (std::size_t i = 1; i < sz; ++i)
+    {
+        EXPECT_TRUE(vec[i] * vec_inv[i] == FieldT(1));
     }
 }
 

@@ -2,6 +2,10 @@
 #include <cstdint>
 #include <iostream>
 
+#ifndef NDEBUG
+#include <gmp.h>
+#endif // NDEBUG
+
 #include "libiop/common/common.hpp"
 
 namespace libiop {
@@ -13,37 +17,66 @@ multiplicative_subgroup_base<FieldT>::multiplicative_subgroup_base(FieldT order)
 }
 
 template<typename FieldT>
-multiplicative_subgroup_base<FieldT>::multiplicative_subgroup_base(std::size_t order)
+multiplicative_subgroup_base<FieldT>::multiplicative_subgroup_base(size_t order)
 {
     FieldT f(order);
     this->construct_internal(f);
 }
 
 template<typename FieldT>
-void multiplicative_subgroup_base<FieldT>::construct_internal(typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type order)
+multiplicative_subgroup_base<FieldT>::multiplicative_subgroup_base(size_t order, FieldT generator)
+{
+    FieldT f(order);
+    this->construct_internal(f, generator);
+}
+
+template<typename FieldT>
+void multiplicative_subgroup_base<FieldT>::construct_internal(
+    typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type order, const FieldT generator)
 {
     FieldT F_order = FieldT(FieldT::mod) - 1;
-
-    size_t order_as_size_t = order.as_bigint().data[0];
-    if(!is_power_of_2(order_as_size_t))
+    // In debug mode, check that subgroup order divides the order of the field.
+#ifndef NDEBUG
+    mpz_t F_order_as_mpz;
+    mpz_t subgroup_order_as_mpz;
+    mpz_init(F_order_as_mpz);
+    mpz_init(subgroup_order_as_mpz);
+    F_order.as_bigint().to_mpz(F_order_as_mpz);
+    order.as_bigint().to_mpz(subgroup_order_as_mpz);
+    mpz_mod(subgroup_order_as_mpz, F_order_as_mpz, subgroup_order_as_mpz);
+    if (mpz_sgn(subgroup_order_as_mpz) != 0)
     {
-        // TODO: Support creating subgroups of other orders dividing the field size.
         throw std::invalid_argument("The order of the subgroup must be a power of two.");
     }
+    mpz_clear(F_order_as_mpz);
+    mpz_clear(subgroup_order_as_mpz);
+#endif // NDEBUG
 
-    this->g_ = (FieldT::multiplicative_generator)^((F_order * order.inverse()).as_bigint());
+    /** default argument */
+    if (generator == FieldT::zero())
+    {
+        this->g_ = (FieldT::multiplicative_generator)^((F_order * order.inverse()).as_bigint());
+    }
+    else
+    {
+        this->g_ = generator;
+        assert(libiop::power(generator, order.as_ulong()) == FieldT::one());
+    }
+
 
     this->elems_ = std::make_shared<std::vector<FieldT> >();
+    this->fft_cache_ = std::make_shared<std::vector<FieldT> >();
     this->order_ = order.as_ulong();
 
-    if (is_power_of_2(this->order_))
+    if (is_power_of_2(this->order_) && this->order_ > 1)
     {
         this->FFT_eval_domain_ = std::make_shared<libfqfft::basic_radix2_domain<FieldT>>(this->order_);
     }
 }
 
 template<typename FieldT>
-void multiplicative_subgroup_base<FieldT>::construct_internal(typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type order)
+void multiplicative_subgroup_base<FieldT>::construct_internal(
+    typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type order, const FieldT generator)
 {
     throw std::invalid_argument("cannot create multiplicative subgroup of this field type");
 }
@@ -76,6 +109,38 @@ template<typename FieldT>
 std::size_t multiplicative_subgroup_base<FieldT>::num_elements() const
 {
     return (std::size_t) this->order_;
+}
+
+
+/** The FFT cache is the set of elements within the field organized in a
+ *  a cache friendly way, for the multiplicative FFT access pattern. */
+template<typename FieldT>
+std::shared_ptr<std::vector<FieldT>> multiplicative_subgroup_base<FieldT>::fft_cache() const
+{
+    if (this->fft_cache_->empty()) {
+        /** The elements placed in the cache are all the unique powers
+         *  of g^m,
+         *  for m in the set {order / 2, order / 4, order / 8 ... }
+         *  This totals to order - 1 elements.        */
+        std::vector<FieldT> elems;
+        elems.reserve(this->order_);
+        size_t m = 1; // invariant: m = 2^{s-1}
+        for (size_t s = 1; s <= this->dimension(); ++s)
+        {
+            // w_m is 2^s-th root of unity now
+            const FieldT w_m = libiop::power(this->g_, (this->order_/(2*m)));
+
+            FieldT w = FieldT::one();
+            for (size_t j = 0; j < m; ++j)
+            {
+                elems.emplace_back(w);
+                w *= w_m;
+            }
+            m *= 2;
+        }
+        this->fft_cache_->swap(elems);
+    }
+    return this->fft_cache_;
 }
 
 /** Given an index which assumes the first elements of this subgroup are the elements of
@@ -139,6 +204,18 @@ libfqfft::basic_radix2_domain<FieldT> multiplicative_subgroup_base<FieldT>::FFT_
 }
 
 template<typename FieldT>
+bool multiplicative_subgroup_base<FieldT>::operator==(const multiplicative_subgroup_base<FieldT> &other) const
+{
+    return this->g_ == other->g_ && this->order_ == other->order_;
+}
+
+template<typename FieldT>
+bool multiplicative_subgroup_base<FieldT>::operator!=(const multiplicative_subgroup_base<FieldT> &other) const
+{
+    return !(this->operator==(other));
+}
+
+template<typename FieldT>
 std::vector<FieldT> multiplicative_subgroup<FieldT>::all_elements() const
 {
     if (this->elems_->empty()) {
@@ -173,7 +250,7 @@ multiplicative_coset<FieldT>::multiplicative_coset(FieldT order)
 }
 
 template<typename FieldT>
-multiplicative_coset<FieldT>::multiplicative_coset(std::size_t order) :
+multiplicative_coset<FieldT>::multiplicative_coset(size_t order) :
     multiplicative_coset<FieldT>(FieldT(order))
 {
 }
@@ -187,9 +264,16 @@ multiplicative_coset<FieldT>::multiplicative_coset(FieldT order, FieldT shift)
 }
 
 template<typename FieldT>
-multiplicative_coset<FieldT>::multiplicative_coset(std::size_t order, FieldT shift) :
+multiplicative_coset<FieldT>::multiplicative_coset(size_t order, FieldT shift) :
     multiplicative_coset<FieldT>(FieldT(order), shift)
 {
+}
+
+template<typename FieldT>
+multiplicative_coset<FieldT>::multiplicative_coset(size_t order, FieldT shift, FieldT generator)
+{
+    this->construct_internal(FieldT(order), generator);
+    this->shift_ = shift;
 }
 
 template<typename FieldT>
@@ -218,11 +302,28 @@ FieldT multiplicative_coset<FieldT>::element_by_index(const std::size_t index) c
     }
 }
 
+template<typename FieldT>
+bool multiplicative_coset<FieldT>::element_in_subset(const FieldT x) const
+{
+    return libiop::power(x, this->num_elements()) == libiop::power(this->shift_, this->num_elements());
+}
+
+template<typename FieldT>
+FieldT multiplicative_coset<FieldT>::element_outside_of_subset() const
+{
+    return this->shift_ * FieldT::multiplicative_generator;
+}
 
 template<typename FieldT>
 FieldT multiplicative_coset<FieldT>::shift() const
 {
     return this->shift_;
+}
+
+template<typename FieldT>
+bool multiplicative_coset<FieldT>::operator==(const multiplicative_coset<FieldT> &other) const
+{
+    return multiplicative_subgroup_base<FieldT>::operator==(other) && this->shift_ == other->shift_;
 }
 
 }

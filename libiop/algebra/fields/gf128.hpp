@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 
 namespace libiop {
 
@@ -26,6 +27,8 @@ public:
        be able to do gf128(0) and gf128(1). */
     explicit gf128(const uint64_t value_low);
     explicit gf128(const uint64_t value_high, const uint64_t value_low);
+    /** Returns the constituent bits in 64 bit words, in little-endian order */
+    std::vector<uint64_t> as_words() const;
 
     gf128& operator+=(const gf128 &other);
     gf128& operator-=(const gf128 &other);

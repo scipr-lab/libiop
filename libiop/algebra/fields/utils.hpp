@@ -62,7 +62,7 @@ enum field_type {
 
 template<bool B, class T = void>
 struct enable_if { typedef void* type; };
- 
+
 template<class T>
 struct enable_if<true, T> { typedef T type; };
 
@@ -70,7 +70,6 @@ template<typename FieldT>
 field_type get_field_type(const typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type elem)
 {
     libiop::UNUSED(elem); // only to identify field type
-
     return multiplicative_field_type;
 }
 
@@ -78,7 +77,6 @@ template<typename FieldT>
 field_type get_field_type(const typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type elem)
 {
     libiop::UNUSED(elem); // only to identify field type
-    
     return additive_field_type;
 }
 
@@ -104,7 +102,7 @@ std::size_t soundness_log_of_field_size_helper(
      *  However there isn't perfect alignment between the number of bits and the number of field elements,
      *  there could be a factor of two difference.
      *  For calculating soundness, we use the log of field size as number of bits - 1,
-     *  as 2 << returned size lower bounds the actual size.
+     *  as (2 << returned) size lower bounds the actual size.
     */
     return FieldT::size_in_bits() - 1;
 }

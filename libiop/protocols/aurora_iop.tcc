@@ -65,6 +65,7 @@ void aurora_iop_parameters<FieldT>::set_ldt_parameters(std::vector<size_t> local
             this->summation_domain_dim_,
             this->query_bound_,
             this->make_zk_,
+            false,
             this->domain_type_);
         const size_t max_tested_degree_bound =
             this->encoded_aurora_params_.max_tested_degree_bound();
@@ -109,6 +110,7 @@ void aurora_iop_parameters<FieldT>::set_ldt_parameters(std::vector<size_t> local
                 this->summation_domain_dim_,
                 query_bound,
                 this->make_zk_,
+                false,
                 this->domain_type_);
             const size_t max_tested_degree_bound = this->encoded_aurora_params_.max_tested_degree_bound();
             const size_t max_constraint_degree_bound = this->encoded_aurora_params_.max_constraint_degree_bound();
@@ -178,10 +180,12 @@ size_t aurora_iop_parameters<FieldT>::query_bound() const {
 }
 
 template<typename FieldT>
-size_t aurora_iop_parameters<FieldT>::locality() const {
-    size_t encoded_aurora_locality = this->encoded_aurora_params_.locality();
+std::vector<size_t> aurora_iop_parameters<FieldT>::locality_vector() const {
+    std::vector<size_t> protocol_locality = this->encoded_aurora_params_.locality_vector();
     size_t ldt_reducer_locality = this->LDT_reducer_params_.locality();
-    return encoded_aurora_locality + ldt_reducer_locality;
+    const size_t zk_round_index = 0;
+    protocol_locality[zk_round_index] += ldt_reducer_locality;
+    return protocol_locality;
 }
 
 template<typename FieldT>
@@ -252,12 +256,16 @@ aurora_iop<FieldT>::aurora_iop(iop_protocol<FieldT> &IOP,
     const domain_handle variable_domain_handle = IOP.register_domain(variable_domain);
     this->codeword_domain_handle_ = IOP.register_domain(codeword_domain);
 
-    this->protocol_ = std::make_shared<encoded_aurora_protocol<FieldT> >(this->IOP_,
-                                                               constraint_domain_handle,
-                                                               variable_domain_handle,
-                                                               this->codeword_domain_handle_,
-                                                               constraint_system,
-                                                               parameters.encoded_aurora_params_);
+    std::shared_ptr<r1cs_constraint_system<FieldT> > cs =
+            std::make_shared<r1cs_constraint_system<FieldT> >(constraint_system);
+
+    this->protocol_ = std::make_shared<encoded_aurora_protocol<FieldT> >(
+        this->IOP_,
+        constraint_domain_handle,
+        variable_domain_handle,
+        this->codeword_domain_handle_,
+        cs,
+        parameters.encoded_aurora_params_);
     this->LDT_reducer_ = std::make_shared<LDT_instance_reducer<FieldT, FRI_protocol<FieldT> > >(
         this->IOP_,
         this->codeword_domain_handle_,
@@ -291,7 +299,7 @@ void aurora_iop<FieldT>::register_queries()
 
 template<typename FieldT>
 void aurora_iop<FieldT>::produce_proof(const r1cs_primary_input<FieldT> &primary_input,
-                                              const r1cs_auxiliary_input<FieldT> &auxiliary_input)
+                                       const r1cs_auxiliary_input<FieldT> &auxiliary_input)
 {
     this->protocol_->submit_witness_oracles(primary_input, auxiliary_input);
     this->LDT_reducer_->submit_masking_polynomial();

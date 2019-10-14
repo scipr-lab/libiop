@@ -1,7 +1,7 @@
 #include "libiop/algebra/field_subset/subspace.hpp"
 #include "libiop/common/common.hpp"
 #include "libiop/common/profiling.hpp"
-#include "libiop/snark/common/bcs16_common.hpp"
+#include "libiop/snark/common/bcs_common.hpp"
 
 namespace libiop {
 
@@ -17,10 +17,10 @@ void ligero_snark_parameters<FieldT>::describe()
 }
 
 template<typename FieldT>
-bcs16_transformation_parameters<FieldT> obtain_bcs_parameters_from_ligero_snark_params(
+bcs_transformation_parameters<FieldT> obtain_bcs_parameters_from_ligero_snark_params(
     const ligero_snark_parameters<FieldT> &parameters)
 {
-    bcs16_transformation_parameters<FieldT> bcs_parameters;
+    bcs_transformation_parameters<FieldT> bcs_parameters;
     bcs_parameters.security_parameter = parameters.security_level_;
     bcs_parameters.field_hasher = blake2b_field_element_hash<FieldT>;
     bcs_parameters.zk_hasher = blake2b_zk_element_hash;
@@ -56,7 +56,7 @@ ligero_snark_argument<FieldT> ligero_snark_prover(const r1cs_constraint_system<F
                                                   const ligero_snark_parameters<FieldT> &parameters)
 {
     enter_block("Ligero SNARK prover");
-    const bcs16_transformation_parameters<FieldT> bcs_params =
+    const bcs_transformation_parameters<FieldT> bcs_params =
         obtain_bcs_parameters_from_ligero_snark_params(parameters);
     const ligero_iop_parameters<FieldT> iop_params =
         obtain_iop_parameters_from_ligero_snark_params<FieldT>(
@@ -64,7 +64,7 @@ ligero_snark_argument<FieldT> ligero_snark_prover(const r1cs_constraint_system<F
             constraint_system.num_constraints(),
             constraint_system.num_variables());
 
-    bcs16_prover<FieldT> IOP(bcs_params);
+    bcs_prover<FieldT> IOP(bcs_params);
     ligero_iop<FieldT> full_protocol(IOP,
                                      constraint_system,
                                      iop_params);
@@ -92,7 +92,7 @@ bool ligero_snark_verifier(const r1cs_constraint_system<FieldT> &constraint_syst
                                      const ligero_snark_parameters<FieldT> &parameters)
 {
     enter_block("Ligero SNARK verifier");
-    const bcs16_transformation_parameters<FieldT> bcs_params =
+    const bcs_transformation_parameters<FieldT> bcs_params =
         obtain_bcs_parameters_from_ligero_snark_params(parameters);
     const ligero_iop_parameters<FieldT> iop_params =
         obtain_iop_parameters_from_ligero_snark_params<FieldT>(
@@ -100,7 +100,7 @@ bool ligero_snark_verifier(const r1cs_constraint_system<FieldT> &constraint_syst
             constraint_system.num_constraints(),
             constraint_system.num_variables());
 
-    bcs16_verifier<FieldT> IOP(bcs_params, proof);
+    bcs_verifier<FieldT> IOP(bcs_params, proof);
 
     ligero_iop<FieldT> full_protocol(IOP,
                                      constraint_system,

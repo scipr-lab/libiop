@@ -103,14 +103,14 @@ TEST(CacheTest, LagrangeTest) {
     typedef gf64 FieldT;
 
     const std::size_t dim = 17;
-    const affine_subspace<FieldT> domain =
-        affine_subspace<FieldT>::random_affine_subspace(dim);
+    const field_subset<FieldT> domain(
+        affine_subspace<FieldT>::random_affine_subspace(dim));
     lagrange_cache<FieldT> L_cache(domain, true);
 
     const std::size_t poly_deg = 1ull<<dim;
     const polynomial<FieldT> poly = polynomial<FieldT>::random_polynomial(poly_deg);
 
-    const std::vector<FieldT> poly_evals = poly.evaluations_over_subspace(domain);
+    const std::vector<FieldT> poly_evals = poly.evaluations_over_field_subset(domain);
 
     const FieldT point = FieldT::random_element();
     const FieldT evaluation = poly.evaluation_at_point(point);

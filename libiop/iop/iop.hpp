@@ -102,12 +102,15 @@ public:
 class oracle_handle_base {
 protected:
     std::size_t id_;
+    size_t uid_;
 
 public:
-    explicit oracle_handle_base() : id_(0) {}
-    explicit oracle_handle_base(const std::size_t id) : id_(id) {}
+    explicit oracle_handle_base() : id_(0), uid_(0) {}
+    explicit oracle_handle_base(const std::size_t id) : id_(id), uid_(0) {}
+    explicit oracle_handle_base(const size_t id, const size_t uid) : id_(id), uid_(uid) {}
     oracle_handle_base(const oracle_handle_base &other) = default;
     std::size_t id() const { return this->id_; }
+    std::size_t uid() const { return this->uid_; }
 
     virtual ~oracle_handle_base() {}
 };
@@ -116,6 +119,8 @@ class oracle_handle : public oracle_handle_base {
 public:
     explicit oracle_handle() = default;
     explicit oracle_handle(const std::size_t id) : oracle_handle_base(id) {}
+    explicit oracle_handle(const std::size_t id, const std::size_t uid) :
+        oracle_handle_base(id, uid) {}
 
     ~oracle_handle() = default;
 };
@@ -124,6 +129,8 @@ class virtual_oracle_handle : public oracle_handle_base {
 public:
     explicit virtual_oracle_handle() = default;
     explicit virtual_oracle_handle(const std::size_t id) : oracle_handle_base(id) {}
+    explicit virtual_oracle_handle(const std::size_t id, const std::size_t uid) :
+        oracle_handle_base(id, uid) {}
 
     ~virtual_oracle_handle() = default;
 };
@@ -144,17 +151,30 @@ protected:
     domain_handle domain_;
     std::size_t degree_;
     bool make_zk_;
+    /** Indicates if this oracle should be pre-processed.
+     *  If so, its commitment should not appear in the transcript,
+     *  as the verifier knows it. */
+    bool indexed_;
 public:
     explicit oracle_registration(const domain_handle &domain,
                                  const std::size_t degree,
                                  const bool make_zk) :
-        domain_(domain), degree_(degree), make_zk_(make_zk)
+        domain_(domain), degree_(degree), make_zk_(make_zk), indexed_(false)
+    {
+    }
+
+    explicit oracle_registration(const domain_handle &domain,
+                                 const std::size_t degree,
+                                 const bool make_zk,
+                                 const bool indexed) :
+        domain_(domain), degree_(degree), make_zk_(make_zk), indexed_(indexed)
     {
     }
 
     domain_handle domain() const { return this->domain_; }
     std::size_t degree() const { return this->degree_; }
     bool make_zk() const { return this->make_zk_; }
+    bool indexed() const { return this->indexed_; }
 };
 
 class virtual_oracle_registration {
@@ -261,6 +281,16 @@ public:
         quotient_map_type_(query_coset_domain.type()) {};
 };
 
+/** The IOP prover index contains the evaluations for all of the index oracles.
+ *  The evaluations are in the order in which the oracles were registered.
+*/
+template<typename FieldT>
+struct iop_prover_index
+{
+    std::vector<std::vector<FieldT>> all_oracle_evals_;
+    std::vector<std::vector<FieldT>> prover_messages_;
+};
+
 /* IOP protocol */
 enum iop_message_direction {
     direction_from_verifier = 1,
@@ -287,23 +317,27 @@ template<typename FieldT>
 class iop_protocol {
 protected:
     std::vector<field_subset<FieldT>> domains_;
+
     std::vector<oracle_registration> oracle_registrations_;
     std::vector<virtual_oracle_registration> virtual_oracle_registrations_;
+    std::size_t next_oracle_uid_ = 1;
     std::vector<prover_message_registration> prover_message_registrations_;
     std::vector<verifier_random_message_registration> verifier_random_message_registrations_;
     std::vector<random_query_position_registration> random_query_position_registrations_;
     std::vector<deterministic_query_position_registration> deterministic_query_position_registrations_;
     std::vector<query_registration> query_registrations_;
+
     std::vector<std::map<std::size_t, FieldT> > virtual_oracle_evaluation_cache_;
     std::vector<bool> virtual_oracle_should_cache_evaluated_contents_; // TODO: Is there a better name for this
 
     std::map<std::size_t, std::size_t> random_query_positions_;
     std::map<std::size_t, std::size_t> deterministic_query_positions_;
+
     std::map<std::size_t, FieldT> query_responses_;
     std::map<std::size_t, std::vector<FieldT> > verifier_random_messages_;
     /* This cache doesn't clear since it is used within the multi_ldt,
      * which is at the end of the protocols */
-    std::map<std::size_t, std::vector<FieldT> > virtual_oracle_evaluated_contents_cache_;
+    std::map<std::size_t, std::shared_ptr<std::vector<FieldT>> > virtual_oracle_evaluated_contents_cache_;
 
     /* just like in the IOP paper the verifier goes first */
     iop_message_direction message_direction_ = direction_from_verifier;
@@ -324,6 +358,10 @@ protected:
     std::vector<bool> oracles_present_;
     std::vector<bool> prover_messages_present_;
     std::size_t num_prover_rounds_done_ = 0;
+    bool is_holographic_ = false;
+
+    void assert_oracle_can_be_registered(
+        const domain_handle &domain, const std::size_t degree);
 public:
     iop_protocol() = default;
 
@@ -334,6 +372,8 @@ public:
     oracle_handle register_oracle(const domain_handle &domain,
                                   const std::size_t degree,
                                   const bool make_zk);
+    oracle_handle register_index_oracle(const domain_handle &domain,
+                                        const std::size_t degree);
     virtual_oracle_handle register_virtual_oracle(
         const domain_handle &domain,
         const std::size_t degree,
@@ -352,11 +392,14 @@ public:
                                 const query_position_handle &query_position);
 
     virtual void seal_interaction_registrations();
-    void seal_query_registrations();
+    virtual void seal_query_registrations();
 
     const oracle<FieldT>& submit_oracle(const oracle_handle_ptr &handle, oracle<FieldT> &&contents);
     const oracle<FieldT>& submit_oracle(const oracle_handle &handle, oracle<FieldT> &&contents);
     void submit_prover_message(const prover_message_handle &handle, std::vector<FieldT> &&contents);
+    void submit_prover_index(iop_prover_index<FieldT> &index);
+    void signal_index_registrations_done();
+    virtual void signal_index_submissions_done();
     virtual void signal_prover_round_done();
 
     virtual std::vector<FieldT> obtain_verifier_random_message(const verifier_random_message_handle &random_message);
@@ -373,7 +416,7 @@ public:
 
     std::size_t get_oracle_degree(const oracle_handle_ptr &handle) const;
     domain_handle get_oracle_domain(const oracle_handle_ptr &handle) const;
-    std::vector<FieldT> get_oracle_evaluations(const oracle_handle_ptr &handle);
+    std::shared_ptr<std::vector<FieldT>> get_oracle_evaluations(const oracle_handle_ptr &handle);
     virtual FieldT get_oracle_evaluation_at_point(
         const oracle_handle_ptr &handle,
         const std::size_t evaluation_position,

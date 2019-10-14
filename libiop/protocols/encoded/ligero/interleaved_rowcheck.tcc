@@ -166,13 +166,13 @@ void interleaved_rowcheck_protocol<FieldT>::calculate_and_submit_responses()
         /** Build the response polynomial's evaluations row by row. */
         for (size_t i = 0; i < this->num_oracles_; ++i)
         {
-            const std::vector<FieldT> p_x_row_evaluations =
+            const std::shared_ptr<std::vector<FieldT>> p_x_row_evaluations =
                 this->IOP_.get_oracle_evaluations(this->x_vector_row_oracle_handles_[i]);
 
-            const std::vector<FieldT> p_y_row_evaluations =
+            const std::shared_ptr<std::vector<FieldT>> p_y_row_evaluations =
                 this->IOP_.get_oracle_evaluations(this->y_vector_row_oracle_handles_[i]);
 
-            const std::vector<FieldT> p_z_row_evaluations =
+            const std::shared_ptr<std::vector<FieldT>> p_z_row_evaluations =
                 this->IOP_.get_oracle_evaluations(this->z_vector_row_oracle_handles_[i]);
 
             /** For each column, add to that column's corresponding response polynomial evaluation
@@ -180,19 +180,19 @@ void interleaved_rowcheck_protocol<FieldT>::calculate_and_submit_responses()
              *  from this row. */
             for (size_t j = 0; j < this->codeword_domain_size_; ++j)
             {
-                FieldT val = p_x_row_evaluations[j] * p_y_row_evaluations[j] -
-                             p_z_row_evaluations[j];
+                FieldT val = (p_x_row_evaluations->operator[](j) * p_y_row_evaluations->operator[](j))
+                             - p_z_row_evaluations->operator[](j);
                 evals_of_response_poly[j] += random_linear_combination[i] * val;
             }
         }
 
         if (this->make_zk_)
         {
-            const std::vector<FieldT> blinding_vec =
+            const std::shared_ptr<std::vector<FieldT>> blinding_vec =
                 this->IOP_.get_oracle_evaluations(this->blinding_vector_row_oracle_handles_[h]);
             for (size_t i = 0; i < this->codeword_domain_size_; ++i)
             {
-                evals_of_response_poly[i] += blinding_vec[i];
+                evals_of_response_poly[i] += blinding_vec->operator[](i);
             }
         }
 

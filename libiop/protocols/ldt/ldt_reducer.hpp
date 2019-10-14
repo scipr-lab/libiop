@@ -7,20 +7,18 @@ random combination of oracles.
 * @author     This file is part of libiop (see AUTHORS)
 * @copyright  MIT license (see LICENSE file)
 *****************************************************************************/
-#ifndef LIBIOP_PROTOCOLS_LDT_MULTI_LDT_HPP_
-#define LIBIOP_PROTOCOLS_LDT_MULTI_LDT_HPP_
+#ifndef LIBIOP_PROTOCOLS_LDT_LDT_REDUCER_HPP_
+#define LIBIOP_PROTOCOLS_LDT_LDT_REDUCER_HPP_
 
 #include <algorithm>
 
 #include "libiop/algebra/exponentiation.hpp"
 #include "libiop/iop/iop.hpp"
 #include "libiop/iop/utilities/batching.hpp"
+#include "libiop/protocols/ldt/ldt_reducer_aux.hpp"
 #include "libiop/protocols/ldt/multi_ldt_base.hpp"
 
 namespace libiop {
-
-template<typename FieldT>
-class combined_LDT_virtual_oracle;
 
 enum class LDT_reducer_soundness_type {
     /** Proximity parameters are chosen per bounds proven in the Aurora paper */
@@ -121,4 +119,4 @@ public:
 
 #include "libiop/protocols/ldt/ldt_reducer.tcc"
 
-#endif // LIBIOP_PROTOCOLS_LDT_MULTI_LDT_HPP_
+#endif // LIBIOP_PROTOCOLS_LDT_LDT_REDUCER_HPP_

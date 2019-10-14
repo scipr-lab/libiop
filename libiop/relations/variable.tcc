@@ -369,13 +369,13 @@ void linear_combination<FieldT>::print(const std::map<size_t, std::string> &vari
         if (lt.index_ == 0)
         {
             printf("    1 * ");
-            lt.coeff.print();
+            lt.coeff_.print();
         }
         else
         {
-            auto it = variable_annotations.find(lt.index);
-            printf("    x_%zu (%s) * ", lt.index, (it == variable_annotations.end() ? "no annotation" : it->second.c_str()));
-            lt.coeff.print();
+            auto it = variable_annotations.find(lt.index_);
+            printf("    x_%zu (%s) * ", lt.index_, (it == variable_annotations.end() ? "no annotation" : it->second.c_str()));
+            lt.coeff_.print();
         }
     }
 }

@@ -2,7 +2,7 @@
 #include "libiop/common/common.hpp"
 #include "libiop/common/profiling.hpp"
 #include "libiop/protocols/fri_iop.hpp"
-#include "libiop/snark/common/bcs16_common.hpp"
+#include "libiop/snark/common/bcs_common.hpp"
 
 namespace libiop {
 
@@ -18,11 +18,11 @@ void FRI_snark_parameters<FieldT>::describe()
 }
 
 template<typename FieldT>
-const std::pair<bcs16_transformation_parameters<FieldT>,
+const std::pair<bcs_transformation_parameters<FieldT>,
                 FRI_iop_protocol_parameters>
-obtain_bcs16_and_FRI_parameters_from_FRI_snark_parameters(const FRI_snark_parameters<FieldT> &parameters)
+obtain_bcs_and_FRI_parameters_from_FRI_snark_parameters(const FRI_snark_parameters<FieldT> &parameters)
 {
-    bcs16_transformation_parameters<FieldT> bcs_parameters;
+    bcs_transformation_parameters<FieldT> bcs_parameters;
     bcs_parameters.security_parameter = parameters.security_level_;
     bcs_parameters.field_hasher = blake2b_field_element_hash<FieldT>;
     bcs_parameters.zk_hasher = blake2b_zk_element_hash;
@@ -44,21 +44,20 @@ obtain_bcs16_and_FRI_parameters_from_FRI_snark_parameters(const FRI_snark_parame
 }
 
 template<typename FieldT>
-FRI_snark_proof<FieldT> FRI_snark_prover(const std::vector<FieldT> evaluations,
-                                         const FRI_snark_parameters<FieldT> &parameters)
+FRI_snark_proof<FieldT> FRI_snark_prover(const FRI_snark_parameters<FieldT> &parameters)
 {
     enter_block("FRI SNARK prover");
-    const std::pair<bcs16_transformation_parameters<FieldT>,
+    const std::pair<bcs_transformation_parameters<FieldT>,
                     FRI_iop_protocol_parameters>
-        bcs16_and_FRI_parameters =
-        obtain_bcs16_and_FRI_parameters_from_FRI_snark_parameters<FieldT>(parameters);
+        bcs_and_FRI_parameters =
+        obtain_bcs_and_FRI_parameters_from_FRI_snark_parameters<FieldT>(parameters);
 
-    bcs16_transformation_parameters<FieldT> bcs16_parameters = bcs16_and_FRI_parameters.first;
-    bcs16_prover<FieldT> IOP(bcs16_parameters);
+    bcs_transformation_parameters<FieldT> bcs_parameters = bcs_and_FRI_parameters.first;
+    bcs_prover<FieldT> IOP(bcs_parameters);
 
     FRI_iop_protocol<FieldT> full_protocol(IOP,
-                                           evaluations,
-                                           bcs16_and_FRI_parameters.second);
+                                           {FieldT::zero()},
+                                           bcs_and_FRI_parameters.second);
     full_protocol.register_interactions();
     IOP.seal_interaction_registrations();
     full_protocol.register_queries();
@@ -81,22 +80,21 @@ FRI_snark_proof<FieldT> FRI_snark_prover(const std::vector<FieldT> evaluations,
 }
 
 template<typename FieldT>
-bool FRI_snark_verifier(const std::vector<FieldT> evaluations,
-                        const FRI_snark_proof<FieldT> &proof,
+bool FRI_snark_verifier(const FRI_snark_proof<FieldT> &proof,
                         const FRI_snark_parameters<FieldT> &parameters)
 {
     enter_block("FRI SNARK verifier");
-    const std::pair<bcs16_transformation_parameters<FieldT>,
+    const std::pair<bcs_transformation_parameters<FieldT>,
                     FRI_iop_protocol_parameters>
-        bcs16_and_FRI_parameters =
-        obtain_bcs16_and_FRI_parameters_from_FRI_snark_parameters<FieldT>(parameters);
+        bcs_and_FRI_parameters =
+        obtain_bcs_and_FRI_parameters_from_FRI_snark_parameters<FieldT>(parameters);
 
-    bcs16_transformation_parameters<FieldT> bcs16_parameters = bcs16_and_FRI_parameters.first;
-    bcs16_verifier<FieldT> IOP(bcs16_parameters, proof);
+    bcs_transformation_parameters<FieldT> bcs_parameters = bcs_and_FRI_parameters.first;
+    bcs_verifier<FieldT> IOP(bcs_parameters, proof);
 
     FRI_iop_protocol<FieldT> full_protocol(IOP,
-                                           evaluations,
-                                           bcs16_and_FRI_parameters.second);
+                                           {FieldT::zero()},
+                                           bcs_and_FRI_parameters.second);
     full_protocol.register_interactions();
     IOP.seal_interaction_registrations();
     full_protocol.register_queries();
@@ -114,6 +112,37 @@ bool FRI_snark_verifier(const std::vector<FieldT> evaluations,
     leave_block("FRI SNARK verifier");
 
     return decision;
+}
+
+template<typename FieldT>
+void FRI_snark_print_detailed_argument_size(
+    FRI_snark_parameters<FieldT> params,
+    FRI_snark_proof<FieldT> argument)
+{
+    /* TODO: Lower all this boiler plate */
+    const std::pair<bcs_transformation_parameters<FieldT>,
+                    FRI_iop_protocol_parameters>
+        bcs_and_FRI_parameters =
+        obtain_bcs_and_FRI_parameters_from_FRI_snark_parameters<FieldT>(params);
+
+    /* We go through registration on the verifier to know what the domains look like */
+    bcs_verifier<FieldT> verifier(bcs_and_FRI_parameters.first, argument);
+    FRI_iop_protocol<FieldT> full_protocol(verifier,
+                                           {FieldT::zero()},
+                                           bcs_and_FRI_parameters.second);
+    full_protocol.register_interactions();
+    verifier.seal_interaction_registrations();
+    full_protocol.register_queries();
+    verifier.seal_query_registrations();
+    const bool holographic = false;
+
+    print_detailed_transcript_data<FieldT>(
+        holographic,
+        argument,
+        bcs_and_FRI_parameters.first,
+        verifier.get_MT_depths(),
+        verifier.get_MT_zk_flags(),
+        verifier.get_all_round_params());
 }
 
 } // namespace libiop

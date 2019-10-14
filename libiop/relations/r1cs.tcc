@@ -232,6 +232,38 @@ naive_sparse_matrix<FieldT> r1cs_constraint_system<FieldT>::C_matrix() const
     return matrix;
 }
 
+template<typename FieldT>
+void r1cs_constraint_system<FieldT>::create_Az_Bz_Cz_from_variable_assignment(
+    const r1cs_variable_assignment<FieldT> &variable_assignment,
+    std::vector<FieldT> &Az_out,
+    std::vector<FieldT> &Bz_out,
+    std::vector<FieldT> &Cz_out) const
+{
+    /** This assumes variable assignment z is structured as (1, v, w). */
+    for (size_t i = 0; i < this->constraints_.size(); ++i)
+    {
+        FieldT Az_i = FieldT::zero();
+        for (auto &lt : this->constraints_[i].a_.terms)
+        {
+            Az_i += variable_assignment[lt.index_] * lt.coeff_;
+        }
+        Az_out.emplace_back(Az_i);
+
+        FieldT Bz_i = FieldT::zero();
+        for (auto &lt : this->constraints_[i].b_.terms)
+        {
+            Bz_i += variable_assignment[lt.index_] * lt.coeff_;
+        }
+        Bz_out.emplace_back(Bz_i);
+
+        FieldT Cz_i = FieldT::zero();
+        for (auto &lt : this->constraints_[i].c_.terms)
+        {
+            Cz_i += variable_assignment[lt.index_] * lt.coeff_;
+        }
+        Cz_out.emplace_back(Cz_i);
+    }
+}
 
 template<typename FieldT>
 std::size_t r1cs_constraint_system<FieldT>::size_in_bytes() const

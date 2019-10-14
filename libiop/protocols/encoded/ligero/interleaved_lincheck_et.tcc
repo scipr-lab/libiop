@@ -179,22 +179,22 @@ void interleaved_lincheck_et_protocol<FieldT>::calculate_and_submit_responses()
             const std::vector<FieldT> current_evaluations =
                 FFT_over_field_subset<FieldT>(poly_coefficients, this->codeword_domain_);
 
-            const std::vector<FieldT> row_evaluations =
+            const std::shared_ptr<std::vector<FieldT>> row_evaluations =
                 this->IOP_.get_oracle_evaluations(this->input_vector_row_oracle_handles_[j]);
 
             for (size_t a = 0; a < this->codeword_domain_size_; ++a)
             {
-                evals_of_response_poly[a] += current_evaluations[a] * row_evaluations[a];
+                evals_of_response_poly[a] += current_evaluations[a] * row_evaluations->operator[](a);
             }
         }
 
         if (this->make_zk_)
         {
-            const std::vector<FieldT> blinding_vec =
+            const std::shared_ptr<std::vector<FieldT>> blinding_vec =
                 this->IOP_.get_oracle_evaluations(this->blinding_vector_row_oracle_handles_[i]);
             for (size_t a = 0; a < this->codeword_domain_size_; ++a)
             {
-                evals_of_response_poly[a] += blinding_vec[a];
+                evals_of_response_poly[a] += blinding_vec->operator[](a);
             }
         }
 

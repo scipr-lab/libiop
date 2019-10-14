@@ -118,7 +118,6 @@ void instrument_FRI(std::size_t log_n_min,
         iop_protocol<FieldT> IOP;
 
         const std::size_t codeword_domain_size = 1ull << codeword_domain_dim;
-        const std::vector<FieldT> evaluations = random_vector<FieldT>(codeword_domain_size);
 
         FRI_snark_parameters<FieldT> params;
         params.codeword_domain_dim_ = codeword_domain_dim;
@@ -131,8 +130,7 @@ void instrument_FRI(std::size_t log_n_min,
         params.field_type_ = get_field_type<FieldT>(FieldT::zero());
         params.num_oracles_ = num_oracles;
 
-        const FRI_snark_proof<FieldT> proof = FRI_snark_prover<FieldT>(evaluations,
-                                                                       params);
+        const FRI_snark_proof<FieldT> proof = FRI_snark_prover<FieldT>(params);
         printf("\n");
         print_indent(); printf("* Argument size in bytes (IOP): %zu\n", proof.IOP_size_in_bytes());
         print_indent(); printf("* Argument size in bytes (BCS): %zu\n", proof.BCS_size_in_bytes());
@@ -144,7 +142,7 @@ void instrument_FRI(std::size_t log_n_min,
         print_indent(); printf("* Argument size in bytes (total, no pruning): %zu\n", proof.size_in_bytes_without_pruning());
         printf("\n");
 
-        const bool bit = FRI_snark_verifier<FieldT>(evaluations, proof, params);
+        const bool bit = FRI_snark_verifier<FieldT>(proof, params);
 
         libiop::print_indent(); printf("* Verifier satisfied: %s\n", bit ? "true" : "false");
     }

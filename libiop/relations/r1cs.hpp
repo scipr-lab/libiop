@@ -144,6 +144,12 @@ public:
     naive_sparse_matrix<FieldT> A_matrix() const;
     naive_sparse_matrix<FieldT> B_matrix() const;
     naive_sparse_matrix<FieldT> C_matrix() const;
+
+    void create_Az_Bz_Cz_from_variable_assignment(
+        const r1cs_variable_assignment<FieldT> &variable_assignment,
+        std::vector<FieldT> &Az_out,
+        std::vector<FieldT> &Bz_out,
+        std::vector<FieldT> &Cz_out) const;
 };
 
 template<typename FieldT>

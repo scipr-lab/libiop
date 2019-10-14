@@ -32,7 +32,7 @@ void subspace_test_helper(const std::size_t dim,
     EXPECT_EQ(S_elements.size(), S.num_elements());
     const std::vector<FieldT> Z_S_over_S = Z_S.evaluations_over_subspace(S);
     const std::vector<FieldT> truncated_Z_S_poly_over_S =
-        truncated_Z_S_poly.evaluations_over_subspace(S);
+        truncated_Z_S_poly.evaluations_over_field_subset(field_subset<FieldT>(S));
 
     EXPECT_EQ(Z_S_over_S.size(), S.num_elements());
     EXPECT_EQ(truncated_Z_S_poly_over_S.size(), S.num_elements());

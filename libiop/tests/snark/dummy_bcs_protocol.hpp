@@ -17,7 +17,7 @@
 #include "libiop/iop/iop.hpp"
 
 namespace libiop {
-    
+
 template<typename FieldT>
 class dummy_protocol {
 protected:
@@ -29,6 +29,7 @@ protected:
      *  we only make 1 oracle zk as this _ought_ to be equivalent to all oracles for this domain
      *  being zk, and so tests will catch if this is not the case. */
     bool make_zk_;
+    bool holographic_;
 
     field_subset<FieldT> codeword_domain_;
     size_t codeword_domain_size_;
@@ -43,13 +44,17 @@ public:
                    const size_t num_rounds,
                    const std::vector<round_parameters<FieldT>> round_params,
                    const domain_handle codeword_domain_handle,
-                   const bool make_zk);
+                   const bool make_zk,
+                   const bool holographic);
+
+    /* Indexing */
+    void calculate_index();
 
     /* Proving */
     void calculate_and_submit_response();
-    
+
     /* Verification */
-    bool check_eval_at_point(const size_t round_index, 
+    bool check_eval_at_point(const size_t round_index,
                              const size_t oracle_index,
                              const size_t eval_pos,
                              const FieldT eval);

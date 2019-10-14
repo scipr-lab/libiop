@@ -8,7 +8,7 @@ FRI_iop_protocol<FieldT>::FRI_iop_protocol(iop_protocol<FieldT> &IOP,
     parameters_(parameters)
 {
     const std::size_t codeword_domain_dim = this->parameters_.codeword_domain_dim_;
-    const bool make_zk = true;
+    const bool make_zk = false;
 
     const field_subset<FieldT> codeword_domain(1ull << codeword_domain_dim);
 
@@ -52,6 +52,9 @@ FRI_iop_protocol<FieldT>::FRI_iop_protocol(iop_protocol<FieldT> &IOP,
                 codeword_domain_dim,
                 parameters.RS_extra_dimensions_);
     }
+    this->IOP_.set_round_parameters(
+        round_parameters<FieldT>(field_subset<FieldT>(
+            1ull << localization_parameters[0])));
 
     /** We override this immediately,
      *  and set interactive / query repetitions based on the provided parameters. */

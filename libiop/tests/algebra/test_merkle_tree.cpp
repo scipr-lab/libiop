@@ -29,23 +29,28 @@ void run_simple_MT_test(const std::size_t size, const std::size_t digest_len_byt
 
     for (std::size_t i = 0; i < size; ++i)
     {
-        const merkle_tree_membership_proof ap = tree.get_membership_proof(i);
+        /* membership proof for the set {i} */
+        const std::vector<size_t> set = {i};
+
+        const merkle_tree_set_membership_proof ap = tree.get_set_membership_proof(set);
         const hash_digest contents_hash = blake2b_field_element_hash<FieldT>(
             { vec1[i], vec2[i] }, digest_len_bytes);
 
-        const bool is_valid = tree.validate_membership_proof(root,
-                                                             i,
-                                                             contents_hash,
-                                                             ap);
+        const bool is_valid = tree.validate_set_membership_proof(
+            root,
+            set,
+            {contents_hash},
+            ap);
         EXPECT_TRUE(is_valid);
 
         const hash_digest reverse_hash = blake2b_field_element_hash<FieldT>(
             { vec2[i], vec1[i] }, digest_len_bytes);
 
-        const bool reverse_is_valid = tree.validate_membership_proof(root,
-                                                                     i,
-                                                                     reverse_hash,
-                                                                     ap);
+        const bool reverse_is_valid = tree.validate_set_membership_proof(
+            root,
+            set,
+            {reverse_hash},
+            ap);
         if (vec1[i] == vec2[i])
         {
             EXPECT_EQ(contents_hash, reverse_hash);
@@ -121,9 +126,9 @@ TEST(MerkleTreeTest, MultiTest) {
             }
         }
 
-        const merkle_tree_multi_membership_proof mp = tree.get_multi_membership_proof(subset_elements);
+        const merkle_tree_set_membership_proof mp = tree.get_set_membership_proof(subset_elements);
 
-        const bool is_valid = tree.validate_multi_membership_proof(root,
+        const bool is_valid = tree.validate_set_membership_proof(root,
                                                                    subset_elements,
                                                                    subset_hashes,
                                                                    mp);
@@ -173,14 +178,31 @@ TEST(MerkleTreeZKTest, MultiTest) {
             }
         }
 
-        const merkle_tree_multi_membership_proof mp = tree.get_multi_membership_proof(subset_elements);
+        const merkle_tree_set_membership_proof mp = tree.get_set_membership_proof(subset_elements);
 
-        const bool is_valid = tree.validate_multi_membership_proof(root,
+        const bool is_valid = tree.validate_set_membership_proof(root,
                                                                    subset_elements,
                                                                    subset_hashes,
                                                                    mp);
         EXPECT_TRUE(is_valid);
     }
+}
+
+TEST(MerkleTreeTwoToOneHashTest, SimpleTest)
+{
+    typedef gf64 FieldT;
+    bool make_zk = false;
+    merkle_tree<FieldT> tree(8,
+                             blake2b_field_element_hash<FieldT>,
+                             blake2b_zk_element_hash,
+                             blake2b_two_to_one_hash,
+                             32,
+                             make_zk,
+                             128);
+    std::vector<size_t> positions = {1, 3, 6, 7};
+    size_t expected_num_hashes = 6;
+    size_t actual_num_hashes = tree.count_hashes_to_verify_set_membership_proof(positions);
+    ASSERT_EQ(expected_num_hashes, actual_num_hashes);
 }
 
 }

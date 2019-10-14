@@ -28,14 +28,17 @@ std::vector<T> all_subset_sums(const std::vector<T> &basis, const T& shift = 0)
 #endif
 
 template<typename FieldT>
-std::vector<FieldT> batch_inverse(const std::vector<FieldT> &vec);
-
+std::vector<FieldT> batch_inverse(const std::vector<FieldT> &vec, const bool has_zeroes=false);
 
 template<typename FieldT>
-std::vector<FieldT> batch_inverse_and_mul(const std::vector<FieldT> &vec, const FieldT &k);
+std::vector<FieldT> batch_inverse_and_mul(const std::vector<FieldT> &vec, const FieldT &k, const bool has_zeroes=false);
 
 template<typename FieldT>
 void mut_batch_inverse(std::vector<FieldT> &vec);
+
+/** un-optimized simple GCD procedure */
+size_t gcd(const size_t a, const size_t b);
+
 } // namespace libiop
 
 #include "libiop/algebra/utils.tcc"

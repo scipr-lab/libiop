@@ -10,13 +10,13 @@ namespace libiop {
 /* linearized_polynomial */
 template<typename FieldT>
 linearized_polynomial<FieldT>::linearized_polynomial() :
-    polynomial_base<FieldT>()
+    polynomial<FieldT>()
 {
 }
 
 template<typename FieldT>
 linearized_polynomial<FieldT>::linearized_polynomial(std::vector<FieldT> &&coefficients) :
-    polynomial_base<FieldT>(std::move(coefficients))
+    polynomial<FieldT>(std::move(coefficients))
 {
 }
 
@@ -46,6 +46,17 @@ FieldT linearized_polynomial<FieldT>::evaluation_at_point(const FieldT &evalpoin
     }
 
     return result;
+}
+
+template<typename FieldT>
+std::vector<FieldT> linearized_polynomial<FieldT>::evaluations_over_field_subset(const field_subset<FieldT> &S) const
+{
+    if (S.type() == affine_subspace_type)
+    {
+        return this->evaluations_over_subspace(S.subspace());
+    }
+    throw std::invalid_argument(
+        "linearized_polynomial.evaluations_over_field_subset() is only supported for subspaces");
 }
 
 template<typename FieldT>

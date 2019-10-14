@@ -14,7 +14,7 @@
 namespace libiop {
 
 template<typename FieldT>
-std::vector<std::vector<FieldT> > get_all_oracle_evaluations(
+std::vector<std::shared_ptr<std::vector<FieldT>>> get_all_oracle_evaluations(
     iop_protocol<FieldT> &IOP,
     const std::vector<oracle_handle_ptr> poly_handles);
 

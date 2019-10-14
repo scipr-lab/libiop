@@ -25,6 +25,7 @@ public:
     virtual linear_combination<FieldT> get_row(const std::size_t row_index) const;
     virtual std::size_t num_rows() const;
     virtual std::size_t num_columns() const;
+    virtual std::size_t num_nonzero_entries() const;
 
     virtual ~sparse_matrix() = default;
 };
@@ -34,6 +35,9 @@ enum r1cs_sparse_matrix_type {
     r1cs_sparse_matrix_B = 2,
     r1cs_sparse_matrix_C = 3
 };
+
+std::vector<r1cs_sparse_matrix_type> all_r1cs_sparse_matrix_types(
+    {r1cs_sparse_matrix_A, r1cs_sparse_matrix_B, r1cs_sparse_matrix_C});
 
 template<typename FieldT>
 class r1cs_sparse_matrix : public sparse_matrix<FieldT> {
@@ -48,6 +52,7 @@ public:
     virtual linear_combination<FieldT> get_row(const std::size_t row_index) const;
     virtual std::size_t num_rows() const;
     virtual std::size_t num_columns() const;
+    virtual std::size_t num_nonzero_entries() const;
 };
 
 } // libiop

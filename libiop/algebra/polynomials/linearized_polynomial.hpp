@@ -27,7 +27,7 @@ namespace libiop {
    properties, but handling constant term requires extra care (see
    evaluations_over_subspace for example) */
 template<typename FieldT>
-class linearized_polynomial : public polynomial_base<FieldT> {
+class linearized_polynomial : public polynomial<FieldT> {
 public:
     explicit linearized_polynomial();
     explicit linearized_polynomial(std::vector<FieldT> &&coefficients);
@@ -35,6 +35,9 @@ public:
     FieldT constant_coefficient() const;
 
     FieldT evaluation_at_point(const FieldT &evalpoint) const;
+    /** The linearized polynomials are only implemented for binary fields,
+     *  so the field_subset must be an affine subspace */
+    std::vector<FieldT> evaluations_over_field_subset(const field_subset<FieldT> &S) const;
     std::vector<FieldT> evaluations_over_subspace(const affine_subspace<FieldT> &S) const;
 
     void square();
@@ -57,6 +60,7 @@ public:
     static linearized_polynomial<FieldT> random_linearized_polynomial(const size_t degree_exponent);
 };
 
+// Returns the quotient and remainder of P / Z
 template<typename FieldT>
 std::pair<polynomial<FieldT>,
           polynomial<FieldT> >

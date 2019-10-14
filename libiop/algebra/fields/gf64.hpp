@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 
 namespace libiop {
 
@@ -24,6 +25,7 @@ public:
 
     explicit gf64();
     explicit gf64(const uint64_t value);
+    std::vector<uint64_t> as_words() const;
 
     gf64& operator+=(const gf64 &other);
     gf64& operator-=(const gf64 &other);
@@ -43,7 +45,6 @@ public:
     bool operator==(const gf64 &other) const;
     bool operator!=(const gf64 &other) const;
 
-    uint64_t value() const;
     bool is_zero() const;
 
     void print() const;

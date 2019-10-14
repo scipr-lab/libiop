@@ -6,8 +6,8 @@
  * @author     This file is part of libiop (see AUTHORS)
  * @copyright  MIT license (see LICENSE file)
  *****************************************************************************/
-#ifndef LIBIOP_SNARK_Aurora_SNARK_HPP_
-#define LIBIOP_SNARK_Aurora_SNARK_HPP_
+#ifndef LIBIOP_SNARK_AURORA_SNARK_HPP_
+#define LIBIOP_SNARK_AURORA_SNARK_HPP_
 
 #include <cstddef>
 #include <iostream>
@@ -15,9 +15,9 @@
 #include "libiop/protocols/aurora_iop.hpp"
 #include "libiop/protocols/ldt/fri/fri_ldt.hpp"
 #include "libiop/protocols/ldt/ldt_reducer.hpp"
-#include "libiop/snark/common/bcs16_common.hpp"
-#include "libiop/snark/common/bcs16_prover.hpp"
-#include "libiop/snark/common/bcs16_verifier.hpp"
+#include "libiop/snark/common/bcs_common.hpp"
+#include "libiop/snark/common/bcs_prover.hpp"
+#include "libiop/snark/common/bcs_verifier.hpp"
 #include "libiop/relations/r1cs.hpp"
 
 namespace libiop {
@@ -63,12 +63,12 @@ class aurora_snark_parameters {
     void reset_fri_localization_parameters(const std::vector<size_t> FRI_localization_parameter_array);
     void print() const;
 
-    bcs16_transformation_parameters<FieldT> bcs_params_;
+    bcs_transformation_parameters<FieldT> bcs_params_;
     aurora_iop_parameters<FieldT> iop_params_;
 };
 
 template<typename FieldT>
-using aurora_snark_argument = bcs16_transformation_transcript<FieldT>;
+using aurora_snark_argument = bcs_transformation_transcript<FieldT>;
 
 template<typename FieldT>
 aurora_snark_argument<FieldT> aurora_snark_prover(const r1cs_constraint_system<FieldT> &constraint_system,

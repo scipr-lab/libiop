@@ -34,7 +34,9 @@ FRI_protocol_parameters<FieldT>::FRI_protocol_parameters(const size_t interactiv
     if (poly_degree_bound % (1ull << total_localizations) != 0)
     {
         throw std::invalid_argument("FRI only supports testing degree bounds that are a multiple of "
-                                    "2^{sum of localization parameters}");
+                                    "2^{sum of localization parameters}."
+                                    "Consider rounding up the tested degree, using "
+                                    "FRI_protocol_parameters<FieldT>::next_testable_degree_bound");
     }
     /** rate = 2^{-RS_extra_dimensions} */
     const long double rate = exp2l(-1.0 * this->RS_extra_dimensions_);
@@ -486,11 +488,12 @@ template<typename FieldT>
 void FRI_protocol<FieldT>::calculate_and_submit_proof()
 {
     /* First set of codewords: the original purported codewords we're testing. */
-    std::vector<std::vector<FieldT>> multi_f_i_evaluations =
+    std::vector<std::shared_ptr<std::vector<FieldT>>> multi_f_i_evaluations =
         get_all_oracle_evaluations(this->IOP_, this->poly_handles_);
 
     /* indexed by interaction, then LDT instance index */
-    std::vector<std::vector<std::vector<FieldT>> > multi_f_i_evaluations_by_interaction;
+    std::vector<std::vector<std::shared_ptr<std::vector<FieldT>>>>
+        multi_f_i_evaluations_by_interaction;
     for (size_t j = 0; j < this->params_.interactive_repetitions(); j++)
     {
         multi_f_i_evaluations_by_interaction.emplace_back(multi_f_i_evaluations);
@@ -525,6 +528,7 @@ void FRI_protocol<FieldT>::calculate_and_submit_proof()
             const FieldT x_i = this->IOP_.obtain_verifier_random_message(
                 this->verifier_challenge_handles_[i][j])[0];
 
+            enter_block("evaluating next FRI codeword");
             for (size_t ldt_index = 0; ldt_index < this->poly_handles_.size(); ldt_index++)
             {
                 multi_f_i_evaluations_by_interaction[j][ldt_index] = evaluate_next_f_i_over_entire_domain(
@@ -533,6 +537,7 @@ void FRI_protocol<FieldT>::calculate_and_submit_proof()
                     coset_size,
                     x_i);
             }
+            leave_block("evaluating next FRI codeword");
         }
     }
 
@@ -543,7 +548,7 @@ void FRI_protocol<FieldT>::calculate_and_submit_proof()
         for (size_t ldt_index = 0; ldt_index < this->poly_handles_.size(); ldt_index++)
         {
             std::vector<FieldT> final_poly_coeffs = IFFT_over_field_subset<FieldT>(
-                multi_f_i_evaluations_by_interaction[j][ldt_index], this->domains_[this->num_reductions_]);
+                *multi_f_i_evaluations_by_interaction[j][ldt_index].get(), this->domains_[this->num_reductions_]);
             final_poly_coeffs.resize(this->final_polynomial_degree_bound_);
             this->IOP_.submit_prover_message(this->final_polynomial_handles_[j][ldt_index], std::move(final_poly_coeffs));
         }

@@ -13,9 +13,9 @@ TEST(AuroraSnarkTest, SimpleTest) {
     /* Set up R1CS */
     typedef gf64 FieldT;
 
-    const std::size_t num_constraints = 1 << 6;
+    const std::size_t num_constraints = 1 << 13;
     const std::size_t num_inputs = (1 << 5) - 1;
-    const std::size_t num_variables = (1 << 6) - 1;
+    const std::size_t num_variables = (1 << 13) - 1;
     const size_t security_parameter = 128;
     const size_t RS_extra_dimensions = 2;
     const size_t FRI_localization_parameter = 3;
@@ -65,9 +65,9 @@ TEST(AuroraSnarkMultiplicativeTest, SimpleTest) {
     edwards_pp::init_public_params();
     typedef edwards_Fr FieldT;
 
-    const size_t num_constraints = 1 << 7;
+    const size_t num_constraints = 1 << 13;
     const size_t num_inputs = (1 << 5) - 1;
-    const size_t num_variables = (1 << 7) - 1;
+    const size_t num_variables = (1 << 13) - 1;
     const size_t security_parameter = 128;
     const size_t RS_extra_dimensions = 2;
     const size_t FRI_localization_parameter = 3;

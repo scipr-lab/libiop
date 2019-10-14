@@ -49,9 +49,14 @@ public:
     std::size_t intra_coset_index(const std::size_t position, const std::size_t coset_size) const;
     size_t position_by_coset_indices(
         const size_t coset_index, const size_t intra_coset_index, const size_t coset_size) const;
+    std::vector<size_t> all_positions_in_coset_i(
+        const size_t coset_index, const size_t coset_size) const;
+    std::vector<size_t> all_positions_with_intra_coset_index_i(
+        const size_t intra_coset_index, const size_t coset_size) const;
     /* In the additive case, returns the subset which uses the first log_2(order) basis vectors */
     field_subset<FieldT> get_subset_of_order(const std::size_t order) const;
 
+    bool element_in_subset(const FieldT x) const;
     FieldT element_outside_of_subset() const;
 
     affine_subspace<FieldT> subspace() const;
@@ -62,6 +67,9 @@ public:
     const FieldT& offset() const;
     const FieldT shift() const;
     const std::vector<FieldT>& basis() const;
+
+    bool operator==(const field_subset<FieldT> &other) const;
+    bool operator!=(const field_subset<FieldT> &other) const;
 protected:
     void construct_internal(const std::size_t num_elements,
                             const typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type coset_shift);

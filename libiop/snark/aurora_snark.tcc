@@ -1,7 +1,7 @@
 #include "libiop/algebra/field_subset/subspace.hpp"
 #include "libiop/common/common.hpp"
 #include "libiop/common/profiling.hpp"
-#include "libiop/snark/common/bcs16_common.hpp"
+#include "libiop/snark/common/bcs_common.hpp"
 
 namespace libiop {
 
@@ -108,7 +108,8 @@ void aurora_snark_parameters<FieldT>::print() const
     print_indent(); printf("* RS extra dimensions = %zu\n", RS_extra_dimensions_);
     print_indent(); printf("* LDT reducer soundness type = %s\n",
         LDT_reducer_soundness_type_to_string(LDT_reducer_soundness_type_));
-    print_indent(); printf("* FRI soundness type = %s\n", FRI_soundness_type_to_string(FRI_soundness_type_));
+    print_indent(); printf("* FRI soundness type = %s\n",
+        FRI_soundness_type_to_string(FRI_soundness_type_));
     print_indent(); printf("* zero-knowledge = %s\n", make_zk_ ? "true" : "false");
     print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->domain_type_]);
 
@@ -124,7 +125,7 @@ aurora_snark_argument<FieldT> aurora_snark_prover(const r1cs_constraint_system<F
     enter_block("Aurora SNARK prover");
     parameters.print();
 
-    bcs16_prover<FieldT> IOP(parameters.bcs_params_);
+    bcs_prover<FieldT> IOP(parameters.bcs_params_);
     aurora_iop<FieldT> full_protocol(IOP, constraint_system, parameters.iop_params_);
     full_protocol.register_interactions();
     IOP.seal_interaction_registrations();
@@ -134,10 +135,6 @@ aurora_snark_argument<FieldT> aurora_snark_prover(const r1cs_constraint_system<F
     full_protocol.produce_proof(primary_input, auxiliary_input);
 
     enter_block("Obtain transcript");
-    enter_block("Run verifier to populate virtual oracle data structures");
-    full_protocol.verifier_predicate(primary_input);
-    leave_block("Run verifier to populate virtual oracle data structures");
-
     const aurora_snark_argument<FieldT> transcript = IOP.get_transcript();
     leave_block("Obtain transcript");
 
@@ -156,7 +153,7 @@ bool aurora_snark_verifier(const r1cs_constraint_system<FieldT> &constraint_syst
     enter_block("Aurora SNARK verifier");
     parameters.print();
 
-    bcs16_verifier<FieldT> IOP(parameters.bcs_params_, proof);
+    bcs_verifier<FieldT> IOP(parameters.bcs_params_, proof);
 
     enter_block("Aurora IOP protocol initialization and registration");
     aurora_iop<FieldT> full_protocol(IOP, constraint_system, parameters.iop_params_);

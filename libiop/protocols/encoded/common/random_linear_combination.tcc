@@ -14,7 +14,9 @@ void random_linear_combination_oracle<FieldT>::set_random_coefficients(const std
 {
     if (random_coefficients.size() != this->num_oracles_ )
     {
-        throw std::invalid_argument("Expected same number of random coefficients as oracles.");
+        printf("Got %lu random coefficients\n", random_coefficients.size());
+        throw std::invalid_argument("Random Linear Combination Oracle: "
+            "Expected same number of random coefficients as oracles.");
     }
 
     this->random_coefficients_ = random_coefficients;
@@ -22,27 +24,31 @@ void random_linear_combination_oracle<FieldT>::set_random_coefficients(const std
 
 /* Multiplies each oracle evaluation vector by the corresponding random coefficient */
 template<typename FieldT>
-std::vector<FieldT> random_linear_combination_oracle<FieldT>::evaluated_contents(
-    const std::vector<std::vector<FieldT> > &constituent_oracle_evaluations) const
+std::shared_ptr<std::vector<FieldT>> random_linear_combination_oracle<FieldT>::evaluated_contents(
+    const std::vector<std::shared_ptr<std::vector<FieldT>>> &constituent_oracle_evaluations) const
 {
     if (constituent_oracle_evaluations.size() != this->num_oracles_)
     {
-        throw std::invalid_argument("Expected same number of evaluations as in registration.");
+        throw std::invalid_argument("Random Linear Combination Oracle: "
+            "Expected same number of evaluations as in registration.");
     }
-
-    std::vector<FieldT> result = constituent_oracle_evaluations[0];
-    for (std::size_t j = 0; j < result.size(); ++j) {
-        result[j] *= this->random_coefficients_[0];
+    const size_t codeword_size = constituent_oracle_evaluations[0]->size();
+    std::shared_ptr<std::vector<FieldT>> result = std::make_shared<std::vector<FieldT>>();
+    result->reserve(codeword_size);
+    for (std::size_t j = 0; j < codeword_size; ++j) {
+        result->emplace_back(this->random_coefficients_[0] *
+            constituent_oracle_evaluations[0]->operator[](j));
     }
     for (std::size_t i = 1; i < constituent_oracle_evaluations.size(); ++i)
     {
-        if (constituent_oracle_evaluations[i].size() != result.size())
+        if (constituent_oracle_evaluations[i]->size() != codeword_size)
         {
             throw std::invalid_argument("Vectors of mismatched size.");
         }
-        for (std::size_t j = 0; j < result.size(); ++j)
+        for (std::size_t j = 0; j < codeword_size; ++j)
         {
-            result[j] += this->random_coefficients_[i] * constituent_oracle_evaluations[i][j];
+            result->operator[](j) +=
+                this->random_coefficients_[i] * constituent_oracle_evaluations[i]->operator[](j);
         }
     }
 

@@ -93,6 +93,7 @@ static void BM_multiplicative_subgroup_FFT(benchmark::State &state)
 
     /* Speed is slower when shift != 1 */
     const multiplicative_coset<FieldT> domain = multiplicative_coset<FieldT>(sz);
+    domain.fft_cache();
 
     for (auto _ : state)
     {
@@ -126,6 +127,52 @@ static void BM_multiplicative_subgroup_IFFT(benchmark::State &state)
 }
 
 BENCHMARK(BM_multiplicative_subgroup_IFFT)->Range(1ull<<4, 1ull<<20)->Unit(benchmark::kMicrosecond);
+
+static void BM_multiplicative_coset_FFT(benchmark::State &state)
+{
+    edwards_pp::init_public_params();
+    typedef edwards_Fr FieldT;
+
+    const size_t sz = state.range(0);
+    const size_t log_sz = log2(sz);
+
+    const std::vector<FieldT> poly_coeffs = random_vector<FieldT>(sz);
+
+    const multiplicative_coset<FieldT> domain(sz, FieldT::multiplicative_generator);
+    domain.fft_cache();
+
+    for (auto _ : state)
+    {
+        const std::vector<FieldT> result = multiplicative_FFT<FieldT>(poly_coeffs, domain);
+    }
+
+    state.SetItemsProcessed(state.iterations() * sz);
+}
+
+BENCHMARK(BM_multiplicative_coset_FFT)->Range(1ull<<4, 1ull<<20)->Unit(benchmark::kMicrosecond);
+
+static void BM_multiplicative_coset_IFFT(benchmark::State &state)
+{
+    edwards_pp::init_public_params();
+    typedef edwards_Fr FieldT;
+
+    const size_t sz = state.range(0);
+    const size_t log_sz = log2(sz);
+
+    const std::vector<FieldT> poly_coeffs = random_vector<FieldT>(sz);
+
+    /* Speed is slower when shift != 1 */
+    const multiplicative_coset<FieldT> domain(sz, FieldT::multiplicative_generator);
+
+    for (auto _ : state)
+    {
+        const std::vector<FieldT> result = multiplicative_IFFT<FieldT>(poly_coeffs, domain);
+    }
+
+    state.SetItemsProcessed(state.iterations() * sz);
+}
+
+BENCHMARK(BM_multiplicative_coset_IFFT)->Range(1ull<<4, 1ull<<20)->Unit(benchmark::kMicrosecond);
 }
 
 BENCHMARK_MAIN();

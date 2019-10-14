@@ -3,8 +3,8 @@
 namespace libiop {
 
 template<typename FieldT>
-std::vector<FieldT> evaluate_next_f_i_over_entire_domain(
-    const std::vector<FieldT> &f_i_evals,
+std::shared_ptr<std::vector<FieldT>> evaluate_next_f_i_over_entire_domain(
+    const std::shared_ptr<std::vector<FieldT>> &f_i_evals,
     const field_subset<FieldT> &f_i_domain,
     const size_t coset_size,
     const FieldT x_i)
@@ -34,16 +34,16 @@ std::vector<FieldT> evaluate_next_f_i_over_entire_domain(
 }
 
 template<typename FieldT>
-std::vector<FieldT> additive_evaluate_next_f_i_over_entire_domain(
-    const std::vector<FieldT> &f_i_evals,
+std::shared_ptr<std::vector<FieldT>> additive_evaluate_next_f_i_over_entire_domain(
+    const std::shared_ptr<std::vector<FieldT>> &f_i_evals,
     const field_subset<FieldT> &f_i_domain,
     const size_t coset_size,
     const FieldT x_i)
 {
     const std::vector<FieldT> all_elements = f_i_domain.all_elements();
     const size_t num_cosets = all_elements.size() / coset_size;
-    std::vector<FieldT> next_f_i;
-    next_f_i.reserve(num_cosets);
+    std::shared_ptr<std::vector<FieldT>> next_f_i = std::make_shared<std::vector<FieldT>>();
+    next_f_i->reserve(num_cosets);
 
     /** Lagrange coefficient for coset element k is: vp_coset(x) / vp_coset[1] * (x - v[k])
      *
@@ -81,7 +81,7 @@ std::vector<FieldT> additive_evaluate_next_f_i_over_entire_domain(
             /** If x in coset, set the interpolation accordingly. */
             if (x_in_domain && x_i == all_elements[j*coset_size + k])
             {
-                interpolation = f_i_evals[j*coset_size + k];
+                interpolation = f_i_evals->operator[](j*coset_size + k);
                 break;
             }
             /* If it's not in the coset, set this element to x - V[k] */
@@ -94,94 +94,156 @@ std::vector<FieldT> additive_evaluate_next_f_i_over_entire_domain(
                 batch_inverse_and_mul(shifted_coset_elements, k);
             for (std::size_t k = 0; k < coset_size; k++)
             {
-                interpolation += f_i_evals[j*coset_size + k] * lagrange_coefficients[k];
+                interpolation += f_i_evals->operator[](j*coset_size + k) * lagrange_coefficients[k];
             }
         }
-        next_f_i.emplace_back(interpolation);
+        next_f_i->emplace_back(interpolation);
     }
     return next_f_i;
 }
 
 
 template<typename FieldT>
-std::vector<FieldT> multiplicative_evaluate_next_f_i_over_entire_domain(
-    const std::vector<FieldT> &f_i_evals,
+std::shared_ptr<std::vector<FieldT>> multiplicative_evaluate_next_f_i_over_entire_domain(
+    const std::shared_ptr<std::vector<FieldT>> &f_i_evals,
     const field_subset<FieldT> &f_i_domain,
     const size_t coset_size,
     const FieldT x_i)
 {
     const size_t num_cosets = f_i_domain.num_elements() / coset_size;
-    std::vector<FieldT> next_f_i;
-    next_f_i.reserve(num_cosets);
+    std::shared_ptr<std::vector<FieldT>> next_f_i = std::make_shared<std::vector<FieldT>>();
+    next_f_i->reserve(num_cosets);
 
     /** Let g be the generator for the coset, and h be the affine shift.
      *  Then the Lagrange coefficient for coset element k is:
-     *  (vp_coset(x) / (x - v[k])) * z_k,
+     *  (vp_coset(x) * z_k) / (x - v[k]),
      *  where z_k = g^k / (|coset| * h^(|coset|-1)).
      *  See algebra/lagrange.tcc for the derivation of this equation.
      *
-     *  As cosets change, in these equations h and v[k] change.
-     *  Currently we do this in the naive manner of just recomputing them with different h's,
-     *  with some slight caching of incrementing the h between cosets.
-     *  TODO: Optimize this as cosets evolve due to us knowing how h changes between cosets,
-     *        and that the g^i terms are re-used.
+     *  We now optimize this for interpolating many equal sized cosets of a domain.
+     *  To minimize inversions, we will do a single batch inversion for all cosets.
+     *
+     *  As cosets change, in these equations h changes,
+     *  which also changes v[k] as v[k] = hg^k.
+     *  Since g^k / (x - v[k]) = g^k / (x - hg^k) = 1 / (xg^{-k} - h),
+     *  we cache the |coset| many values of xg^{-k}, to save 2L multiplications.
+     *
+     *  The coefficients that have to be computed are now:
+     *    vp_coset(x) * z_k / (x - v[k])
+     *  = vp_coset(x) * g^k / (|coset| * h^(|coset| - 1) (x - v[k]))
+     *  = vp_coset(x) / (|coset| * h^(|coset| - 1) (xg^{-k} - h))
+     *
+     *  (xg^{-k} - h) is computed for all combinations of (k,h),
+     *  and is computed with L additions.
+     *  It is then batch inverted w/ 3L multiplications.
+     *
+     *  |coset|^{-1} is a constant for all coefficients,
+     *  so we handle that in the batch inverse and mul, with just 1 multiplication.
+     *
+     *  vp_coset(x) / h^{|coset| - 1} is a constant for each coset.
+     *  So we compute it for each coset,
+     *  and since the prover does an interpolation for each coset,
+     *  it gets multiplied against the interpolated value.
+     *
+     *  Recall that vp_coset(x) = x^|coset| - h^|coset|, consequently
+     *  vp_coset(x) / h^{|coset| - 1} = x^{|coset|} h^{-|coset| + 1} - h
+     *  Computing the per coset constant with the latter expression
+     *  saves |L|/|coset| multiplications.
      */
 
     const FieldT h_inc = f_i_domain.generator();
-    const FieldT h_inc_to_order_coset = libiop::power(h_inc, coset_size);
+    const FieldT h_inc_to_coset_inv_plus_one =
+        libiop::power(h_inc, coset_size).inverse() * h_inc;
     const field_subset<FieldT> shiftless_coset(coset_size, FieldT::one());
     const FieldT g = shiftless_coset.generator();
-    const std::vector<FieldT> shiftless_coset_elems = shiftless_coset.all_elements();
+    const FieldT g_inv = g.inverse();
     const FieldT x_to_order_coset = libiop::power(x_i, coset_size);
+    /* xg^{-k} */
+    std::vector<FieldT> shifted_x_elements(coset_size);
+    shifted_x_elements[0] = x_i;
+    for (size_t i = 1; i < coset_size; i++)
+    {
+        shifted_x_elements[i] = shifted_x_elements[i - 1] * g_inv;
+    }
 
-    /* TODO: Add caching for h^{m - 1}, h^m */
     FieldT cur_h = f_i_domain.shift();
-    FieldT cur_h_to_order_coset = libiop::power(cur_h, coset_size);
-    /* x - v[k] vector, defined outside the loop to avoid re-allocations. */
-    std::vector<FieldT> shifted_coset_elements(coset_size);
+    const FieldT first_h_to_coset_inv_plus_one = libiop::power(cur_h, coset_size).inverse() * cur_h;
+    FieldT cur_coset_constant_plus_h = x_to_order_coset * first_h_to_coset_inv_plus_one;
 
-    /** We process cosets one at a time.
-     *  TODO: In the multiplicative setting, we should do a single batch inversion for all the cosets.
-     *  While we lose out on cache efficiency, the slowness of multiplication / inversion in multiplicative fields
-     *  ought to make these cache effects less significant. */
+    /* xg^{-k} - h, for all combinations of k, h.  */
+    std::vector<FieldT> elements_to_invert;
+    elements_to_invert.reserve(f_i_evals->size());
+    /** constant for each coset, equal to
+     *  vp_coset(x) / h^{|coset| - 1} = x^{|coset|} h^{-|coset| + 1} - h */
+    std::vector<FieldT> constant_for_each_coset;
+    constant_for_each_coset.reserve(num_cosets);
+
+    const FieldT constant_for_all_cosets = FieldT(coset_size).inverse();
+    bool x_ever_in_domain = false;
+    size_t x_coset_index = 0;
+    size_t x_index_in_domain = 0;
+
+    /** First we create all the constants for each coset,
+     *  and the entire vector of elements to invert, xg^{-k} - h.
+     */
     for (size_t j = 0; j < num_cosets; j++)
     {
-        const FieldT vp_x = x_to_order_coset - cur_h_to_order_coset;
-        const bool x_in_domain = vp_x == FieldT::zero();
-        /** Compute z_k / (x - v[k]) by
-         *  1) computing all the (x - v[k]) terms,
-         *  2) batch inverting and multiplying by (vp_x / denominator(z_i)),
-         *  3) multiplying by z_k's numerator terms and doing the final interpolation.
-         *
-         *  We also have to check that x_i isn't in the coset while doing this. */
-
-        FieldT interpolation = FieldT::zero();
-        FieldT cur_elem = cur_h;
+        /* coset constant = x^|coset| * h^{1 - |coset|} - h */
+        const FieldT coset_constant = cur_coset_constant_plus_h - cur_h;
+        constant_for_each_coset.emplace_back(coset_constant);
+        /** coset_constant = vp_coset(x) * h^{-|coset| + 1},
+         * since h is non-zero, coset_constant is zero iff vp_coset(x) is zero.
+         * If vp_coset(x) is zero, then x is in the coset. */
+        const bool x_in_coset = (coset_constant == FieldT::zero());
+        /** if x is in the coset, we mark which position x is within f_i_domain,
+         *  and we pad elements to invert to simplify inversion later. */
+        if (x_in_coset)
+        {
+            x_ever_in_domain = true;
+            x_coset_index = j;
+            // find which element in the coset x belongs to.
+            // also pad elements_to_invert to simplify indexing
+            FieldT cur_elem = cur_h;
+            for (size_t k = 0; k < coset_size; k++)
+            {
+                if (cur_elem == x_i)
+                {
+                    x_index_in_domain = k * num_cosets + j;
+                }
+                cur_elem *= g;
+                elements_to_invert.emplace_back(FieldT::one());
+            }
+            continue;
+        }
+        /** Append all elements to invert, (xg^{-k} - h) */
         for (std::size_t k = 0; k < coset_size; k++)
         {
-            if (x_in_domain && cur_elem == x_i) {
-                interpolation = f_i_evals[k * num_cosets + j];
-                break;
-            }
-            shifted_coset_elements[k] = x_i - cur_elem;
-            cur_elem *= g;
+            elements_to_invert.emplace_back(shifted_x_elements[k] - cur_h);
         }
-        if (!x_in_domain) {
-            /* (m * h^{m - 1})^{-1} */
-            const FieldT denominator_zi_inv = (FieldT(coset_size) * cur_h_to_order_coset).inverse() * cur_h;
-            const FieldT k = vp_x * denominator_zi_inv;
-            const std::vector<FieldT> inverted_shifted_coset_elems =
-                batch_inverse_and_mul(shifted_coset_elements, k);
-            for (std::size_t k = 0; k < coset_size; k++) {
-                /* numerator of z_k is shiftless_coset_elems[k] */
-                const FieldT lagrange_coefficient = shiftless_coset_elems[k] * inverted_shifted_coset_elems[k];
-                interpolation += f_i_evals[k * num_cosets + j] * lagrange_coefficient;
-            }
-        }
-        next_f_i.emplace_back(interpolation);
 
         cur_h *= h_inc;
-        cur_h_to_order_coset *= h_inc_to_order_coset;
+        /** coset constant = x^|coset| * h^{1 - |coset|} - h
+         *  So we can efficiently increment x^|coset| * h^{1 - |coset|} */
+        cur_coset_constant_plus_h *= h_inc_to_coset_inv_plus_one;
+    }
+    /* Technically not lagrange coefficients, its missing the constant for each coset */
+    const std::vector<FieldT> lagrange_coefficients =
+        batch_inverse_and_mul(elements_to_invert, constant_for_all_cosets);
+    for (size_t j = 0; j < num_cosets; j++)
+    {
+        FieldT interpolation = FieldT::zero();
+        for (std::size_t k = 0; k < coset_size; k++) {
+            interpolation += f_i_evals->operator[](k * num_cosets + j) *
+                lagrange_coefficients[j*coset_size + k];
+        }
+        /* Multiply the constant for each coset, to get the correct interpolation */
+        interpolation *= constant_for_each_coset[j];
+        next_f_i->emplace_back(interpolation);
+    }
+    /* if x ever in domain, correct that evaluation. */
+    if (x_ever_in_domain)
+    {
+        next_f_i->operator[](x_coset_index) = f_i_evals->operator[](x_index_in_domain);
     }
     return next_f_i;
 }
@@ -322,6 +384,42 @@ std::vector<query_position_handle> calculate_next_coset_query_positions(
             });
     }
     return query_pos;
+}
+
+// -------------------------------------------------
+// Optimizer utils
+
+/** Generate all possible localization vectors that begin with starting,
+ *  and reduce up to max_reducable_dimensions dimensions.
+ */
+std::vector<std::vector<size_t>> localization_vector_generator(
+    size_t max_reducable_dimensions,
+    std::vector<size_t> starting)
+{
+    std::vector<std::vector<size_t>> options;
+    options.push_back(starting);
+    if (max_reducable_dimensions == 0)
+    {
+        return options;
+    }
+    for (size_t i = 1; i <= max_reducable_dimensions; ++i)
+    {
+        std::vector<size_t> new_starting = starting;
+        new_starting.push_back(i);
+        std::vector<std::vector<size_t>> new_options =
+            localization_vector_generator(max_reducable_dimensions - i, new_starting);
+        options.insert(options.end(), new_options.begin(), new_options.end());
+    }
+    return options;
+}
+
+/* return all partitions of this number (that is, all possible FRI localization parameter vectors
+   for this codeword domain dimension) */
+std::vector<std::vector<size_t>> all_localization_vectors(size_t dimension_to_reduce)
+{
+    /* Fix the start as 1 */
+    std::vector<size_t> starting({1});
+    return localization_vector_generator(dimension_to_reduce - 1, starting);
 }
 
 } // namespace libiop

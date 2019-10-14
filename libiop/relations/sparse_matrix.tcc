@@ -44,4 +44,18 @@ std::size_t r1cs_sparse_matrix<FieldT>::num_columns() const
     return this->constraint_system_->num_variables() + 1;
 }
 
+/** TODO: To save an iteration over the (potentially large) matrix,
+ *  we should build this value during matrix construction. */
+template<typename FieldT>
+std::size_t r1cs_sparse_matrix<FieldT>::num_nonzero_entries() const
+{
+    size_t total_nonzero_entries = 0;
+    for (size_t i = 0; i < this->constraint_system_->num_constraints(); i++)
+    {
+        linear_combination<FieldT> row = this->get_row(i);
+        total_nonzero_entries += row.terms.size();
+    }
+    return total_nonzero_entries;
+}
+
 } // libiop

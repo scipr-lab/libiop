@@ -6,8 +6,8 @@
  * @author     This file is part of libiop (see AUTHORS)
  * @copyright  MIT license (see LICENSE file)
  *****************************************************************************/
-#ifndef LIBIOP_PROTOCOLS_LDT_SIMPLE_LDT_BASE_HPP_
-#define LIBIOP_PROTOCOLS_LDT_SIMPLE_LDT_BASE_HPP_
+#ifndef LIBIOP_PROTOCOLS_LDT_MULTI_LDT_BASE_HPP_
+#define LIBIOP_PROTOCOLS_LDT_MULTI_LDT_BASE_HPP_
 
 #include "libiop/algebra/field_subset/subspace.hpp"
 #include "libiop/iop/iop.hpp"
@@ -48,4 +48,4 @@ public:
 
 } // namespace libiop
 
-#endif // LIBIOP_PROTOCOLS_LDT_SIMPLE_LDT_BASE_HPP_
+#endif // LIBIOP_PROTOCOLS_LDT_MULTI_LDT_BASE_HPP_

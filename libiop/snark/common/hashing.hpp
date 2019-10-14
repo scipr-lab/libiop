@@ -42,6 +42,18 @@ typedef std::function<std::size_t(
     const std::size_t)> integer_randomness_extractor_function;
 
 template<typename FieldT>
+class hash_circuit_description
+{
+public:
+    /* leaf hash and 2 to 1 hash complexities */
+    static size_t arity_m_hash_complexity(
+        const size_t m);
+    static size_t hash_chain_complexity(
+        const size_t sponge_state_size,
+        const size_t input_size);
+};
+
+template<typename FieldT>
 hash_digest blake2b_field_element_hash(const std::vector<FieldT> &data,
                                        const std::size_t digest_len_bytes);
 

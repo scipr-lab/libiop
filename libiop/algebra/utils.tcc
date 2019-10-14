@@ -30,13 +30,13 @@ std::vector<T> all_subset_sums(const std::vector<T> &basis, const T& shift)
 }
 
 template<typename FieldT>
-std::vector<FieldT> batch_inverse(const std::vector<FieldT> &vec)
+std::vector<FieldT> batch_inverse(const std::vector<FieldT> &vec, const bool has_zeroes)
 {
-    return batch_inverse_and_mul(vec, FieldT::one());
+    return batch_inverse_and_mul(vec, FieldT::one(), has_zeroes);
 }
 
 template<typename FieldT>
-std::vector<FieldT> batch_inverse_and_mul(const std::vector<FieldT> &vec, const FieldT &k)
+std::vector<FieldT> batch_inverse_and_mul_internal(const std::vector<FieldT> &vec, const FieldT &k)
 {
     /** Montgomery batch inversion trick.
      *  This assumes that all elements of the input are non-zero.
@@ -66,6 +66,40 @@ std::vector<FieldT> batch_inverse_and_mul(const std::vector<FieldT> &vec, const 
     R[0] = c_inv;
 
     return R;
+}
+
+template<typename FieldT>
+std::vector<FieldT> batch_inverse_and_mul(const std::vector<FieldT> &vec, const FieldT &k, const bool has_zeroes)
+{
+    /** Montgomery batch inversion trick.
+     *  This wraps the internal batch inverse and mul to handle 0's.
+     *  If we need more efficiency, we can make an entirely separate codepath for the case with zeroes,
+     *  and get rid of the loop that searches for zeroes.
+     *  We omit this optimization, as has_zeroes=false in the verifiers code path. */
+    if (has_zeroes)
+    {
+        std::vector<FieldT> vec_copy(vec);
+        std::vector<size_t> zero_locations;
+        FieldT zero = FieldT::zero();
+        for (std::size_t i = 0; i < vec.size(); i++)
+        {
+            if (vec_copy[i] == zero)
+            {
+                zero_locations.emplace_back(i);
+                vec_copy[i] = FieldT::one();
+            }
+        }
+        std::vector<FieldT> result = batch_inverse_and_mul_internal(vec_copy, k);
+        for (std::size_t i = 0; i < zero_locations.size(); i++)
+        {
+            result[zero_locations[i]] = zero;
+        }
+        return result;
+    }
+    else
+    {
+        return batch_inverse_and_mul_internal(vec, k);
+    }
 }
 
 template<typename FieldT>
@@ -144,6 +178,11 @@ std::vector<FieldT> random_FieldT_vector(const std::size_t count)
     }
 
     return result;
+}
+
+size_t gcd(const size_t a, const size_t b)
+{
+    return b == 0 ? a : gcd(b, a % b);
 }
 
 } // namespace libiop

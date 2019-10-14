@@ -202,6 +202,8 @@ void leave_block(const std::string &msg, const bool indent)
     }
 
 #ifndef MULTICORE
+    // printf("expected: %s\n", (*(--block_names.end())).c_str());
+    // printf("got: %s\n", msg.c_str());
     assert(*(--block_names.end()) == msg);
 #endif
     block_names.pop_back();

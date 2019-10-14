@@ -184,6 +184,33 @@ size_t field_subset<FieldT>::position_by_coset_indices(
     }
 }
 
+template<typename FieldT>
+std::vector<size_t> field_subset<FieldT>::all_positions_in_coset_i(
+    const size_t coset_index, const size_t coset_size) const
+{
+    /* TODO: If we need more performance we can make direct methods for these. */
+    std::vector<size_t> positions;
+    for (size_t i = 0; i < coset_size; i++)
+    {
+        positions.emplace_back(this->position_by_coset_indices(coset_index, i, coset_size));
+    }
+    return positions;
+}
+
+template<typename FieldT>
+std::vector<size_t> field_subset<FieldT>::all_positions_with_intra_coset_index_i(
+    const size_t intra_coset_index, const size_t coset_size) const
+{
+    /* TODO: If we need more performance we can make direct methods for these. */
+    std::vector<size_t> positions;
+    size_t num_cosets = this->num_elements() / coset_size;
+    for (size_t i = 0; i < num_cosets; i++)
+    {
+        positions.emplace_back(this->position_by_coset_indices(i, intra_coset_index, coset_size));
+    }
+    return positions;
+}
+
 /** Returns a subset of this field subset, with the provided order.
  *  In the additive case, it returns the affine subspace with the same shift,
  *  and the first log_2(order) basis vectors of this subset. */
@@ -215,12 +242,25 @@ FieldT field_subset<FieldT>::element_outside_of_subset() const
     switch (this->type_)
     {
         case affine_subspace_type:
-            /** This assumes standard basis */
-            return this->offset() + FieldT(1ull << this->dimension());
+            return this->subspace_->element_outside_of_subset();
         case multiplicative_coset_type:
-            return this->shift() * FieldT::multiplicative_generator;
+            return this->coset_->element_outside_of_subset();
         default:
             return FieldT::zero();
+    }
+}
+
+template<typename FieldT>
+bool field_subset<FieldT>::element_in_subset(const FieldT x) const
+{
+    switch (this->type_)
+    {
+        case affine_subspace_type:
+            return this->subspace_->element_in_subset(x);
+        case multiplicative_coset_type:
+            return this->coset_->element_in_subset(x);
+        default:
+            return false;
     }
 }
 
@@ -270,6 +310,26 @@ const std::vector<FieldT>& field_subset<FieldT>::basis() const
     assert(this->type_ == affine_subspace_type);
 
     return this->subspace_->basis();
+}
+
+template<typename FieldT>
+bool field_subset<FieldT>::operator==(const field_subset<FieldT> &other) const
+{
+    switch (this->type_)
+    {
+        case affine_subspace_type:
+            return this->subspace_ == other.subspace_;
+        case multiplicative_coset_type:
+            return this->coset_ == other.coset_;
+        default:
+            return false;
+    }
+}
+
+template<typename FieldT>
+bool field_subset<FieldT>::operator!=(const field_subset<FieldT> &other) const
+{
+    return !(this->operator==(other));
 }
 
 } // namespace libiop

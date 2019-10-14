@@ -18,8 +18,8 @@ void run_lagrange_test(const field_subset<FieldT> &domain) {
     const std::size_t dim = domain.dimension();
 
     /** TODO: Make a much more rigorous testing method.
-      *       This current method is essentially saying choose a low-degree polynomial,
-      *       which can be interpolated from any of its cosets,
+      *       This current method is essentially saying choose a polynomial of degree |coset|,
+      *       so it can be interpolated from any of its cosets.
       *       run evaluate_next_f_i_over_entire_domain, and check that all points evaluated to P(x_i)
       * */
     const size_t poly_deg = 1ull<<2;
@@ -31,9 +31,11 @@ void run_lagrange_test(const field_subset<FieldT> &domain) {
     const FieldT point = FieldT::random_element();
     const FieldT evaluation = poly.evaluation_at_point(point);
 
-    const std::vector<FieldT> interpolations = evaluate_next_f_i_over_entire_domain(poly_evals, domain, poly_deg, point);
+    const std::shared_ptr<std::vector<FieldT>> shared_poly_evals = std::make_shared<std::vector<FieldT>>(poly_evals);
+    const std::vector<FieldT> interpolations = *evaluate_next_f_i_over_entire_domain(
+        shared_poly_evals, domain, poly_deg, point).get();
     ASSERT_EQ(interpolations.size(), num_cosets);
-    
+
     const field_subset<FieldT> localizer_domain = domain.get_subset_of_order(poly_deg);
     const vanishing_polynomial<FieldT> vp(localizer_domain);
     ASSERT_TRUE(interpolations[0] == evaluation);
@@ -49,7 +51,7 @@ void run_lagrange_test(const field_subset<FieldT> &domain) {
         const field_subset<FieldT> unshifted_coset(affine_subspace<FieldT>(
             localizer_domain.basis(), FieldT::zero()));
         const localizer_polynomial<FieldT> unshifted_vp(unshifted_coset);
-        
+
         FieldT eval = additive_evaluate_next_f_i_at_coset(
             coset_evals,
             unshifted_coset,
@@ -63,7 +65,7 @@ void run_lagrange_test(const field_subset<FieldT> &domain) {
         }
         const field_subset<FieldT> unshifted_coset(localizer_domain.num_elements());
         const localizer_polynomial<FieldT> unshifted_vp(unshifted_coset);
-        
+
         FieldT eval = multiplicative_evaluate_next_f_i_at_coset(
             coset_evals,
             unshifted_coset.generator(),
@@ -74,7 +76,7 @@ void run_lagrange_test(const field_subset<FieldT> &domain) {
 }
 
 TEST(Test, LagrangeTest) {
-    const std::size_t dim = 10;
+    const std::size_t dim = 15;
     const field_subset<gf64> additive_domain(
         affine_subspace<gf64>::random_affine_subspace(dim));
     run_lagrange_test<gf64>(additive_domain);
@@ -83,44 +85,6 @@ TEST(Test, LagrangeTest) {
         1ull << dim, libff::edwards_Fr::multiplicative_generator);
     run_lagrange_test<libff::edwards_Fr>(multiplicative_domain_with_offset);
 }
-
-// template<typename FieldT>
-// void run_intersecting_lagrange_test(const field_subset<FieldT> &domain) {
-//     const std::size_t dim = domain.dimension();
-
-//     for (std::size_t i = 0; i < 10; i++) {
-//         const std::size_t eval_pos = rand() % domain.num_elements();
-//         const FieldT point = domain.element_by_index(eval_pos);
-//         const std::vector<FieldT> lagrange_coeffs = L_cache.coefficients_for(point);
-//         for (std::size_t j = 0; j < domain.num_elements(); j++) {
-//             if (j == eval_pos) {
-//                 EXPECT_TRUE(lagrange_coeffs[j] == FieldT::one());
-//             } else {
-//                 EXPECT_TRUE(lagrange_coeffs[j] == FieldT::zero());
-//             }
-//         }
-//     }
-// }
-// }
-
-// TEST(InterpolationDomainIntersects, LagrangeTest) {
-//     const std::size_t dim = 10;
-//     const field_subset<gf64> additive_domain(
-//         affine_subspace<gf64>::random_affine_subspace(dim));
-//     run_intersecting_lagrange_test<gf64>(additive_domain);
-//     edwards_pp::init_public_params();
-//     const field_subset<edwards_Fr> multiplicative_domain(
-//         1ull << dim, edwards_Fr::one());
-//     run_intersecting_lagrange_test<edwards_Fr>(multiplicative_domain);
-//     const field_subset<edwards_Fr> multiplicative_domain_with_offset(
-//         1ull << dim, edwards_Fr::multiplicative_generator);
-//     run_intersecting_lagrange_test<edwards_Fr>(multiplicative_domain_with_offset);
-
-//     libff::alt_bn128_pp::init_public_params();
-//     const field_subset<alt_bn128_Fr> altbn_domain(
-//         1ull << dim, alt_bn128_Fr::one());
-//     run_intersecting_lagrange_test<alt_bn128_Fr>(altbn_domain);
-// }
 
 template<typename FieldT>
 void run_calculate_next_coset_query_positions_test(
@@ -140,7 +104,7 @@ void run_calculate_next_coset_query_positions_test(
     IOP.register_oracle(codeword_domain_handle, 0, false);
     IOP.seal_interaction_registrations();
 
-    query_position_handle base_handle = 
+    query_position_handle base_handle =
         IOP.register_deterministic_query_position(
             { },
             [initial_query_pos]
@@ -148,7 +112,7 @@ void run_calculate_next_coset_query_positions_test(
             -> std::size_t {
                 return initial_query_pos;
             });
-    std::vector<query_position_handle> query_positions = 
+    std::vector<query_position_handle> query_positions =
         calculate_next_coset_query_positions(IOP, base_handle, codeword_domain, localized_domain,
         prev_localization_parameter, cur_localization_parameter);
 
@@ -171,7 +135,7 @@ TEST(QueryPositionTest, AdditiveTest) {
     std::vector<size_t> expected_query_pos({0,1,2,3,4,5,6,7});
     run_calculate_next_coset_query_positions_test<FieldT>(
         codeword_domain, initial_query_pos, prev_localization_param, cur_localization_param, expected_query_pos);
-    
+
     /* 2nd element, in the 5th coset */
     initial_query_pos = (1ull << prev_localization_param) * 5 + 1;
     expected_query_pos = std::vector<size_t> ({0,1,2,3,4,5,6,7});
@@ -199,7 +163,7 @@ TEST(QueryPositionTest, MultiplicativeTest) {
     std::vector<size_t> expected_query_pos({0,offset,2*offset,3*offset,4*offset,5*offset,6*offset,7*offset});
     run_calculate_next_coset_query_positions_test<FieldT>(
         codeword_domain, initial_query_pos, prev_localization_param, cur_localization_param, expected_query_pos);
-    
+
     /* 2nd element, in the 5th coset */
     initial_query_pos = (1ull << (codeword_domain_dim - 1)) + 5;
     expected_query_pos = std::vector<size_t> (

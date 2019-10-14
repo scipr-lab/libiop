@@ -16,8 +16,9 @@
 #include "libiop/algebra/fields/utils.hpp"
 
 #include "libiop/snark/aurora_snark.hpp"
+#include "libiop/snark/common/bcs_common.hpp"
 #include "libiop/protocols/aurora_iop.hpp"
-#include "libiop/protocols/ldt/fri/optimizer.hpp"
+#include "libiop/protocols/ldt/fri/argument_size_optimizer.hpp"
 #include "libiop/relations/examples/r1cs_examples.hpp"
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
@@ -75,6 +76,29 @@ bool process_prover_command_line(const int argc, const char** argv,
 using namespace libiop;
 
 template<typename FieldT>
+void print_argument_size(
+    aurora_snark_parameters<FieldT> params,
+    const r1cs_constraint_system<FieldT> &constraint_system,
+    aurora_snark_argument<FieldT> argument)
+{
+    /* We go through registration on the verifier to know what the domains look like */
+    bcs_verifier<FieldT> verifier(params.bcs_params_, argument);
+    aurora_iop<FieldT> full_protocol(verifier, constraint_system, params.iop_params_);
+    full_protocol.register_interactions();
+    verifier.seal_interaction_registrations();
+    full_protocol.register_queries();
+    verifier.seal_query_registrations();
+    const bool holographic = false;
+    print_detailed_transcript_data<FieldT>(
+        holographic,
+        argument,
+        params.bcs_params_,
+        verifier.get_MT_depths(),
+        verifier.get_MT_zk_flags(),
+        verifier.get_all_round_params());
+}
+
+template<typename FieldT>
 void instrument_aurora_snark(const std::size_t log_n_min,
                              const std::size_t log_n_max,
                              std::size_t security_level,
@@ -102,7 +126,6 @@ void instrument_aurora_snark(const std::size_t log_n_min,
         const std::size_t m = (n <= 116 ? n : n - 101);
         r1cs_example<FieldT> example = generate_r1cs_example<FieldT>(n, k, m);
 
-
         aurora_snark_parameters<FieldT> parameters(security_level,
                                                    ldt_reducer_soundness_type,
                                                    fri_soundness_type,
@@ -116,11 +139,21 @@ void instrument_aurora_snark(const std::size_t log_n_min,
         std::vector<std::size_t> localization_parameter_array;
         if (optimize_localization)
         {
+            const size_t codeword_domain_dim = parameters.iop_params_.codeword_domain_dim();
             std::size_t num_query_sets = parameters.iop_params_.FRI_params_.query_repetitions();
-            std::size_t field_size = log_of_field_size_helper<FieldT>(FieldT(0));
-            size_t locality = parameters.iop_params_.locality();
-            localization_parameter_array = brute_force_optimal_localization_parameters(
-                log_n, num_query_sets, locality, field_size, RS_extra_dimensions);
+            const size_t max_tested_degree_bound =
+                parameters.iop_params_.encoded_aurora_params_.max_tested_degree_bound();
+            const size_t hash_size = (parameters.bcs_params_.security_parameter + 3) / 4;
+            std::vector<size_t> oracle_locality_vector = parameters.iop_params_.locality_vector();
+            // if (parameters.iop_params_.make_zk())
+            // {
+            //     /* Handle the zk leaves for the SNARK. TODO: Where should this go? */
+            //     oracle_locality_vector[0] += 1;
+            // }
+            localization_parameter_array =
+                compute_argument_size_optimal_localization_parameters<FieldT>(
+                    oracle_locality_vector,
+                    codeword_domain_dim, num_query_sets, max_tested_degree_bound, hash_size);
 
             parameters.reset_fri_localization_parameters(localization_parameter_array);
         }
@@ -145,18 +178,7 @@ void instrument_aurora_snark(const std::size_t log_n_min,
             example.auxiliary_input_,
             parameters);
 
-        printf("\n");
-
-        print_indent(); printf("* Argument size in bytes (IOP): %zu\n", proof.IOP_size_in_bytes());
-        print_indent(); printf("* Argument size in bytes (BCS): %zu\n", proof.BCS_size_in_bytes());
-        print_indent(); printf("* Argument size in bytes (total): %zu\n", proof.size_in_bytes());
-
-        printf("\nIf we were to remove pruning of authentication paths in BCS,\n"
-               "the argument would have the following sizes:\n");
-        print_indent(); printf("* Argument size in bytes (BCS, no pruning): %zu\n", proof.BCS_size_in_bytes_without_pruning());
-        print_indent(); printf("* Argument size in bytes (total, no pruning): %zu\n", proof.size_in_bytes_without_pruning());
-
-        printf("\n");
+        print_argument_size(parameters, example.constraint_system_, proof);
 
         const bool bit = aurora_snark_verifier<FieldT>(
             example.constraint_system_,

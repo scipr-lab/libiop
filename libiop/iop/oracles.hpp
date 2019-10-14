@@ -21,15 +21,33 @@ namespace libiop {
 template<typename FieldT>
 class oracle {
 protected:
-    std::vector<FieldT> evaluated_contents_;
+    std::shared_ptr<std::vector<FieldT>> evaluated_contents_;
+    bool erased_ = false;
 
 public:
     oracle() = default;
-    oracle(const std::vector<FieldT> &evaluated_contents) : evaluated_contents_(evaluated_contents) {}
-    oracle(std::vector<FieldT> &&evaluated_contents) : evaluated_contents_(std::move(evaluated_contents)) {}
+    oracle(const std::vector<FieldT> &evaluated_contents) :
+        evaluated_contents_(
+            std::make_shared<std::vector<FieldT>>(evaluated_contents)) {}
+    oracle(std::vector<FieldT> &&evaluated_contents) :
+        evaluated_contents_(
+            std::make_shared<std::vector<FieldT>>(std::move(evaluated_contents))) {}
+    // TODO: Should we make a method where the IOP infrastructure shares ownership
+    // of the provided oracle, instead of making its own copy
+    oracle(const std::shared_ptr<std::vector<FieldT>> &evaluated_contents) :
+        evaluated_contents_(
+            std::make_shared<std::vector<FieldT>>(*evaluated_contents.get())) {}
 
-    const std::vector<FieldT>& evaluated_contents() const {
+    const std::shared_ptr<std::vector<FieldT>> evaluated_contents() const {
+        if (this->erased_)
+        {
+            throw std::invalid_argument("Oracle has been erased\n");
+        }
         return this->evaluated_contents_;
+    }
+    void erase_contents() {
+        this->erased_ = true;
+        this->evaluated_contents_.reset();
     }
 };
 
@@ -37,14 +55,17 @@ public:
 template<typename FieldT>
 class virtual_oracle : public oracle<FieldT> {
 public:
-    virtual std::vector<FieldT> evaluated_contents(
-        const std::vector<std::vector<FieldT> > &constituent_oracle_evaluations) const = 0;
+    virtual std::shared_ptr<std::vector<FieldT>> evaluated_contents(
+        const std::vector<std::shared_ptr<std::vector<FieldT>>>
+        &constituent_oracle_evaluations) const = 0;
 
     virtual FieldT evaluation_at_point(
         const std::size_t evaluation_position,
         const FieldT evaluation_point,
         const std::vector<FieldT> &constituent_oracle_evaluations) const = 0;
-    /* Below the IOP interface defines
+
+    /* TODO: Move this documentation to the correct spot
+       The IOP interface defines
 
        virtual_oracle_handle register_virtual_oracle(
        const domain_handle &domain,
