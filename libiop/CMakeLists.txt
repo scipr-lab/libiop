@@ -9,6 +9,8 @@ add_library(
   algebra/fields/gf192.cpp
   algebra/fields/gf256.cpp
   snark/common/hashing.cpp
+  protocols/ldt/ldt_reducer.cpp
+  iop/utilities/batching.cpp
 )
 
 target_link_libraries(
