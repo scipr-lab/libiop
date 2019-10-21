@@ -1,4 +1,4 @@
-#include "ldt_reducer.hpp"
+#include "libiop/protocols/ldt/ldt_reducer.hpp"
 #include <cassert>
 #include <stdexcept>
 

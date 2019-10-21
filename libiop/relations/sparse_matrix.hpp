@@ -36,8 +36,7 @@ enum r1cs_sparse_matrix_type {
     r1cs_sparse_matrix_C = 3
 };
 
-std::vector<r1cs_sparse_matrix_type> all_r1cs_sparse_matrix_types(
-    {r1cs_sparse_matrix_A, r1cs_sparse_matrix_B, r1cs_sparse_matrix_C});
+extern std::vector<r1cs_sparse_matrix_type> all_r1cs_sparse_matrix_types;
 
 template<typename FieldT>
 class r1cs_sparse_matrix : public sparse_matrix<FieldT> {
