@@ -33,11 +33,33 @@ long double add_soundness_error_bits(const long double bits1, const long double 
 template<typename ... Types>
 void UNUSED(Types&&...) {}
 
-/* Print a vector in the form { elem0 elem1 elem2 ... }, with a newline at the end*/
+/* Print a vector in the form { elem0 elem1 elem2 ... }, with a newline at the end
 template<typename T>
 void print_vector(std::vector<T> &vec);
 template<typename T>
-void print_vector(std::vector<T> vec);
+void print_vector(std::vector<T> vec);*/
+
+template<typename T>
+void print_vector(std::vector<T> &vec)
+{
+    printf("{ ");
+    for (auto const& elem : vec)
+    {
+        std::cout << elem << " ";
+    }
+    printf("}\n");
+}
+
+template<typename T>
+void print_vector(std::vector<T> vec)
+{
+    printf("{ ");
+    for (auto const& elem : vec)
+    {
+        std::cout << elem << " ";
+    }
+    printf("}\n");
+}
 
 } // namespace libiop
 

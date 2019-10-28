@@ -48,26 +48,5 @@ long double add_soundness_error_bits(const long double bits1, const long double 
     return -1 * log2l(result);
 }
 
-template<typename T>
-void print_vector(std::vector<T> &vec)
-{
-    printf("{ ");
-    for (auto const& elem : vec)
-    {
-        std::cout << elem << " ";
-    }
-    printf("}\n");
-}
-
-template<typename T>
-void print_vector(std::vector<T> vec)
-{
-    printf("{ ");
-    for (auto const& elem : vec)
-    {
-        std::cout << elem << " ";
-    }
-    printf("}\n");
-}
 
 } // namespace libiop

@@ -107,17 +107,6 @@ size_t LDT_instance_reducer_params<FieldT>::num_output_LDT_instances() const
     return this->num_output_LDT_instances_;
 }
 
-const char* LDT_reducer_soundness_type_to_string(LDT_reducer_soundness_type soundness_type)
-{
-    if (soundness_type == LDT_reducer_soundness_type::proven)
-    {
-        return "proven";
-    } else if (soundness_type == LDT_reducer_soundness_type::optimistic_heuristic)
-    {
-        return "heuristic";
-    }
-    return "Invalid soundness type";
-}
 
 template<typename FieldT>
 void LDT_instance_reducer_params<FieldT>::print() const

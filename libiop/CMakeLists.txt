@@ -9,6 +9,12 @@ add_library(
   algebra/fields/gf192.cpp
   algebra/fields/gf256.cpp
   snark/common/hashing.cpp
+  protocols/ldt/ldt_reducer.cpp
+  protocols/ldt/fri/fri_ldt.cpp
+  protocols/ldt/fri/fri_aux.cpp
+  relations/sparse_matrix.cpp
+  iop/utilities/batching.cpp
+  algebra/utils.cpp
 )
 
 target_link_libraries(
@@ -214,7 +220,7 @@ target_link_libraries(test_bcs_transformation iop gtest_main)
 add_executable(test_aurora_snark tests/snark/test_aurora_snark.cpp)
 target_link_libraries(test_aurora_snark iop gtest_main)
 
-add_executable(test_fractal_snark tests/snark/test_fractal_snark.cpp)
+add_executable(test_fractal_snark tests/snark/test_fractal_snark.cpp )
 target_link_libraries(test_fractal_snark iop gtest_main)
 
 add_executable(test_ligero_snark tests/snark/test_ligero_snark.cpp)

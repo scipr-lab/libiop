@@ -1,5 +1,5 @@
 #include "libiop/algebra/field_subset/subgroup.hpp"
-#include "libiop/common/common.cpp"
+#include "libiop/common/common.hpp"
 #include "libiop/common/profiling.hpp"
 
 namespace libiop {
@@ -229,18 +229,6 @@ long double FRI_protocol_parameters<FieldT>::achieved_query_soundness() const
 {
     long double soundness_per_query = log2l(1 - this->effective_proximity_parameter_);
     return -1.0 * (long double)(this->num_query_repetitions_) * soundness_per_query;
-}
-
-const char* FRI_soundness_type_to_string(FRI_soundness_type soundness_type)
-{
-    if (soundness_type == FRI_soundness_type::heuristic)
-    {
-        return "heuristic";
-    } else if (soundness_type == FRI_soundness_type::proven)
-    {
-        return "proven";
-    }
-    return "Invalid soundness type";
 }
 
 template<typename FieldT>

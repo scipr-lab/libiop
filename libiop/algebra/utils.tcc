@@ -180,9 +180,6 @@ std::vector<FieldT> random_FieldT_vector(const std::size_t count)
     return result;
 }
 
-size_t gcd(const size_t a, const size_t b)
-{
-    return b == 0 ? a : gcd(b, a % b);
-}
+
 
 } // namespace libiop
