@@ -82,7 +82,7 @@ The folder [`libiop/protocols`](libiop/protocols) contains several protocols wri
   </tr>
 </table>
 
-The first is an IOP from the [Ligero paper](https://eprint.iacr.org/2018/828),<sup>[1]</sup>  the second is an IOP from the [Aurora paper](https://eprint.iacr.org/2018/828), and the third is an IOP from the [Fractal paper](https://eprint.iacr.org/2019/1076).
+The first is an IOP from the [Ligero paper](https://acmccs.github.io/papers/p2087-amesA.pdf),<sup>[1]</sup>  the second is an IOP from the [Aurora paper](https://eprint.iacr.org/2018/828), and the third is an IOP from the [Fractal paper](https://eprint.iacr.org/2019/1076).
 
 Efficient IOP protocols such as the above are obtained by combining two components: (1) RS-encoded IOP, and a (2) proximity test for the RS code. (See [this paper](https://eprint.iacr.org/2018/828) for more details.) The codebase in this library provides infrastructure that enables generically composing these components.
 
