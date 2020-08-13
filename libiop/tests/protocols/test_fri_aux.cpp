@@ -23,6 +23,7 @@ void run_lagrange_test(const field_subset<FieldT> &domain) {
       *       run evaluate_next_f_i_over_entire_domain, and check that all points evaluated to P(x_i)
       * */
     const size_t poly_deg = 1ull<<2;
+    const field_subset<FieldT> localizer_domain = domain.get_subset_of_order(poly_deg);
     const size_t num_cosets = domain.num_elements() / poly_deg;
     const polynomial<FieldT> poly = polynomial<FieldT>::random_polynomial(poly_deg);
 
@@ -36,8 +37,6 @@ void run_lagrange_test(const field_subset<FieldT> &domain) {
         shared_poly_evals, domain, poly_deg, point).get();
     ASSERT_EQ(interpolations.size(), num_cosets);
 
-    const field_subset<FieldT> localizer_domain = domain.get_subset_of_order(poly_deg);
-    const vanishing_polynomial<FieldT> vp(localizer_domain);
     ASSERT_TRUE(interpolations[0] == evaluation);
     ASSERT_TRUE(interpolations[1] == evaluation);
     ASSERT_TRUE(interpolations[2] == evaluation);
@@ -101,7 +100,7 @@ void run_calculate_next_coset_query_positions_test(
      /* Initialize IOP */
     iop_protocol<FieldT> IOP;
     const domain_handle codeword_domain_handle = IOP.register_domain(codeword_domain);
-    IOP.register_oracle(codeword_domain_handle, 0, false);
+    IOP.register_oracle("", codeword_domain_handle, 0, false);
     IOP.seal_interaction_registrations();
 
     query_position_handle base_handle =

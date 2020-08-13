@@ -1,16 +1,16 @@
 #include <algorithm>
 #include <numeric>
 #include <set>
+#include <libff/algebra/fields/bigint.hpp>
 
 #include "libiop/algebra/fft.hpp"
 #include "libiop/common/profiling.hpp"
 
 namespace libiop {
 
-template<typename FieldT>
-std::size_t bcs_transformation_transcript<FieldT>::IOP_size_in_bytes() const
+template<typename FieldT, typename MT_root_hash>
+std::size_t bcs_transformation_transcript<FieldT, MT_root_hash>::IOP_size_in_bytes() const
 {
-
     const size_t field_size =
         (log_of_field_size_helper<FieldT>(FieldT::zero()) + 7) / 8;
     const std::size_t prover_messages_length =
@@ -39,16 +39,15 @@ std::size_t bcs_transformation_transcript<FieldT>::IOP_size_in_bytes() const
             query_responses_size);
 }
 
-
-template<typename FieldT>
-std::size_t bcs_transformation_transcript<FieldT>::BCS_size_in_bytes() const
+template<typename FieldT, typename MT_root_hash>
+std::size_t bcs_transformation_transcript<FieldT, MT_root_hash>::BCS_size_in_bytes() const
 {
     const std::size_t MT_roots_size =
         std::accumulate(this->MT_roots_.begin(),
                         this->MT_roots_.end(),
                         0,
-                        [] (const std::size_t av, const hash_digest &h) {
-                            return av + h.size();
+                        [] (const std::size_t av, const MT_root_hash &h) {
+                            return av + get_hash_size<MT_root_hash>(h);
                         });
 
     const std::size_t MT_set_membership_proofs_size =
@@ -56,58 +55,382 @@ std::size_t bcs_transformation_transcript<FieldT>::BCS_size_in_bytes() const
                         this->MT_set_membership_proofs_.end(),
                         0,
                         [] (const std::size_t av,
-                            const merkle_tree_set_membership_proof &pi) {
+                            const merkle_tree_set_membership_proof<MT_root_hash> &pi) {
                             return av + pi.size_in_bytes();
                         });
+    
+    const std::size_t pow_size = get_hash_size<MT_root_hash>(this->proof_of_work_);
 
     return (MT_roots_size +
-            MT_set_membership_proofs_size);
+            MT_set_membership_proofs_size + 
+            pow_size);
 }
 
-template<typename FieldT>
-std::size_t bcs_transformation_transcript<FieldT>::size_in_bytes() const
+template<typename FieldT, typename MT_root_hash>
+std::size_t bcs_transformation_transcript<FieldT, MT_root_hash>::size_in_bytes() const
 {
     return (this->IOP_size_in_bytes() +
             this->BCS_size_in_bytes());
 }
 
-template<typename FieldT>
-std::size_t bcs_transformation_transcript<FieldT>::BCS_size_in_bytes_without_pruning() const
+template<typename FieldT, typename MT_root_hash>
+std::size_t bcs_transformation_transcript<FieldT, MT_root_hash>::BCS_size_in_bytes_without_pruning() const
 {
     const std::size_t MT_roots_size =
         std::accumulate(this->MT_roots_.begin(),
                         this->MT_roots_.end(),
                         0,
-                        [] (const std::size_t av, const hash_digest &h) {
-                            return av + h.size();
+                        [] (const std::size_t av, const MT_root_hash &h) {
+                            return av + get_hash_size<MT_root_hash>(h);
                         });
 
-    const std::size_t digest_size_bytes = this->MT_roots_[0].size();
+    const std::size_t digest_size_bytes = get_hash_size<MT_root_hash>(this->MT_roots_[0]);
+    const std::size_t pow_size = get_hash_size<MT_root_hash>(this->proof_of_work_);
 
-    return (MT_roots_size + digest_size_bytes * total_depth_without_pruning);
+    return (MT_roots_size + pow_size + digest_size_bytes * total_depth_without_pruning);
+}
+
+/** TODO: Come back and cleanup this serialization code. 
+ * Its really messy, and quite unnecessarily so.
+ */
+template<typename FieldT>
+std::ostream& serialize_FieldT(
+    std::ostream &out, const FieldT &v)
+{
+    bigint<FieldT::num_limbs> b = v.as_bigint();
+    for (size_t j = 0; j < FieldT::num_limbs; j++)
+    {
+        out << b.data[j];
+        out << ",";
+    }
+    return out;
 }
 
 template<typename FieldT>
-std::size_t bcs_transformation_transcript<FieldT>::size_in_bytes_without_pruning() const
+FieldT deserialize_FieldT(
+    std::istream &in)
+{
+    bigint<FieldT::num_limbs> b;
+    char delimiter;
+    for (size_t j = 0; j < FieldT::num_limbs; j++)
+    {
+        in >> b.data[j];
+        in >> delimiter;
+        assert(delimiter == char(','));
+    }
+    return FieldT(b);
+}
+
+template<typename FieldT>
+std::ostream& serialize_Field_Elem_vec(
+    std::ostream &out, const std::vector<FieldT> &v)
+{
+    out << v.size();
+    out << ",";
+    for (size_t i = 0; i < v.size(); i++)
+    {
+        serialize_FieldT(out, v[i]);
+    }
+    return out;
+}
+
+template<typename FieldT>
+std::istream& deserialize_Field_Elem_vec(
+    std::istream &in, std::vector<FieldT> &v)
+{
+    size_t size;
+    in >> size;
+    char delimiter;
+    in >> delimiter;
+    assert(delimiter == char(','));
+    for (size_t i = 0; i < size; i++)
+    {
+        FieldT e = deserialize_FieldT<FieldT>(in);
+        v.emplace_back(e);
+    }
+    return in;
+}
+
+template<typename FieldT>
+std::ostream& serialize_Field_Elem_vec_of_vec(
+    std::ostream &out, const std::vector<std::vector<FieldT>> &v)
+{
+    out << v.size();
+    out << ",";
+    for (size_t i = 0; i < v.size(); i++)
+    {
+        serialize_Field_Elem_vec<FieldT>(out, v[i]);
+    }
+    return out;
+}
+
+template<typename FieldT>
+std::istream& deserialize_Field_Elem_vec_of_vec(
+    std::istream &in, std::vector<std::vector<FieldT>> &v)
+{
+    size_t size;
+    in >> size;
+    char delimiter;
+    in >> delimiter;
+    assert(delimiter == char(','));
+    for (size_t i = 0; i < size; i++)
+    {
+        std::vector<FieldT> vec;
+        deserialize_Field_Elem_vec(in, vec);
+        v.emplace_back(vec);
+    }
+    return in;
+}
+
+/* Currently only works for non-zk case. */
+template<typename FieldT>
+std::ostream& serialize_vec_of_MT_proofs(
+    std::ostream &out, const std::vector<merkle_tree_set_membership_proof<FieldT>> &v)
+{
+    out << v.size();
+    out << ",";
+    for (size_t i = 0; i < v.size(); i++)
+    {
+        out << v[i].auxiliary_hashes.size();
+        out << ",";
+        for (size_t j = 0; j < v[i].auxiliary_hashes.size(); j++)
+        {
+            serialize_FieldT<FieldT>(out, v[i].auxiliary_hashes[j]);
+        }
+    }
+    return out;
+}
+
+template<typename FieldT>
+std::istream& deserialize_vec_of_MT_proofs(
+    std::istream &in, std::vector<merkle_tree_set_membership_proof<FieldT>> &v)
+{
+    size_t size;
+    in >> size;
+    char delimiter;
+    in >> delimiter;
+    assert(delimiter == char(','));
+    for (size_t i = 0; i < size; i++)
+    {
+        size_t aux_hash_size;
+        in >> aux_hash_size;
+        in >> delimiter;
+        assert(delimiter == char(','));
+        std::vector<FieldT> auxiliary_hashes;
+        for (size_t j = 0; j < aux_hash_size; j++)
+        {
+            auxiliary_hashes.emplace_back(deserialize_FieldT<FieldT>(in));
+        }
+        merkle_tree_set_membership_proof<FieldT> prf;
+        prf.auxiliary_hashes = auxiliary_hashes;
+        v.emplace_back(prf);
+    }
+    return in;
+}
+
+template<typename FieldT>
+std::istream& deserialize_Field_Elem_vec_of_vec_of_vec(
+    std::istream &in, std::vector<std::vector<std::vector<FieldT>>> &v)
+{
+    size_t size;
+    in >> size;
+    char delimiter;
+    in >> delimiter;
+    assert(delimiter == char(','));
+    for (size_t i = 0; i < size; i++)
+    {
+        std::vector<std::vector<FieldT>> vec;
+        deserialize_Field_Elem_vec_of_vec(in, vec);
+        v.emplace_back(vec);
+    }
+    return in;
+}
+
+template<typename FieldT>
+std::ostream& serialize_Field_Elem_vec_of_vec_of_vec(
+    std::ostream &out, const std::vector<std::vector<std::vector<FieldT>>> &v)
+{
+    out << v.size();
+    out << ",";
+    for (size_t i = 0; i < v.size(); i++)
+    {
+        serialize_Field_Elem_vec_of_vec<FieldT>(out, v[i]);
+    }
+    return out;
+}
+
+std::ostream& serialize_size_t_vec_of_vec(
+    std::ostream &out, const std::vector<std::vector<size_t>> &v)
+{
+    out << v.size();
+    out << ",";
+    for (size_t i = 0; i < v.size(); i++)
+    {
+        out << v[i].size();
+        out << ",";
+        for (size_t j = 0; j < v[i].size(); j++)
+        {
+            out << v[i][j];
+            out << ",";
+        }
+    }
+    return out;
+}
+
+// TODO: Left off here
+std::istream& deserialize_size_t_vec_of_vec(
+    std::istream &in, std::vector<std::vector<size_t>> &v)
+{
+    size_t size;
+    in >> size;
+    char delimiter;
+    in >> delimiter;
+    assert(delimiter == char(','));
+    for (size_t i = 0; i < size; i++)
+    {
+        std::vector<size_t> vec;
+        size_t vec_len;
+        in >> vec_len;
+        in >> delimiter;
+        assert(delimiter == char(','));
+        for (size_t j = 0; j < vec_len; j++)
+        {
+            size_t cur;
+            in >> cur;
+            vec.emplace_back(cur);
+            in >> delimiter;
+            assert(delimiter == char(','));
+        }
+        v.emplace_back(vec);
+    }
+    return in;
+}
+
+template<typename FieldT, typename MT_hash_type>
+std::ostream& serialize_transcript_internal(
+    typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type,
+    typename libiop::enable_if<std::is_same<MT_hash_type, FieldT>::value, FieldT>::type,
+    std::ostream &out, const bcs_transformation_transcript<FieldT, MT_hash_type> &t)
+{
+    // algebraic hash on multiplicative field
+    serialize_Field_Elem_vec_of_vec<FieldT>(out, t.prover_messages_);
+    out << "\n";
+    serialize_Field_Elem_vec<FieldT>(out, t.MT_roots_);
+    out << "\n";
+    serialize_size_t_vec_of_vec(out, t.query_positions_);
+    out << "\n";
+    serialize_Field_Elem_vec_of_vec_of_vec(out, t.query_responses_);
+    out << "\n";
+    serialize_size_t_vec_of_vec(out, t.MT_leaf_positions_);
+    out << "\n";
+    serialize_vec_of_MT_proofs(out, t.MT_set_membership_proofs_);
+    out << "\n";
+    return out;
+}
+
+template<typename FieldT, typename MT_hash_type>
+std::istream& deserialize_transcript_internal(
+    typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type,
+    typename libiop::enable_if<std::is_same<MT_hash_type, FieldT>::value, FieldT>::type,
+    std::istream &in, bcs_transformation_transcript<FieldT, MT_hash_type> &t)
+{
+    // algebraic hash on multiplicative field
+    char delimiter;
+    deserialize_Field_Elem_vec_of_vec<FieldT>(in, t.prover_messages_);
+    in.get(delimiter);
+    assert(delimiter == '\n');
+    deserialize_Field_Elem_vec<FieldT>(in, t.MT_roots_);
+    in.get(delimiter);
+    assert(delimiter == '\n');
+    deserialize_size_t_vec_of_vec(in, t.query_positions_);
+    in.get(delimiter);
+    assert(delimiter == '\n');
+    deserialize_Field_Elem_vec_of_vec_of_vec(in, t.query_responses_);
+    in.get(delimiter);
+    assert(delimiter == '\n');
+    deserialize_size_t_vec_of_vec(in, t.MT_leaf_positions_);
+    in.get(delimiter);
+    assert(delimiter == '\n');
+    deserialize_vec_of_MT_proofs(in, t.MT_set_membership_proofs_);
+    in.get(delimiter);
+    assert(delimiter == '\n');
+    return in;
+}
+
+template<typename FieldT, typename MT_hash_type>
+std::ostream& serialize_transcript_internal(
+    typename libiop::enable_if<!is_multiplicative<FieldT>::value, FieldT>::type,
+    typename libiop::enable_if<!std::is_same<MT_hash_type, FieldT>::value, FieldT>::type,
+    std::ostream &out, const bcs_transformation_transcript<FieldT, MT_hash_type> &t)
+{
+    printf("Serializing on binary fields or non-algebraic hashes is not implemented\n");
+    return out;
+}
+
+template<typename FieldT, typename MT_hash_type>
+std::istream& deserialize_transcript_internal(
+    typename libiop::enable_if<!is_multiplicative<FieldT>::value, FieldT>::type,
+    typename libiop::enable_if<!std::is_same<MT_hash_type, FieldT>::value, FieldT>::type,
+    std::istream &in, bcs_transformation_transcript<FieldT, MT_hash_type> &t)
+{
+    printf("Deserializing on binary fields or non-algebraic hashes is not implemented\n");
+    return in;
+}
+
+template<typename FieldT, typename MT_hash_type>
+std::ostream& bcs_transformation_transcript<FieldT, MT_hash_type>::serialize(std::ostream &out) const
+{
+    return serialize_transcript_internal<FieldT, MT_hash_type>(FieldT::zero(), FieldT::zero(), out, *this);
+}
+
+template<typename FieldT, typename MT_hash_type>
+std::istream& bcs_transformation_transcript<FieldT, MT_hash_type>::deserialize(std::istream &in)
+{
+    return deserialize_transcript_internal<FieldT, MT_hash_type>(FieldT::zero(), FieldT::zero(), in, *this);
+}
+
+template<typename FieldT, typename MT_root_hash>
+std::size_t bcs_transformation_transcript<FieldT, MT_root_hash>::size_in_bytes_without_pruning() const
 {
     return (this->IOP_size_in_bytes() +
             this->BCS_size_in_bytes_without_pruning());
 }
 
-template<typename FieldT>
-bcs_protocol<FieldT>::bcs_protocol(const bcs_transformation_parameters<FieldT> &parameters) :
+template<typename FieldT, typename MT_root_hash>
+bcs_protocol<FieldT, MT_root_hash>::bcs_protocol(
+    const bcs_transformation_parameters<FieldT, MT_root_hash> &parameters) :
     iop_protocol<FieldT>(),
     parameters_(parameters)
 {
     this->digest_len_bytes_ = 2 * (this->parameters_.security_parameter / 8);
+    this->hashchain_ = this->parameters_.hashchain_->new_hashchain();
     printf("\nBCS parameters\n");
     print_indent(); printf("* digest_len (bytes) = %zu\n", this->digest_len_bytes_);
     print_indent(); printf("* digest_len (bits) = %zu\n", 8 * this->digest_len_bytes_);
+    print_indent(); printf("* hash_type = %s\n", bcs_hash_type_names[parameters.hash_enum]);
 }
 
-template<typename FieldT>
-void bcs_protocol<FieldT>::seal_interaction_registrations()
+template<typename FieldT, typename MT_root_hash>
+void bcs_protocol<FieldT, MT_root_hash>::register_proof_of_work()
 {
+    // The verifier squeezes out a challenge, the prover creates a pow,
+    // and then that gets absorbed into the hash chain.
+    // this->pow_challenge_handle_ = this->register_verifier_random_message(1);
+    // this->pow_proof_handle_ = this->register_prover_message(1);
+    this->pow_ = pow<FieldT, MT_root_hash>(this->parameters_.pow_params_, this->digest_len_bytes_);
+}
+
+template<typename FieldT, typename MT_root_hash>
+void bcs_protocol<FieldT, MT_root_hash>::seal_interaction_registrations()
+{
+    // Do a proof of work as long as we are not in the indexer
+    if (!(this->is_holographic_ && this->num_interaction_rounds_ == 1))
+    {
+        // To do the proof of work, we add a message-only round at the end of the interaction.
+        // This means if the prover wants to try new queries, they must redo the proof of work.
+        this->register_proof_of_work();
+    }
+
     iop_protocol<FieldT>::seal_interaction_registrations();
 
     /* Now that all the interactions have been registered, we know how
@@ -144,20 +467,20 @@ void bcs_protocol<FieldT>::seal_interaction_registrations()
             }
             /* Make this a per-oracle setting as well */
             const std::size_t size = this->domains_[kv.first.id()].num_elements() / round_params.quotient_map_size_;
-            const merkle_tree<FieldT> MT(size,
-                                         this->parameters_.field_hasher,
-                                         this->parameters_.zk_hasher,
-                                         this->parameters_.compression_hasher,
-                                         this->digest_len_bytes_,
-                                         make_zk,
-                                         this->parameters_.security_parameter);
+            const merkle_tree<FieldT, MT_root_hash> MT(
+                size,
+                this->parameters_.leafhasher_,
+                this->parameters_.compression_hasher,
+                this->digest_len_bytes_,
+                make_zk,
+                this->parameters_.security_parameter);
             this->Merkle_trees_.emplace_back(MT);
         }
     }
 }
 
-template<typename FieldT>
-void bcs_protocol<FieldT>::set_round_parameters(const round_parameters<FieldT> &params) {
+template<typename FieldT, typename MT_root_hash>
+void bcs_protocol<FieldT, MT_root_hash>::set_round_parameters(const round_parameters<FieldT> &params) {
     /* Rounds are 0 indexed. */
     std::size_t cur_round = this->num_interaction_rounds();
     if (cur_round == this->round_params_.size() - 1) {
@@ -170,8 +493,8 @@ void bcs_protocol<FieldT>::set_round_parameters(const round_parameters<FieldT> &
     this->round_params_.emplace_back(params);
 }
 
-template<typename FieldT>
-std::vector<size_t> bcs_protocol<FieldT>::get_MT_depths() const
+template<typename FieldT, typename MT_root_hash>
+std::vector<size_t> bcs_protocol<FieldT, MT_root_hash>::get_MT_depths() const
 {
     std::vector<size_t> depths;
     for (size_t i = 0; i < this->Merkle_trees_.size(); i++)
@@ -181,8 +504,8 @@ std::vector<size_t> bcs_protocol<FieldT>::get_MT_depths() const
     return depths;
 }
 
-template<typename FieldT>
-std::vector<bool> bcs_protocol<FieldT>::get_MT_zk_flags() const
+template<typename FieldT, typename MT_root_hash>
+std::vector<bool> bcs_protocol<FieldT, MT_root_hash>::get_MT_zk_flags() const
 {
     std::vector<bool> make_zk_flags;
     for (size_t i = 0; i < this->Merkle_trees_.size(); i++)
@@ -192,8 +515,8 @@ std::vector<bool> bcs_protocol<FieldT>::get_MT_zk_flags() const
     return make_zk_flags;
 }
 
-template<typename FieldT>
-std::vector<round_parameters<FieldT>> bcs_protocol<FieldT>::get_all_round_params() const
+template<typename FieldT, typename MT_root_hash>
+std::vector<round_parameters<FieldT>> bcs_protocol<FieldT, MT_root_hash>::get_all_round_params() const
 {
     std::vector<round_parameters<FieldT>> all_round_params;
     for (size_t i = 0; i < this->Merkle_trees_.size(); i++)
@@ -203,31 +526,31 @@ std::vector<round_parameters<FieldT>> bcs_protocol<FieldT>::get_all_round_params
     return all_round_params;
 }
 
-template<typename FieldT>
-round_parameters<FieldT> bcs_protocol<FieldT>::get_round_parameters(const std::size_t round) const {
+template<typename FieldT, typename MT_root_hash>
+round_parameters<FieldT> bcs_protocol<FieldT, MT_root_hash>::get_round_parameters(const std::size_t round) const {
     if (round >= this->round_params_.size()) {
         return round_parameters<FieldT>();
     }
     return this->round_params_[round];
 }
 
-template<typename FieldT>
-std::size_t bcs_protocol<FieldT>::obtain_random_query_position(const random_query_position_handle &position)
+template<typename FieldT, typename MT_root_hash>
+std::size_t bcs_protocol<FieldT, MT_root_hash>::obtain_random_query_position(const random_query_position_handle &position)
 {
-    /* Always use the last pseudorandom state */
+    /* Obtains the next query position using the latest hashchain state. */
+    /* TODO: Simplify this. */
+    /* TODO: Make IOP infra obtain all query positions at once */
     const std::size_t subspace_size = this->domains_[
         this->random_query_position_registrations_[position.id()].domain().id()].num_elements();
     const std::size_t result =
-        this->parameters_.integer_randomness_extractor(*this->pseudorandom_state_.rbegin(),
-                                                       position.id(),
-                                                       subspace_size);
+        this->hashchain_->squeeze_query_positions(1, subspace_size)[0];
     return result;
 }
 
-template<typename FieldT>
-hash_digest bcs_protocol<FieldT>::compute_message_hash(
+template<typename FieldT, typename MT_root_hash>
+void bcs_protocol<FieldT, MT_root_hash>::absorb_prover_messages(
     const size_t round,
-    const std::vector<std::vector<FieldT> > &all_prover_messages) const
+    const std::vector<std::vector<FieldT> > &all_prover_messages)
 {
     /* Hash explicitly sent prover messages */
     const std::size_t min_message_id =
@@ -252,16 +575,33 @@ hash_digest bcs_protocol<FieldT>::compute_message_hash(
         v.print();
     }
 #endif // DEBUG
+    this->hashchain_->absorb(message_concat);
+}
 
-    return this->parameters_.field_hasher(message_concat, this->digest_len_bytes_);
+template<typename FieldT, typename MT_root_hash>
+void bcs_protocol<FieldT, MT_root_hash>::squeeze_verifier_random_messages(
+    const size_t ended_round)
+{
+    /* Squeeze verifier randomness */
+    size_t start_verifier_random_message_index =
+        this->num_verifier_random_messages_at_end_of_round_[ended_round];
+    size_t end_verifier_random_message_index = (ended_round == this->num_interaction_rounds_ - 1) ? 0 :
+        this->num_verifier_random_messages_at_end_of_round_[ended_round + 1];
+
+    for (std::size_t i = start_verifier_random_message_index; i < end_verifier_random_message_index; i++)
+    {
+        const std::size_t message_length = this->verifier_random_message_registrations_[i].size();
+        const std::vector<FieldT> result = this->hashchain_->squeeze(message_length);
+        this->verifier_random_messages_.insert(std::pair<size_t, std::vector<FieldT>>(i, result));
+    }
 }
 
 /* Serializes the provided oracle's evaluated contents into multiple rows,
    and appends these rows to all_oracles_evaluated_contents.
    It is serialized into multiple rows according to the quotient map relation in round params.
    The default round parameters result in oracle_evaluated_contents being appended as a single row. */
-template<typename FieldT>
-void bcs_protocol<FieldT>::serialize_leaf_data_by_round_params(
+template<typename FieldT, typename MT_root_hash>
+void bcs_protocol<FieldT, MT_root_hash>::serialize_leaf_data_by_round_params(
     const std::vector<FieldT> &oracle_evaluated_contents,
     std::vector<std::vector<FieldT>> &all_evaluated_contents,
     const domain_handle &evaluation_domain_handle,
@@ -338,11 +678,11 @@ std::size_t query_position_to_merkle_tree_position(const std::size_t query_posit
     return 0;
 }
 
-template<typename FieldT>
+template<typename FieldT, typename MT_root_hash>
 void print_detailed_transcript_data(
     const bool holographic,
-    const bcs_transformation_transcript<FieldT> &transcript,
-    const bcs_transformation_parameters<FieldT> &params,
+    const bcs_transformation_transcript<FieldT, MT_root_hash> &transcript,
+    const bcs_transformation_parameters<FieldT, MT_root_hash> &params,
     const std::vector<size_t> MT_depths,
     const std::vector<bool> make_zk,
     const std::vector<round_parameters<FieldT>> round_params)
@@ -361,13 +701,13 @@ void print_detailed_transcript_data(
     for (size_t round = 0; round < MT_depths.size(); round++)
     {
         const size_t MT_size = 1ull << MT_depths[round];
-        merkle_tree<FieldT> MT(MT_size,
-                               params.field_hasher,
-                               params.zk_hasher,
-                               params.compression_hasher,
-                               digest_len_bytes,
-                               false,
-                               params.security_parameter);
+        merkle_tree<FieldT, MT_root_hash> MT(
+            MT_size,
+            params.leafhasher_,
+            params.compression_hasher,
+            digest_len_bytes,
+            false,
+            params.security_parameter);
 
         /** We have to merge the query positions that correspond to the same
             leaf after applying the round parameters */

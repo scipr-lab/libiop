@@ -49,8 +49,8 @@ void run_indexer_test(
         *IOP.get_oracle_evaluations(indexer.get_all_oracle_handles()[1]).get();
     const std::vector<FieldT> val_codeword =
         *IOP.get_oracle_evaluations(indexer.get_all_oracle_handles()[2]).get();
-    // const std::vector<FieldT> row_times_col_codeword =
-    //     IOP.get_oracle_evaluations(indexer.get_all_oracle_handles()[3]);
+    const std::vector<FieldT> row_times_col_codeword =
+        *IOP.get_oracle_evaluations(indexer.get_all_oracle_handles()[3]).get();
 
     bivariate_lagrange_polynomial<FieldT> u_H(summation_domain);
     const polynomial<FieldT> row_poly(
@@ -59,8 +59,8 @@ void run_indexer_test(
         IFFT_over_field_subset<FieldT>(col_codeword, codeword_domain));
     const polynomial<FieldT> val_poly(
         IFFT_over_field_subset<FieldT>(val_codeword, codeword_domain));
-    // const polynomial<FieldT> row_times_col_poly(
-    //     IFFT_over_field_subset<FieldT>(row_times_col_codeword, codeword_domain));
+    const polynomial<FieldT> row_times_col_poly(
+        IFFT_over_field_subset<FieldT>(row_times_col_codeword, codeword_domain));
     // EXPECT_EQ(row_poly.minimal_num_terms(), indexing_domain.num_elements());
     // EXPECT_EQ(col_poly.minimal_num_terms(), indexing_domain.num_elements());
     // EXPECT_EQ(val_poly.minimal_num_terms(), indexing_domain.num_elements());
@@ -68,15 +68,19 @@ void run_indexer_test(
 
     /** \hat{M}(X,Y) = sum_{k in K} u_H(row(k), X)u_H(col(k), Y)val(k)
      *  where K = indexing domain, u_H = bivariate lagrange poly
-     *  So we check this for all X,Y in H  */
+     *  So we check this for all X,Y in H  
+     * 
+     *  However we've indexed M', where M'_ij = M_ji u_H(j, j).
+     *  We use row and col to represent the indices into 
+     *  M^T, but the obtained value will be checked against M */
 
-    for (size_t row_index = 0; row_index < summation_domain.num_elements(); row_index++)
+    for (size_t col_index = 0; col_index < summation_domain.num_elements(); col_index++)
     {
-        linear_combination<FieldT> matrix_row = matrix->get_row(row_index);
-        const FieldT row_sel = summation_domain.element_by_index(row_index);
-        for (size_t col_index = 0; col_index < summation_domain.num_elements(); col_index++)
+        linear_combination<FieldT> matrix_transpose_row = matrix->get_row(col_index);
+        const FieldT col_sel = summation_domain.element_by_index(col_index);
+        for (size_t row_index = 0; row_index < summation_domain.num_elements(); row_index++)
         {
-            const FieldT col_sel = summation_domain.element_by_index(col_index);
+            const FieldT row_sel = summation_domain.element_by_index(row_index);
             /** We now check that
              *  M(X, Y) = sum_{k in K} u_H(row(k), X) u_H(col(k), Y) val(k)*/
             FieldT M_eval = FieldT::zero();
@@ -86,8 +90,8 @@ void run_indexer_test(
                 const FieldT row_at_k = row_poly.evaluation_at_point(k);
                 const FieldT col_at_k = col_poly.evaluation_at_point(k);
                 const FieldT val_at_k = val_poly.evaluation_at_point(k);
-                // const FieldT row_times_col_at_k = row_times_col_poly.evaluation_at_point(k);
-                // ASSERT_TRUE(row_times_col_at_k == row_at_k * col_at_k);
+                const FieldT row_times_col_at_k = row_times_col_poly.evaluation_at_point(k);
+                ASSERT_TRUE(row_times_col_at_k == row_at_k * col_at_k);
                 FieldT row_derivative = u_H.evaluation_at_point(
                     row_at_k, row_sel);
                 FieldT col_derivative = u_H.evaluation_at_point(
@@ -95,12 +99,14 @@ void run_indexer_test(
                 M_eval += row_derivative * col_derivative * val_at_k;
             }
             bool term_in_matrix = false;
-            for (auto &term : matrix_row)
+            for (auto &term : matrix_transpose_row)
             {
-                if (term.index_ == col_index)
+                if (term.index_ == row_index)
                 {
                     term_in_matrix = true;
-                    ASSERT_TRUE(M_eval == term.coeff_) <<
+                    FieldT M_prime_eval = term.coeff_ * u_H.evaluation_at_point(
+                        col_sel, col_sel);
+                    ASSERT_TRUE(M_eval == M_prime_eval) <<
                         "row_index " << row_index << " col_index " << col_index;
                 }
             }

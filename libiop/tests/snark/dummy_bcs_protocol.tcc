@@ -48,7 +48,7 @@ dummy_protocol<FieldT>::dummy_protocol(
             }
             else
             {
-                oracle_i_handle = this->IOP_.register_oracle(
+                oracle_i_handle = this->IOP_.register_oracle("",
                     this->codeword_domain_handle_, oracle_degree, make_oracle_zk);
             }
             this->oracle_handle_ptrs_[r].emplace_back(
@@ -86,9 +86,10 @@ void dummy_protocol<FieldT>::calculate_and_submit_response()
     const size_t start_round = this->holographic_ ? 1 : 0;
     for (size_t r = start_round; r < this->num_rounds_; ++r)
     {
+        FieldT v = FieldT::zero();
         if (r != 0)
         {
-            this->IOP_.obtain_verifier_random_message(this->verifier_msg_handles_[r - 1]);
+            v = this->IOP_.obtain_verifier_random_message(this->verifier_msg_handles_[r - 1])[0];
         }
         const size_t round_val =
             this->codeword_domain_size_ * this->codeword_domain_size_ * r;
@@ -97,7 +98,7 @@ void dummy_protocol<FieldT>::calculate_and_submit_response()
             std::vector<FieldT> evaluations(this->codeword_domain_size_);
             for (size_t j = 0; j < this->codeword_domain_size_; ++j)
             {
-                evaluations[j] = FieldT(round_val + i*this->codeword_domain_size_ + j);
+                evaluations[j] = FieldT(round_val + i*this->codeword_domain_size_ + j) + v;
             }
             this->IOP_.submit_oracle(this->oracle_handle_ptrs_[r][i], std::move(evaluations));
         }
@@ -112,10 +113,15 @@ bool dummy_protocol<FieldT>::check_eval_at_point(const size_t round_index,
                                                  const size_t eval_pos,
                                                  const FieldT eval)
 {
+    FieldT v = FieldT::zero();
+    if (round_index != 0)
+    {
+        v = this->IOP_.obtain_verifier_random_message(this->verifier_msg_handles_[round_index - 1])[0];
+    }
     const size_t round_val =
         this->codeword_domain_size_ * this->codeword_domain_size_ * round_index;
     const size_t oracle_val = this->codeword_domain_size_ * oracle_index;
-    return eval == FieldT(round_val + oracle_val + eval_pos);
+    return eval == FieldT(round_val + oracle_val + eval_pos) + v;
 }
 
 template<typename FieldT>

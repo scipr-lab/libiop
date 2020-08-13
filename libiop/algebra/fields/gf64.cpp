@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <ostream>
 
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
@@ -235,5 +236,17 @@ gf64 gf64::random_element()
     result.randomize();
     return result;
 }
+
+std::ostream& operator<<(std::ostream &out, const gf64 &el)
+{
+    out << el.value_;
+    return out;
+}
+
+// std::istream& operator>>(std::istream &in, gf64 &el)
+// {
+//     in >> el.value_;
+//     return in;
+// }
 
 } // namespace libiop

@@ -63,7 +63,15 @@ size_t encoded_aurora_parameters<FieldT>::max_tested_degree_bound() const
     }
     /** In the zk case it is 2|H| + b - 1, from lincheck. (The codeword is the sumcheck masking polynomial)
      *  However if the query bound is large, then the row check degree, |constraint domain| + 2b - 1, may dominate.*/
-    const size_t lincheck_degree_bound = 2 * (1ull << this->summation_domain_dim_) + this->query_bound_ - 1;
+    size_t lincheck_degree_bound;
+    if (this->holographic_ == true)
+    {
+        lincheck_degree_bound = this->holographic_lincheck_params_.tested_degree_bound();
+    } 
+    else 
+    {
+        const size_t lincheck_degree_bound = 2 * (1ull << this->summation_domain_dim_) + this->query_bound_ - 1;
+    }
     const size_t rowcheck_degree_bound = (1ull << this->constraint_domain_dim_) + 2 * this->query_bound_ - 1;
     return std::max<size_t>(lincheck_degree_bound, rowcheck_degree_bound);
 }
@@ -75,10 +83,14 @@ size_t encoded_aurora_parameters<FieldT>::max_constraint_degree_bound() const
      *  unless the query bound is very large.
      *  In the latter case, it will then come from rowcheck, and be 2|constraint domain| + 2b - 1 */
     // TODO: Get this from lincheck params
-    const size_t lincheck_degree_bound = 2 * (1ull << this->summation_domain_dim_) + this->query_bound_ - 1;
-    if (this->make_zk_ == false)
+    size_t lincheck_degree_bound;
+    if (this->holographic_ == true)
     {
-        return lincheck_degree_bound;
+        lincheck_degree_bound = this->holographic_lincheck_params_.constraint_degree_bound();
+    } 
+    else
+    {
+        lincheck_degree_bound = 2 * (1ull << this->summation_domain_dim_) + this->query_bound_ - 1;
     }
     const size_t rowcheck_constraint_degree_bound = 2*(1ull << this->constraint_domain_dim_) + 2 * this->query_bound_ - 1;
     return std::max<size_t>(lincheck_degree_bound, rowcheck_constraint_degree_bound);
@@ -103,7 +115,7 @@ std::vector<size_t> encoded_aurora_parameters<FieldT>::locality_vector() const
         const size_t zk_locality = this->make_zk_ ? 1 : 0;
         const size_t lincheck_locality_round_1 = 1;
         const size_t lincheck_locality_round_2 = 2;
-        const size_t indexed_round_locality = 9;
+        const size_t indexed_round_locality = 12;
         return {indexed_round_locality, arithmetization_locality + zk_locality,
                 lincheck_locality_round_1, lincheck_locality_round_2};
     }
@@ -188,6 +200,7 @@ public:
         }
 
         const vanishing_polynomial<FieldT> input_vp(this->input_variable_domain_);
+        /* TODO (low priority): Use that Z_{1,v} | L is a |1,v| to 1 map */
         std::vector<FieldT> input_vp_over_codeword_domain =
             input_vp.evaluations_over_field_subset(this->codeword_domain_);
 
@@ -199,6 +212,7 @@ public:
         const std::vector<FieldT> f_1v_over_codeword_domain =
             FFT_over_field_subset<FieldT>(f_1v_coefficients, this->codeword_domain_);
 
+        /* TODO: Initialize result to f_1v_over_codeword_domain */
         std::shared_ptr<std::vector<FieldT>> result = std::make_shared<std::vector<FieldT>>();
         result->reserve(this->codeword_domain_.num_elements());
         for (std::size_t i = 0; i < this->codeword_domain_.num_elements(); ++i)
@@ -270,7 +284,8 @@ encoded_aurora_protocol<FieldT>::encoded_aurora_protocol(
      */
     if (!is_power_of_2(this->constraint_system_->num_inputs() + 1))
     {
-        throw std::invalid_argument("number of inputs in the constraint system must be one less than a power of two.");
+        throw std::invalid_argument("number of inputs in the constraint system must be one less than a power of two."
+            "Perhaps pad your number of inputs");
     }
     this->input_variable_domain_ = this->variable_domain_.get_subset_of_order(
         this->constraint_system_->num_inputs() + 1);
@@ -292,12 +307,12 @@ void encoded_aurora_protocol<FieldT>::register_witness_oracles()
 
     const std::size_t fw_degree = n - (k + 1) + b;
     this->fw_mask_degree_ = b;
-    this->fw_handle_ = this->IOP_.register_oracle(this->codeword_domain_handle_, fw_degree, this->params_.make_zk());
+    this->fw_handle_ = this->IOP_.register_oracle("fw", this->codeword_domain_handle_, fw_degree, this->params_.make_zk());
 
     const std::size_t fABCz_degree = (m + b);
-    this->fAz_handle_ = this->IOP_.register_oracle(this->codeword_domain_handle_, fABCz_degree, this->params_.make_zk());
-    this->fBz_handle_ = this->IOP_.register_oracle(this->codeword_domain_handle_, fABCz_degree, this->params_.make_zk());
-    this->fCz_handle_ = this->IOP_.register_oracle(this->codeword_domain_handle_, fABCz_degree, this->params_.make_zk());
+    this->fAz_handle_ = this->IOP_.register_oracle("fAz", this->codeword_domain_handle_, fABCz_degree, this->params_.make_zk());
+    this->fBz_handle_ = this->IOP_.register_oracle("fBz", this->codeword_domain_handle_, fABCz_degree, this->params_.make_zk());
+    this->fCz_handle_ = this->IOP_.register_oracle("fCz", this->codeword_domain_handle_, fABCz_degree, this->params_.make_zk());
 
     this->fz_oracle_ = std::make_shared<fz_virtual_oracle<FieldT> >(
         k,

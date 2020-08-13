@@ -1,17 +1,19 @@
 #include "libiop/algebra/field_subset/subspace.hpp"
 #include "libiop/common/common.hpp"
 #include "libiop/common/profiling.hpp"
-#include "libiop/snark/common/bcs_common.hpp"
+#include "libiop/bcs/bcs_common.hpp"
+#include "libiop/bcs/common_bcs_parameters.hpp"
 
 namespace libiop {
 
 
 /** Initialize snark with FRI localization parameter array */
-template<typename FieldT>
-fractal_snark_parameters<FieldT>::fractal_snark_parameters(
+template<typename FieldT, typename hash_type>
+fractal_snark_parameters<FieldT, hash_type>::fractal_snark_parameters(
     const size_t security_parameter,
     const LDT_reducer_soundness_type ldt_reducer_soundness_type,
     const FRI_soundness_type fri_soundness_type,
+    const bcs_hash_type hash_enum,
     const std::vector<size_t> FRI_localization_parameter_array,
     const size_t RS_extra_dimensions,
     const bool make_zk,
@@ -26,16 +28,17 @@ fractal_snark_parameters<FieldT>::fractal_snark_parameters(
     constraint_system_(constraint_system),
     FRI_localization_parameter_array_(FRI_localization_parameter_array)
 {
-    this->initialize_bcs_params();
+    this->initialize_bcs_params(hash_enum);
     this->initialize_iop_params();
 }
 
 /** Initialize snark with FRI localization parameter */
-template<typename FieldT>
-fractal_snark_parameters<FieldT>::fractal_snark_parameters(
+template<typename FieldT, typename hash_type>
+fractal_snark_parameters<FieldT, hash_type>::fractal_snark_parameters(
     const size_t security_parameter,
     const LDT_reducer_soundness_type ldt_reducer_soundness_type,
     const FRI_soundness_type fri_soundness_type,
+    const bcs_hash_type hash_enum,
     const size_t FRI_localization_parameter,
     const size_t RS_extra_dimensions,
     const bool make_zk,
@@ -50,12 +53,12 @@ fractal_snark_parameters<FieldT>::fractal_snark_parameters(
     constraint_system_(constraint_system),
     FRI_localization_parameter_(FRI_localization_parameter)
 {
-    this->initialize_bcs_params();
+    this->initialize_bcs_params(hash_enum);
     this->initialize_iop_params();
 }
 
-template<typename FieldT>
-void fractal_snark_parameters<FieldT>::reset_fri_localization_parameters(
+template<typename FieldT, typename hash_type>
+void fractal_snark_parameters<FieldT, hash_type>::reset_fri_localization_parameters(
     const std::vector<size_t> FRI_localization_parameter_array)
 {
     this->FRI_localization_parameter_array_ = FRI_localization_parameter_array;
@@ -63,11 +66,12 @@ void fractal_snark_parameters<FieldT>::reset_fri_localization_parameters(
 }
 
 
-template<typename FieldT>
-void fractal_snark_parameters<FieldT>::initialize_iop_params()
+template<typename FieldT, typename hash_type>
+void fractal_snark_parameters<FieldT, hash_type>::initialize_iop_params()
 {
     this->iop_params_ = fractal_iop_parameters<FieldT>(
         this->security_parameter_,
+        this->bcs_params_.pow_params_.work_parameter(),
         this->RS_extra_dimensions_,
         this->make_zk_,
         this->constraint_system_);
@@ -84,19 +88,15 @@ void fractal_snark_parameters<FieldT>::initialize_iop_params()
     }
 }
 
-template<typename FieldT>
-void fractal_snark_parameters<FieldT>::initialize_bcs_params()
+template<typename FieldT, typename hash_type>
+void fractal_snark_parameters<FieldT, hash_type>::initialize_bcs_params(const bcs_hash_type hash_enum)
 {
-    this->bcs_params_.security_parameter = this->security_parameter_;
-    this->bcs_params_.field_hasher = blake2b_field_element_hash<FieldT>;
-    this->bcs_params_.zk_hasher = blake2b_zk_element_hash;
-    this->bcs_params_.compression_hasher = blake2b_two_to_one_hash;
-    this->bcs_params_.FieldT_randomness_extractor = blake2b_FieldT_randomness_extractor<FieldT>;
-    this->bcs_params_.integer_randomness_extractor = blake2b_integer_randomness_extractor;
+    this->bcs_params_ = default_bcs_params<FieldT, hash_type>(hash_enum, this->security_parameter_, 
+        log2(this->constraint_system_->num_constraints()));
 }
 
-template<typename FieldT>
-void fractal_snark_parameters<FieldT>::print() const
+template<typename FieldT, typename hash_type>
+void fractal_snark_parameters<FieldT, hash_type>::print() const
 {
     print_indent(); printf("\nFractal SNARK parameters\n");
     print_indent(); printf("* security parameter (bits) = %zu\n", security_parameter_);
@@ -111,38 +111,38 @@ void fractal_snark_parameters<FieldT>::print() const
     this->iop_params_.print();
 }
 
-template<typename FieldT>
-std::pair<bcs_prover_index<FieldT>, bcs_verifier_index<FieldT>>
+template<typename FieldT, typename hash_type>
+std::pair<bcs_prover_index<FieldT, hash_type>, bcs_verifier_index<FieldT, hash_type>>
 fractal_snark_indexer(
-    const fractal_snark_parameters<FieldT> &parameters)
+    const fractal_snark_parameters<FieldT, hash_type> &parameters)
 {
     enter_block("Fractal SNARK indexer");
     parameters.print();
-    bcs_indexer<FieldT> IOP(parameters.bcs_params_);
+    bcs_indexer<FieldT, hash_type> IOP(parameters.bcs_params_);
     fractal_iop<FieldT> full_protocol(IOP, parameters.iop_params_);
     IOP.seal_interaction_registrations();
     IOP.seal_query_registrations();
     full_protocol.produce_index();
 
-    bcs_prover_index<FieldT> prover_index = IOP.get_bcs_prover_index();
-    bcs_verifier_index<FieldT> verifier_index = IOP.get_verifier_index();
-    std::pair<bcs_prover_index<FieldT>, bcs_verifier_index<FieldT>> index =
+    bcs_prover_index<FieldT, hash_type> prover_index = IOP.get_bcs_prover_index();
+    bcs_verifier_index<FieldT, hash_type> verifier_index = IOP.get_verifier_index();
+    std::pair<bcs_prover_index<FieldT, hash_type>, bcs_verifier_index<FieldT, hash_type>> index =
         std::make_pair(std::move(prover_index), verifier_index);
     leave_block("Fractal SNARK indexer");
     return index;
 }
 
-template<typename FieldT>
-fractal_snark_argument<FieldT> fractal_snark_prover(
-    bcs_prover_index<FieldT> &index,
+template<typename FieldT, typename hash_type>
+fractal_snark_argument<FieldT, hash_type> fractal_snark_prover(
+    bcs_prover_index<FieldT, hash_type> &index,
     const r1cs_primary_input<FieldT> &primary_input,
     const r1cs_auxiliary_input<FieldT> &auxiliary_input,
-    const fractal_snark_parameters<FieldT> &parameters)
+    const fractal_snark_parameters<FieldT, hash_type> &parameters)
 {
     enter_block("Fractal SNARK prover");
     parameters.print();
 
-    bcs_prover<FieldT> IOP(parameters.bcs_params_, index);
+    bcs_prover<FieldT, hash_type> IOP(parameters.bcs_params_, index);
     fractal_iop<FieldT> full_protocol(IOP, parameters.iop_params_);
     full_protocol.register_interactions();
     IOP.seal_interaction_registrations();
@@ -152,7 +152,7 @@ fractal_snark_argument<FieldT> fractal_snark_prover(
     full_protocol.produce_proof(primary_input, auxiliary_input, index.iop_index_);
 
     enter_block("Obtain transcript");
-    const fractal_snark_argument<FieldT> transcript = IOP.get_transcript();
+    const fractal_snark_argument<FieldT, hash_type> transcript = IOP.get_transcript();
     leave_block("Obtain transcript");
 
     IOP.describe_sizes();
@@ -161,17 +161,17 @@ fractal_snark_argument<FieldT> fractal_snark_prover(
     return transcript;
 }
 
-template<typename FieldT>
+template<typename FieldT, typename hash_type>
 bool fractal_snark_verifier(
-    const bcs_verifier_index<FieldT> &index,
+    const bcs_verifier_index<FieldT, hash_type> &index,
     const r1cs_primary_input<FieldT> &primary_input,
-    const fractal_snark_argument<FieldT> &proof,
-    const fractal_snark_parameters<FieldT> &parameters)
+    const fractal_snark_argument<FieldT, hash_type> &proof,
+    const fractal_snark_parameters<FieldT, hash_type> &parameters)
 {
     enter_block("Fractal SNARK verifier");
     parameters.print();
 
-    bcs_verifier<FieldT> IOP(parameters.bcs_params_, proof, index);
+    bcs_verifier<FieldT, hash_type> IOP(parameters.bcs_params_, proof, index);
 
     enter_block("Fractal IOP protocol initialization and registration");
     fractal_iop<FieldT> full_protocol(IOP, parameters.iop_params_);

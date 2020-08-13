@@ -1,20 +1,21 @@
 namespace libiop {
 
-template<typename FieldT>
-bcs_indexer<FieldT>::bcs_indexer(const bcs_transformation_parameters<FieldT> &parameters) :
-    bcs_protocol<FieldT>(parameters)
+template<typename FieldT, typename MT_hash_type>
+bcs_indexer<FieldT, MT_hash_type>::bcs_indexer(
+    const bcs_transformation_parameters<FieldT, MT_hash_type> &parameters) :
+    bcs_protocol<FieldT, MT_hash_type>(parameters)
 {
 }
 
-template<typename FieldT>
-void bcs_indexer<FieldT>::signal_prover_round_done()
+template<typename FieldT, typename MT_hash_type>
+void bcs_indexer<FieldT, MT_hash_type>::signal_prover_round_done()
 {
     throw std::invalid_argument("Indexer should not be used for proving"
         " (signal prover round done called)");
 }
 
-template<typename FieldT>
-void bcs_indexer<FieldT>::signal_index_submissions_done()
+template<typename FieldT, typename MT_hash_type>
+void bcs_indexer<FieldT, MT_hash_type>::signal_index_submissions_done()
 {
     enter_block("Merkelize indexed oracles");
     iop_protocol<FieldT>::signal_prover_round_done();
@@ -28,8 +29,7 @@ void bcs_indexer<FieldT>::signal_index_submissions_done()
 
     /* First, go through all the oracle messages in this round and
        compress each one using a Merkle Tree. */
-    hash_digest cur_state = (this->pseudorandom_state_.empty() ? "" : *this->pseudorandom_state_.rbegin());
-    std::vector<hash_digest> roots;
+    std::vector<MT_hash_type> roots;
     for (auto &kv : mapping)
     {
         std::vector<std::shared_ptr<std::vector<FieldT>>> all_evaluated_contents;
@@ -42,9 +42,6 @@ void bcs_indexer<FieldT>::signal_index_submissions_done()
         this->Merkle_trees_[this->MTs_processed_].construct_with_leaves_serialized_by_cosets(
             all_evaluated_contents, round_params.quotient_map_size_);
         leave_block("Construct Merkle tree");
-        cur_state = this->parameters_.compression_hasher(cur_state,
-                                                         this->Merkle_trees_[this->MTs_processed_].get_root(),
-                                                         this->digest_len_bytes_);
 
         ++this->MTs_processed_;
         /* Now make the oracles in a form suitable for creating an index */
@@ -56,33 +53,26 @@ void bcs_indexer<FieldT>::signal_index_submissions_done()
         }
     }
 
-    /* Hash explicitly sent prover messages */
-    const hash_digest message_hash = this->compute_message_hash(ended_round, this->prover_messages_);
-    cur_state = this->parameters_.compression_hasher(cur_state, message_hash, this->digest_len_bytes_);
-
-    /* Add the prover message hash as a "root" and update the pseudorandom state */
-    this->pseudorandom_state_.emplace_back(cur_state);
-
     leave_block("Merkelize indexed oracles");
 }
 
-template<typename FieldT>
-std::vector<FieldT> bcs_indexer<FieldT>::obtain_verifier_random_message(
+template<typename FieldT, typename MT_hash_type>
+std::vector<FieldT> bcs_indexer<FieldT, MT_hash_type>::obtain_verifier_random_message(
     const verifier_random_message_handle &random_message)
 {
     throw std::invalid_argument("Should not be calling this on the indexing IOP");
 }
 
-template<typename FieldT>
-FieldT bcs_indexer<FieldT>::obtain_query_response(const query_handle &query)
+template<typename FieldT, typename MT_hash_type>
+FieldT bcs_indexer<FieldT, MT_hash_type>::obtain_query_response(const query_handle &query)
 {
     throw std::invalid_argument("Should not be calling this on the indexing IOP");
 }
 
-template<typename FieldT>
-bcs_verifier_index<FieldT> bcs_indexer<FieldT>::get_verifier_index()
+template<typename FieldT, typename MT_hash_type>
+bcs_verifier_index<FieldT, MT_hash_type> bcs_indexer<FieldT, MT_hash_type>::get_verifier_index()
 {
-    bcs_verifier_index<FieldT> index;
+    bcs_verifier_index<FieldT, MT_hash_type> index;
     for (size_t i = 0; i < this->MTs_processed_; i++)
     {
         index.index_MT_roots_.emplace_back(this->Merkle_trees_[i].get_root());
@@ -91,8 +81,8 @@ bcs_verifier_index<FieldT> bcs_indexer<FieldT>::get_verifier_index()
     return index;
 }
 
-template<typename FieldT>
-bcs_prover_index<FieldT> bcs_indexer<FieldT>::get_bcs_prover_index()
+template<typename FieldT, typename MT_hash_type>
+bcs_prover_index<FieldT, MT_hash_type> bcs_indexer<FieldT, MT_hash_type>::get_bcs_prover_index()
 {
     if (this->get_prover_index_has_been_called_)
     {
@@ -100,7 +90,7 @@ bcs_prover_index<FieldT> bcs_indexer<FieldT>::get_bcs_prover_index()
             "due to memory optimizations, this operation can only be done once.\n");
         throw std::invalid_argument("Prover index has already been extracted");
     }
-    bcs_prover_index<FieldT> index;
+    bcs_prover_index<FieldT, MT_hash_type> index;
     index.index_MTs_ = this->Merkle_trees_;
     index.index_MTs_.erase(index.index_MTs_.begin() + this->MTs_processed_,
         index.index_MTs_.end());

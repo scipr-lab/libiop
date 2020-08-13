@@ -8,7 +8,8 @@ add_library(
   algebra/fields/gf128.cpp
   algebra/fields/gf192.cpp
   algebra/fields/gf256.cpp
-  snark/common/hashing.cpp
+  
+  bcs/hashing/blake2b.cpp
   protocols/ldt/ldt_reducer.cpp
   protocols/ldt/fri/fri_ldt.cpp
   protocols/ldt/fri/fri_aux.cpp
@@ -47,8 +48,14 @@ target_link_libraries(benchmark_gf192 iop benchmark)
 add_executable(benchmark_edwards benchmarks/benchmark_edwards.cpp)
 target_link_libraries(benchmark_edwards iop benchmark)
 
+add_executable(benchmark_alt_bn128 benchmarks/benchmark_alt_bn128.cpp)
+target_link_libraries(benchmark_alt_bn128 iop benchmark)
+
 add_executable(benchmark_gf256 benchmarks/benchmark_gf256.cpp)
 target_link_libraries(benchmark_gf256 iop benchmark)
+
+add_executable(benchmark_hashes benchmarks/benchmark_hashes.cpp)
+target_link_libraries(benchmark_hashes iop benchmark)
 
 add_executable(benchmark_fft benchmarks/benchmark_fft.cpp)
 target_link_libraries(benchmark_fft iop benchmark)
@@ -214,8 +221,18 @@ add_executable(test_identity_matrices tests/relations/test_identity_matrices.cpp
 target_link_libraries(test_identity_matrices iop gtest_main)
 
 # snark
+
+add_executable(test_poseidon tests/snark/test_poseidon.cpp)
+target_link_libraries(test_poseidon iop gtest_main)
+
+add_executable(test_pow tests/snark/test_pow.cpp)
+target_link_libraries(test_pow iop gtest_main)
+
 add_executable(test_bcs_transformation tests/snark/test_bcs_transformation.cpp)
 target_link_libraries(test_bcs_transformation iop gtest_main)
+
+add_executable(test_serialization tests/snark/test_serialization.cpp)
+target_link_libraries(test_serialization iop gtest_main)
 
 add_executable(test_aurora_snark tests/snark/test_aurora_snark.cpp)
 target_link_libraries(test_aurora_snark iop gtest_main)
@@ -225,3 +242,6 @@ target_link_libraries(test_fractal_snark iop gtest_main)
 
 add_executable(test_ligero_snark tests/snark/test_ligero_snark.cpp)
 target_link_libraries(test_ligero_snark iop gtest_main)
+
+add_executable(test_linking tests/snark/test_linking.cpp)
+target_link_libraries(test_linking iop gtest_main)

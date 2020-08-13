@@ -12,9 +12,9 @@ for profiling FRI).
 #include <cstddef>
 #include <iostream>
 
-#include "libiop/snark/common/bcs_common.hpp"
-#include "libiop/snark/common/bcs_prover.hpp"
-#include "libiop/snark/common/bcs_verifier.hpp"
+#include "libiop/bcs/bcs_common.hpp"
+#include "libiop/bcs/bcs_prover.hpp"
+#include "libiop/bcs/bcs_verifier.hpp"
 
 namespace libiop {
 
@@ -22,6 +22,7 @@ template<typename FieldT>
 struct FRI_snark_parameters {
     std::size_t codeword_domain_dim_;
     std::size_t security_level_;
+    libiop::bcs_hash_type hash_enum_;
     std::size_t RS_extra_dimensions_;
     std::size_t localization_parameter_;
     std::vector<std::size_t> localization_parameter_array_;
@@ -35,19 +36,19 @@ struct FRI_snark_parameters {
     void describe();
 };
 
-template<typename FieldT>
-using FRI_snark_proof = bcs_transformation_transcript<FieldT>;
+template<typename FieldT, typename hash_type>
+using FRI_snark_proof = bcs_transformation_transcript<FieldT, hash_type>;
 
-template<typename FieldT>
+template<typename FieldT, typename hash_type>
 void FRI_snark_print_detailed_argument_size(
     FRI_snark_parameters<FieldT> params,
-    FRI_snark_proof<FieldT> argument);
+    FRI_snark_proof<FieldT, hash_type> argument);
 
-template<typename FieldT>
-FRI_snark_proof<FieldT> FRI_snark_prover(const FRI_snark_parameters<FieldT> &parameters);
+template<typename FieldT, typename hash_type>
+FRI_snark_proof<FieldT, hash_type> FRI_snark_prover(const FRI_snark_parameters<FieldT> &parameters);
 
-template<typename FieldT>
-bool FRI_snark_verifier(const FRI_snark_proof<FieldT> &proof,
+template<typename FieldT, typename hash_type>
+bool FRI_snark_verifier(const FRI_snark_proof<FieldT, hash_type> &proof,
                         const FRI_snark_parameters<FieldT> &parameters);
 
 } // namespace libiop

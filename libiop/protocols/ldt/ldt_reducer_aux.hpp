@@ -42,13 +42,15 @@ public:
 
     void set_random_coefficients(const std::vector<FieldT>& random_coefficients);
 
-    virtual std::shared_ptr<std::vector<FieldT>> evaluated_contents(
+    std::shared_ptr<std::vector<FieldT>> evaluated_contents(
         const std::vector<std::shared_ptr<std::vector<FieldT>>> &constituent_oracle_evaluations) const;
 
-    virtual FieldT evaluation_at_point(
+    FieldT evaluation_at_point(
         const std::size_t evaluation_position,
         const FieldT evaluation_point,
         const std::vector<FieldT> &constituent_oracle_evaluations) const;
+
+    ~combined_LDT_virtual_oracle() = default;
 };
 
 } // namespace libiop

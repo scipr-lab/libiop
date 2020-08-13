@@ -263,10 +263,7 @@ std::vector<FieldT> multiplicative_FFT_degree_aware(const std::vector<FieldT> &p
     const size_t duplicity_of_initial_elems = 1ull << (logn - poly_dimension);
 
     const FieldT omega = coset.generator();
-    /** swap coefficients in place
-     *  TODO: Replace this with a faster update-based bit reverse method
-     *    to bring this sections time down, as described in Jorg Arndt's FFT book.
-     */
+    /** swap coefficients in place */
     for (size_t k = 0; k < poly_size; ++k)
     {
         const size_t rk = libff::bitreverse(k, logn);

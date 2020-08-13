@@ -52,7 +52,7 @@ std::vector<oracle_handle_ptr> register_n_oracles(
     for (size_t i = 0; i < n; i++)
     {
         oracles.emplace_back(std::make_shared<oracle_handle>(
-            IOP.register_oracle(domain, degree_bound, make_zk)));
+            IOP.register_oracle("TODO: Fill in this name (batching.tcc)", domain, degree_bound, make_zk)));
     }
     return oracles;
 }

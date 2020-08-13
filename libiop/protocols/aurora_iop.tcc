@@ -2,16 +2,38 @@ namespace libiop {
 
 template<typename FieldT>
 aurora_iop_parameters<FieldT>::aurora_iop_parameters(const size_t security_parameter,
+                                                     const size_t pow_bits,
                                                      const size_t RS_extra_dimensions,
                                                      const bool make_zk,
                                                      const field_subset_type domain_type,
                                                      const size_t num_constraints,
                                                      const size_t num_variables) :
     security_parameter_(security_parameter),
+    pow_bits_(pow_bits),
     RS_extra_dimensions_(RS_extra_dimensions),
     make_zk_(make_zk),
     domain_type_(domain_type)
 {
+    if (!is_power_of_2(num_constraints))
+    {
+        char err_msg [1000];
+        const size_t next_power_of_two = 1ull << log2(num_constraints);
+        const size_t pad_amount = next_power_of_two - num_constraints;
+        sprintf(err_msg, "number of constraints in the constraint system must a power of two."
+            " Perhaps pad your constraint system with %lu empty constraints?",
+            pad_amount);
+        throw std::invalid_argument(err_msg);
+    }
+    if (!is_power_of_2(num_variables + 1))
+    {
+        char err_msg [1000];
+        const size_t next_power_of_two = 1ull << log2(num_variables + 1);
+        const size_t pad_amount = next_power_of_two - (num_variables + 1);
+        sprintf(err_msg, "number of variables in the constraint system must be one less than a power of two."
+            " Perhaps pad your constraint system with %lu variables?",
+            pad_amount);
+        throw std::invalid_argument(err_msg);
+    }
     this->constraint_domain_dim_ = log2(num_constraints);
     this->variable_domain_dim_ = log2(num_variables + 1);
     this->summation_domain_dim_ = std::max<size_t>(this->constraint_domain_dim_, this->variable_domain_dim_);
@@ -48,8 +70,10 @@ void aurora_iop_parameters<FieldT>::set_ldt_parameters(std::vector<size_t> local
      *  since 3(2^{-security parameter - 3}) < 2^{-security parameter - 1}.
      *  Eventually we should put a larger portion of the interactive soundness error onto the encoded Aurora protocol,
      *  and less so on the LDT components.
+     *  The query soundness is "boosted" by the proof of work in the BCS transform, by pow bits.
+     *  Hence we need fewer queries from it.
      */
-    const size_t query_soundness_error_bits = this->security_parameter_ + 1;
+    const size_t query_soundness_error_bits = this->security_parameter_ + 1 - this->pow_bits_;
     const size_t interactive_soundness_error_bits = this->security_parameter_ + 3;
     /** Now we need to initialize the reducer parameters, and the FRI parameters.
      *  To initialize these, we need to know the tested and constraint degree bounds.
@@ -241,6 +265,14 @@ aurora_iop<FieldT>::aurora_iop(iop_protocol<FieldT> &IOP,
     constraint_system_(constraint_system),
     parameters_(parameters)
 {
+    if (!is_power_of_2(this->constraint_system_.num_inputs() + 1))
+    {
+        throw std::invalid_argument("number of inputs in the constraint system must be one less than a power of two.");
+    }
+    if (!is_power_of_2(this->constraint_system_.num_inputs() + 1))
+    {
+        throw std::invalid_argument("number of inputs in the constraint system must be one less than a power of two.");
+    }
     /** Choosing the affine shift for the codeword domain relies
      *  on the default domains being subsets of one another.
      *  To choose the shift, we take a domain of the same size as the codeword domain,

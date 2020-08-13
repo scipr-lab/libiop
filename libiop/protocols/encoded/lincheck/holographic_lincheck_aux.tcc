@@ -116,17 +116,23 @@ template<typename FieldT>
 std::shared_ptr<std::vector<FieldT>> single_matrix_denominator<FieldT>::evaluated_contents(
     const std::vector<std::shared_ptr<std::vector<FieldT>>> &constituent_oracle_evaluations) const
 {
-    if (constituent_oracle_evaluations.size() != 2)
+    if (constituent_oracle_evaluations.size() != 3)
     {
-        throw std::invalid_argument("single_matrix_denominator was expecting row, col oracles as input");
+        throw std::invalid_argument("single_matrix_denominator was expecting row, col, row*col oracles as input");
     }
     const size_t n = constituent_oracle_evaluations[0]->size();
     std::shared_ptr<std::vector<FieldT>> result = std::make_shared<std::vector<FieldT>>();
     result->reserve(n);
+    FieldT row_query_pt_times_col_query_pt = this->row_query_point_ * this->column_query_point_;
+    // (row(x) - row_query_pt) * (col(x) - col_query_pt) = 
+    // -col_query_pt * row(x) - row_query_pt * col(x) + row_query_pt * col_query_pt + row_col(x)
     for (size_t i = 0; i < n; i++)
     {
-        const FieldT eval = (constituent_oracle_evaluations[0]->operator[](i) - this->row_query_point_) *
-            (constituent_oracle_evaluations[1]->operator[](i) - this->column_query_point_);
+        const FieldT eval = (
+            (-this->column_query_point_ * constituent_oracle_evaluations[0]->operator[](i))
+            - (this->row_query_point_ * constituent_oracle_evaluations[1]->operator[](i))
+            + constituent_oracle_evaluations[2]->operator[](i)
+            + row_query_pt_times_col_query_pt);
         result->emplace_back(eval);
     }
     return result;
@@ -138,13 +144,17 @@ FieldT single_matrix_denominator<FieldT>::evaluation_at_point(
     const std::vector<FieldT> &constituent_oracle_evaluations) const
 {
     UNUSED(evaluation_position);
-    if (constituent_oracle_evaluations.size() != 2)
+    if (constituent_oracle_evaluations.size() != 3)
     {
-        throw std::invalid_argument("single_matrix_denominator was expecting row, col oracles as input");
+        throw std::invalid_argument("single_matrix_denominator was expecting row, col, row*col oracles as input");
     }
-    const FieldT shifted_row_val = constituent_oracle_evaluations[0] - this->row_query_point_;
-    const FieldT shifted_col_val = constituent_oracle_evaluations[1] - this->column_query_point_;
-    return shifted_row_val * shifted_col_val;
+    // (row(x) - row_query_pt) * (col(x) - col_query_pt) = 
+    // -col_query_pt * row(x) - row_query_pt * col(x) + row_query_pt * col_query_pt + row_col(x)
+    const FieldT shifted_row_val = -constituent_oracle_evaluations[0] * this->column_query_point_;
+    const FieldT shifted_col_val = -constituent_oracle_evaluations[1] * this->row_query_point_;
+    const FieldT row_col_val = constituent_oracle_evaluations[2];
+    const FieldT shift = this->row_query_point_ * this->column_query_point_;
+    return shifted_row_val + shifted_col_val + row_col_val + shift;
 }
 
 } // libiop

@@ -148,6 +148,7 @@ typedef handle<query_type> query_handle;
 
 class oracle_registration {
 protected:
+    std::string name_;
     domain_handle domain_;
     std::size_t degree_;
     bool make_zk_;
@@ -156,10 +157,11 @@ protected:
      *  as the verifier knows it. */
     bool indexed_;
 public:
-    explicit oracle_registration(const domain_handle &domain,
+    explicit oracle_registration(const std::string name,
+                                 const domain_handle &domain,
                                  const std::size_t degree,
                                  const bool make_zk) :
-        domain_(domain), degree_(degree), make_zk_(make_zk), indexed_(false)
+        name_(name), domain_(domain), degree_(degree), make_zk_(make_zk), indexed_(false)
     {
     }
 
@@ -369,7 +371,8 @@ public:
     domain_handle register_coset(const multiplicative_coset<FieldT> &S);
     domain_handle register_domain(const field_subset<FieldT> &S);
 
-    oracle_handle register_oracle(const domain_handle &domain,
+    oracle_handle register_oracle(const std::string name,
+                                  const domain_handle &domain,
                                   const std::size_t degree,
                                   const bool make_zk);
     oracle_handle register_index_oracle(const domain_handle &domain,

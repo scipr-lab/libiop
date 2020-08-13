@@ -9,17 +9,16 @@
 
 namespace libiop {
 
-template<typename FieldT>
-merkle_tree<FieldT>::merkle_tree(const std::size_t num_leaves,
-                                 const field_element_hash_function<FieldT> &leaf_hasher,
-                                 const zk_element_hash_function &zk_leaf_hasher,
-                                 const two_to_one_hash_function &node_hasher,
-                                 const std::size_t digest_len_bytes,
-                                 const bool make_zk,
-                                 const std::size_t security_parameter) :
+template<typename FieldT, typename hash_digest_type>
+merkle_tree<FieldT, hash_digest_type>::merkle_tree(
+    const std::size_t num_leaves,
+    const std::shared_ptr<leafhash<FieldT, hash_digest_type>> &leaf_hasher,
+    const two_to_one_hash_function<hash_digest_type> &node_hasher,
+    const std::size_t digest_len_bytes,
+    const bool make_zk,
+    const std::size_t security_parameter) :
     num_leaves_(num_leaves),
     leaf_hasher_(leaf_hasher),
-    zk_leaf_hasher_(zk_leaf_hasher),
     node_hasher_(node_hasher),
     digest_len_bytes_(digest_len_bytes),
     make_zk_(make_zk),
@@ -34,8 +33,8 @@ merkle_tree<FieldT>::merkle_tree(const std::size_t num_leaves,
     this->constructed_ = false;
 }
 
-template<typename FieldT>
-void merkle_tree<FieldT>::sample_leaf_randomness()
+template<typename FieldT, typename hash_digest_type>
+void merkle_tree<FieldT, hash_digest_type>::sample_leaf_randomness()
 {
     enter_block("BCS: Sample randomness");
     assert(this->zk_leaf_randomness_elements_.size() == 0);
@@ -72,8 +71,8 @@ void merkle_tree<FieldT>::sample_leaf_randomness()
     leave_block("BCS: Sample randomness");
 }
 
-template<typename FieldT>
-void merkle_tree<FieldT>::construct(const std::vector<std::vector<FieldT> > &leaf_contents)
+template<typename FieldT, typename hash_digest_type>
+void merkle_tree<FieldT, hash_digest_type>::construct(const std::vector<std::vector<FieldT> > &leaf_contents)
 {
     std::vector<std::shared_ptr<std::vector<FieldT>>> shared_leaves;
     for (size_t i = 0; i < leaf_contents.size(); i++)
@@ -84,14 +83,14 @@ void merkle_tree<FieldT>::construct(const std::vector<std::vector<FieldT> > &lea
     this->construct_with_leaves_serialized_by_cosets(shared_leaves, 1);
 }
 
-template<typename FieldT>
-void merkle_tree<FieldT>::construct(const std::vector<std::shared_ptr<std::vector<FieldT>>> &leaf_contents)
+template<typename FieldT, typename hash_digest_type>
+void merkle_tree<FieldT, hash_digest_type>::construct(const std::vector<std::shared_ptr<std::vector<FieldT>>> &leaf_contents)
 {
     this->construct_with_leaves_serialized_by_cosets(leaf_contents, 1);
 }
 
-template<typename FieldT>
-void merkle_tree<FieldT>::construct_with_leaves_serialized_by_cosets(
+template<typename FieldT, typename hash_digest_type>
+void merkle_tree<FieldT, hash_digest_type>::construct_with_leaves_serialized_by_cosets(
     const std::vector<std::shared_ptr<std::vector<FieldT>> > &leaf_contents,
     const size_t coset_serialization_size)
 {
@@ -134,16 +133,14 @@ void merkle_tree<FieldT>::construct_with_leaves_serialized_by_cosets(
             }
         }
 
-        hash_digest digest;
+        hash_digest_type digest;
         if (this->make_zk_)
         {
-            const hash_digest orig_digest = this->leaf_hasher_(slice, this->digest_len_bytes_);
-            const hash_digest randomness = this->zk_leaf_randomness_elements_[i];
-            digest = this->node_hasher_(orig_digest, randomness, this->digest_len_bytes_);
+            digest = this->leaf_hasher_->zk_hash(slice, this->zk_leaf_randomness_elements_[i]);
         }
         else
         {
-            digest = this->leaf_hasher_(slice, this->digest_len_bytes_);
+            digest = this->leaf_hasher_->hash(slice);
         }
         this->inner_nodes_[(this->num_leaves_ - 1) + i] = digest;
     }
@@ -153,8 +150,8 @@ void merkle_tree<FieldT>::construct_with_leaves_serialized_by_cosets(
     this->constructed_ = true;
 }
 
-template<typename FieldT>
-std::vector<std::vector<FieldT>> merkle_tree<FieldT>::serialize_leaf_values_by_coset(
+template<typename FieldT, typename hash_digest_type>
+std::vector<std::vector<FieldT>> merkle_tree<FieldT, hash_digest_type>::serialize_leaf_values_by_coset(
     const std::vector<size_t> &query_positions,
     const std::vector<std::vector<FieldT> > &query_responses,
     const size_t coset_serialization_size) const
@@ -200,8 +197,8 @@ std::vector<std::vector<FieldT>> merkle_tree<FieldT>::serialize_leaf_values_by_c
     return MT_leaf_columns;
 }
 
-template<typename FieldT>
-void merkle_tree<FieldT>::compute_inner_nodes()
+template<typename FieldT, typename hash_digest_type>
+void merkle_tree<FieldT, hash_digest_type>::compute_inner_nodes()
 {
     // TODO: Better document this function, its hashing layer by layer.
     std::size_t n = (this->num_leaves_ - 1) / 2;
@@ -212,9 +209,11 @@ void merkle_tree<FieldT>::compute_inner_nodes()
         // in an unrolled recursive fashion.
         for (std::size_t j = n; j <= 2*n; ++j)
         {
-            const hash_digest& left = this->inner_nodes_[2*j + 1];
-            const hash_digest& right = this->inner_nodes_[2*j + 2];
-            const hash_digest digest = this->node_hasher_(left, right, this->digest_len_bytes_);
+            // TODO: Can we rely on left and right to be placed sequentially in memory,
+            // for better performance in node hasher?
+            const hash_digest_type& left = this->inner_nodes_[2*j + 1];
+            const hash_digest_type& right = this->inner_nodes_[2*j + 2];
+            const hash_digest_type digest = this->node_hasher_(left, right, this->digest_len_bytes_);
 
             this->inner_nodes_[j] = digest;
         }
@@ -229,8 +228,8 @@ void merkle_tree<FieldT>::compute_inner_nodes()
     }
 }
 
-template<typename FieldT>
-hash_digest merkle_tree<FieldT>::get_root() const
+template<typename FieldT, typename hash_digest_type>
+hash_digest_type merkle_tree<FieldT, hash_digest_type>::get_root() const
 {
     if (!this->constructed_)
     {
@@ -240,8 +239,9 @@ hash_digest merkle_tree<FieldT>::get_root() const
     return inner_nodes_[0];
 }
 
-template<typename FieldT>
-merkle_tree_set_membership_proof merkle_tree<FieldT>::get_set_membership_proof(
+template<typename FieldT, typename hash_digest_type>
+merkle_tree_set_membership_proof<hash_digest_type>
+    merkle_tree<FieldT, hash_digest_type>::get_set_membership_proof(
     const std::vector<std::size_t> &positions) const
 {
     if (!this->constructed_)
@@ -249,9 +249,9 @@ merkle_tree_set_membership_proof merkle_tree<FieldT>::get_set_membership_proof(
         throw std::logic_error("Attempting to obtain a Merkle tree authentication path without constructing the tree first.");
     }
 
+    merkle_tree_set_membership_proof<hash_digest_type> result;
     if (positions.empty())
     {
-        merkle_tree_set_membership_proof result;
         return result;
     }
 
@@ -265,14 +265,12 @@ merkle_tree_set_membership_proof merkle_tree<FieldT>::get_set_membership_proof(
         throw std::invalid_argument("All positions must be between 0 and num_leaves-1.");
     }
 
-    merkle_tree_set_membership_proof result;
-
     if (this->make_zk_)
     {
         /* add random hashes, in order, to the beginning (one for each query) */
         for (auto &pos : S)
         {
-            const hash_digest random_digest = this->zk_leaf_randomness_elements_[pos];
+            const zk_salt_type random_digest = this->zk_leaf_randomness_elements_[pos];
             result.randomness_hashes.emplace_back(random_digest);
         }
     }
@@ -337,14 +335,14 @@ merkle_tree_set_membership_proof merkle_tree<FieldT>::get_set_membership_proof(
     return result;
 }
 
-template<typename FieldT>
-bool merkle_tree<FieldT>::validate_set_membership_proof(
-    const hash_digest &root,
+template<typename FieldT, typename hash_digest_type>
+bool merkle_tree<FieldT, hash_digest_type>::validate_set_membership_proof(
+    const hash_digest_type &root,
     const std::vector<std::size_t> &positions,
-    const std::vector<hash_digest> &contents_hashes,
-    const merkle_tree_set_membership_proof &proof)
+    const std::vector<std::vector<FieldT>> &leaf_contents,
+    const merkle_tree_set_membership_proof<hash_digest_type> &proof)
 {
-    if (positions.size() != contents_hashes.size())
+    if (positions.size() != leaf_contents.size())
     {
         throw std::invalid_argument("The number of positions and hashes provided must match.");
     }
@@ -364,33 +362,31 @@ bool merkle_tree<FieldT>::validate_set_membership_proof(
     auto rand_it = proof.randomness_hashes.begin();
     auto aux_it = proof.auxiliary_hashes.begin();
 
-    typedef std::pair<std::size_t, hash_digest> pos_and_digest_t;
+    typedef std::pair<std::size_t, hash_digest_type> pos_and_digest_t;
     std::vector<pos_and_digest_t> S;
     S.reserve(positions.size());
+
+    std::vector<hash_digest_type> leaf_hashes;
+    if (this->make_zk_) {
+        for (auto &leaf : leaf_contents)
+        {
+            const zk_salt_type zk_salt = *rand_it++;
+            leaf_hashes.emplace_back(this->leaf_hasher_->zk_hash(leaf, zk_salt));
+        }
+    } else {
+        for (auto &leaf : leaf_contents)
+        {
+            leaf_hashes.emplace_back(this->leaf_hasher_->hash(leaf));
+        }
+    }
+
     // TODO: Refactor this to have a single std::vector all contents hashes, and make each case modify that
     // with a single transform at the bottom.
-    if (this->make_zk_)
-    {
-        std::vector<hash_digest> combined_hashes;
-        for (auto &contents_hash : contents_hashes)
-        {
-            const hash_digest random_digest = *rand_it++;
-            combined_hashes.emplace_back(this->node_hasher_(contents_hash, random_digest, this->digest_len_bytes_));
-        }
-        std::transform(positions.begin(), positions.end(), combined_hashes.begin(),
-                   std::back_inserter(S),
-                   [](const std::size_t pos, const hash_digest &hash) {
-                       return std::make_pair(pos, hash);
-                   });
-    }
-    else
-    {
-        std::transform(positions.begin(), positions.end(), contents_hashes.begin(),
-                   std::back_inserter(S),
-                   [](const std::size_t pos, const hash_digest &hash) {
-                       return std::make_pair(pos, hash);
-                   });
-    }
+    std::transform(positions.begin(), positions.end(), leaf_hashes.begin(),
+                std::back_inserter(S),
+                [](const std::size_t pos, const hash_digest_type &hash) {
+                    return std::make_pair(pos, hash);
+                });
 
     S.erase(std__unique(S.begin(), S.end()), S.end()); /* remove possible duplicates */
 
@@ -426,16 +422,16 @@ bool merkle_tree<FieldT>::validate_set_membership_proof(
             break;
         }
 
-        std::vector<std::pair<std::size_t, hash_digest> > new_S;
+        std::vector<std::pair<std::size_t, hash_digest_type> > new_S;
         while (it != S.end())
         {
             const std::size_t it_pos = it->first;
-            const hash_digest it_hash = it->second;
+            const hash_digest_type it_hash = it->second;
 
             auto next_it = ++it;
 
-            hash_digest left_hash;
-            hash_digest right_hash;
+            hash_digest_type left_hash;
+            hash_digest_type right_hash;
 
             if ((it_pos & 1) == 0)
             {
@@ -468,8 +464,8 @@ bool merkle_tree<FieldT>::validate_set_membership_proof(
             }
 
             const std::size_t parent_pos = (it_pos - 1)/2;
-            const hash_digest parent_hash = this->node_hasher_(left_hash, right_hash,
-                                                               this->digest_len_bytes_);
+            const hash_digest_type parent_hash = this->node_hasher_(left_hash, right_hash,
+                                                                    this->digest_len_bytes_);
             new_S.emplace_back(std::make_pair(parent_pos, parent_hash));
 
             it = next_it;
@@ -486,8 +482,8 @@ bool merkle_tree<FieldT>::validate_set_membership_proof(
     return (S.begin()->second == root);
 }
 
-template<typename FieldT>
-size_t merkle_tree<FieldT>::count_hashes_to_verify_set_membership_proof(
+template<typename FieldT, typename hash_digest_type>
+size_t merkle_tree<FieldT, hash_digest_type>::count_hashes_to_verify_set_membership_proof(
     const std::vector<std::size_t> &positions) const
 {
     /** This goes layer by layer,
@@ -518,26 +514,26 @@ size_t merkle_tree<FieldT>::count_hashes_to_verify_set_membership_proof(
     return num_two_to_one_hashes;
 }
 
-template<typename FieldT>
-std::size_t merkle_tree<FieldT>::num_leaves() const
+template<typename FieldT, typename hash_digest_type>
+std::size_t merkle_tree<FieldT, hash_digest_type>::num_leaves() const
 {
     return (this->num_leaves_);
 }
 
-template<typename FieldT>
-std::size_t merkle_tree<FieldT>::depth() const
+template<typename FieldT, typename hash_digest_type>
+std::size_t merkle_tree<FieldT, hash_digest_type>::depth() const
 {
     return log2(this->num_leaves_);
 }
 
-template<typename FieldT>
-bool merkle_tree<FieldT>::zk() const
+template<typename FieldT, typename hash_digest_type>
+bool merkle_tree<FieldT, hash_digest_type>::zk() const
 {
     return this->make_zk_;
 }
 
-template<typename FieldT>
-std::size_t merkle_tree<FieldT>::num_total_bytes() const
+template<typename FieldT, typename hash_digest_type>
+std::size_t merkle_tree<FieldT, hash_digest_type>::num_total_bytes() const
 {
     return (this->digest_len_bytes_ * (2 * this->num_leaves() - 1));
 }

@@ -18,7 +18,7 @@
 #include "libiop/algebra/fields/utils.hpp"
 
 #include "libiop/snark/fractal_snark.hpp"
-#include "libiop/snark/common/bcs_common.hpp"
+#include "libiop/bcs/bcs_common.hpp"
 #include "libiop/protocols/fractal_hiop.hpp"
 #include "libiop/protocols/ldt/fri/argument_size_optimizer.hpp"
 #include "libiop/relations/examples/r1cs_examples.hpp"
@@ -32,6 +32,7 @@ bool process_prover_command_line(const int argc, const char** argv,
                                  bool &heuristic_ldt_reducer_soundness,
                                  bool &heuristic_fri_soundness,
                                  bool &make_zk,
+                                 libiop::bcs_hash_type &hash_enum,
                                  bool &is_multiplicative,
                                  bool &optimize_localization)
 {
@@ -39,6 +40,7 @@ bool process_prover_command_line(const int argc, const char** argv,
 
     try
     {
+        size_t hash_enum_val;
         po::options_description desc("Usage");
         desc.add_options()
             ("help", "print this help message")
@@ -49,6 +51,7 @@ bool process_prover_command_line(const int argc, const char** argv,
             ("heuristic_ldt_reducer_soundness", po::value<bool>(&heuristic_ldt_reducer_soundness)->default_value(true))
             ("heuristic_fri_soundness", po::value<bool>(&heuristic_fri_soundness)->default_value(true))
             ("make_zk", po::value<bool>(&make_zk)->default_value(false))
+            ("hash_enum", po::value<std::size_t>(&hash_enum_val)->default_value((size_t) libiop::blake2b_type))             /* Find a better solution for this in the future */
             ("is_multiplicative", po::value<bool>(&is_multiplicative)->default_value(false))
             ("optimize_localization", po::value<bool>(&optimize_localization)->default_value(false));
 
@@ -59,9 +62,10 @@ bool process_prover_command_line(const int argc, const char** argv,
         {
             std::cout << desc << "\n";
             return false;
-        }
+        }        
 
         po::notify(vm);
+        hash_enum = static_cast<libiop::bcs_hash_type>(hash_enum_val);
     }
     catch(std::exception& e)
     {
@@ -75,14 +79,14 @@ bool process_prover_command_line(const int argc, const char** argv,
 
 using namespace libiop;
 
-template<typename FieldT>
+template<typename FieldT, typename hash_type>
 void print_argument_size(
-    fractal_snark_parameters<FieldT> params,
-    bcs_verifier_index<FieldT> index,
-    fractal_snark_argument<FieldT> argument)
+    fractal_snark_parameters<FieldT, hash_type> params,
+    bcs_verifier_index<FieldT, hash_type> index,
+    fractal_snark_argument<FieldT, hash_type> argument)
 {
     /* We go through registration on the verifier to know what the domains look like */
-    bcs_verifier<FieldT> verifier(params.bcs_params_, argument, index);
+    bcs_verifier<FieldT, hash_type> verifier(params.bcs_params_, argument, index);
     fractal_iop<FieldT> full_protocol(verifier, params.iop_params_);
     full_protocol.register_interactions();
     verifier.seal_interaction_registrations();
@@ -98,13 +102,14 @@ void print_argument_size(
         verifier.get_all_round_params());
 }
 
-template<typename FieldT>
+template<typename FieldT, typename hash_type>
 void instrument_fractal_snark(
     const std::size_t log_n_min,
     const std::size_t log_n_max,
     std::size_t security_level,
     LDT_reducer_soundness_type ldt_reducer_soundness_type,
     FRI_soundness_type fri_soundness_type,
+    const bcs_hash_type hash_enum,
     const bool make_zk,
     const bool is_multiplicative,
     bool optimize_localization)
@@ -131,10 +136,11 @@ void instrument_fractal_snark(
         const std::size_t m = n - 1;
         r1cs_example<FieldT> example = generate_r1cs_example<FieldT>(n, k, m);
 
-        fractal_snark_parameters<FieldT> parameters(
+        fractal_snark_parameters<FieldT, hash_type> parameters(
             security_level,
             ldt_reducer_soundness_type,
             fri_soundness_type,
+            hash_enum,
             fri_localization_parameter,
             RS_extra_dimensions,
             make_zk,
@@ -145,7 +151,10 @@ void instrument_fractal_snark(
         if (optimize_localization)
         {
             const size_t codeword_dim = parameters.iop_params_.codeword_domain().dimension();
-            std::size_t num_query_sets = parameters.iop_params_.FRI_params_.query_repetitions();
+            size_t num_query_sets = parameters.iop_params_.FRI_params_.query_repetitions();
+            size_t interactive_repetitions =
+                parameters.iop_params_.FRI_params_.interactive_repetitions() *
+                parameters.iop_params_.LDT_reducer_params_.num_output_LDT_instances();
             const size_t hash_size = (parameters.bcs_params_.security_parameter + 3) / 4;
             std::vector<size_t> oracle_locality_vector = parameters.iop_params_.locality_vector();
             // if (parameters.iop_params_.make_zk())
@@ -158,7 +167,8 @@ void instrument_fractal_snark(
             const size_t max_tested_degree = 6 * parameters.iop_params_.index_domain().num_elements();
             localization_parameter_array =
                 compute_argument_size_optimal_localization_parameters<FieldT>(
-                    oracle_locality_vector, codeword_dim, num_query_sets,
+                    oracle_locality_vector, codeword_dim,
+                    num_query_sets, interactive_repetitions,
                     max_tested_degree, hash_size);
 
             parameters.reset_fri_localization_parameters(localization_parameter_array);
@@ -179,22 +189,23 @@ void instrument_fractal_snark(
         print_indent(); printf("* R1CS size of auxiliary input (bytes): %zu\n", example.auxiliary_input_.size() * sizeof(FieldT));
         printf("\n");
 
-        std::pair<bcs_prover_index<FieldT>, bcs_verifier_index<FieldT>> index =
+        std::pair<bcs_prover_index<FieldT, hash_type>, bcs_verifier_index<FieldT, hash_type>> index =
             fractal_snark_indexer(parameters);
 
         /** TODO: Print some useful data about the indexed data */
 
-        const fractal_snark_argument<FieldT> argument =
+        const fractal_snark_argument<FieldT, hash_type> argument =
             fractal_snark_prover(
                 index.first,
                 example.primary_input_,
                 example.auxiliary_input_,
                 parameters);
 
-        parameters = fractal_snark_parameters<FieldT>(
+        parameters = fractal_snark_parameters<FieldT, hash_type>(
             security_level,
             ldt_reducer_soundness_type,
             fri_soundness_type,
+            hash_enum,
             fri_localization_parameter,
             RS_extra_dimensions,
             make_zk,
@@ -207,7 +218,7 @@ void instrument_fractal_snark(
 
         print_argument_size(parameters, index.second, argument);
 
-        const bool bit = fractal_snark_verifier<FieldT>(
+        const bool bit = fractal_snark_verifier<FieldT, hash_type>(
             index.second,
             example.primary_input_,
             argument,
@@ -228,6 +239,7 @@ int main(int argc, const char * argv[])
     std::size_t field_size;
     bool heuristic_ldt_reducer_soundness;
     bool heuristic_fri_soundness;
+    bcs_hash_type hash_enum;
     bool make_zk;
     bool is_multiplicative;
     bool optimize_localization;
@@ -252,7 +264,7 @@ int main(int argc, const char * argv[])
     optimize_localization = false;
 #else
     if (!process_prover_command_line(argc, argv, log_n_min, log_n_max, security_level, field_size,
-        heuristic_ldt_reducer_soundness, heuristic_fri_soundness, make_zk, is_multiplicative, optimize_localization))
+        heuristic_ldt_reducer_soundness, heuristic_fri_soundness, make_zk, hash_enum, is_multiplicative, optimize_localization))
     {
         return 1;
     }
@@ -278,22 +290,33 @@ int main(int argc, const char * argv[])
     printf("- is_multiplicative = %s\n", is_multiplicative ? "true" : "false");
     printf("- field_size = %zu\n", field_size);
     printf("- make_zk = %s\n", make_zk ? "true" : "false");
-
+    printf("- hash_enum = %s\n", bcs_hash_type_names[hash_enum]);
+    
     if (is_multiplicative) {
         switch (field_size) {
             case 181:
                 edwards_pp::init_public_params();
-                instrument_fractal_snark<edwards_Fr>(
+                instrument_fractal_snark<edwards_Fr, binary_hash_digest>(
                     log_n_min, log_n_max, security_level,
-                    ldt_reducer_soundness_type, fri_soundness_type,
+                    ldt_reducer_soundness_type, fri_soundness_type, hash_enum,
                     make_zk, is_multiplicative, optimize_localization);
                 break;
             case 256:
                 libff::alt_bn128_pp::init_public_params();
-                instrument_fractal_snark<libff::alt_bn128_Fr>(
-                    log_n_min, log_n_max, security_level,
-                    ldt_reducer_soundness_type, fri_soundness_type,
-                    make_zk, is_multiplicative, optimize_localization);
+                if (hash_enum == libiop::blake2b_type)
+                {
+                    instrument_fractal_snark<libff::alt_bn128_Fr, binary_hash_digest>(
+                        log_n_min, log_n_max, security_level,
+                        ldt_reducer_soundness_type, fri_soundness_type, hash_enum,
+                        make_zk, is_multiplicative, optimize_localization);
+                }
+                else
+                {
+                    instrument_fractal_snark<libff::alt_bn128_Fr, libff::alt_bn128_Fr>(
+                        log_n_min, log_n_max, security_level,
+                        ldt_reducer_soundness_type, fri_soundness_type, hash_enum,
+                        make_zk, is_multiplicative, optimize_localization);
+                }
                 break;
             default:
                 throw std::invalid_argument("Field size not supported.");
@@ -303,27 +326,27 @@ int main(int argc, const char * argv[])
         switch (field_size)
         {
             case 64:
-                instrument_fractal_snark<gf64>(
+                instrument_fractal_snark<gf64, binary_hash_digest>(
                     log_n_min, log_n_max, security_level,
-                    ldt_reducer_soundness_type, fri_soundness_type,
+                    ldt_reducer_soundness_type, fri_soundness_type, hash_enum,
                     make_zk, is_multiplicative, optimize_localization);
                 break;
             case 128:
-                instrument_fractal_snark<gf128>(
+                instrument_fractal_snark<gf128, binary_hash_digest>(
                     log_n_min, log_n_max, security_level,
-                    ldt_reducer_soundness_type, fri_soundness_type,
+                    ldt_reducer_soundness_type, fri_soundness_type, hash_enum,
                     make_zk, is_multiplicative, optimize_localization);
                 break;
             case 192:
-                instrument_fractal_snark<gf192>(
+                instrument_fractal_snark<gf192, binary_hash_digest>(
                     log_n_min, log_n_max, security_level,
-                    ldt_reducer_soundness_type, fri_soundness_type,
+                    ldt_reducer_soundness_type, fri_soundness_type, hash_enum,
                     make_zk, is_multiplicative, optimize_localization);
                 break;
             case 256:
-                instrument_fractal_snark<gf256>(
+                instrument_fractal_snark<gf256, binary_hash_digest>(
                     log_n_min, log_n_max, security_level,
-                    ldt_reducer_soundness_type, fri_soundness_type,
+                    ldt_reducer_soundness_type, fri_soundness_type, hash_enum,
                     make_zk, is_multiplicative, optimize_localization);
                 break;
             default:

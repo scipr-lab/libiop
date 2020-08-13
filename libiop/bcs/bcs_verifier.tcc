@@ -1,19 +1,21 @@
 namespace libiop {
 
-template<typename FieldT>
-bcs_verifier<FieldT>::bcs_verifier(const bcs_transformation_parameters<FieldT> &parameters,
-                                   const bcs_transformation_transcript<FieldT> &transcript) :
-    bcs_protocol<FieldT>(parameters),
+template<typename FieldT, typename MT_hash_type>
+bcs_verifier<FieldT, MT_hash_type>::bcs_verifier(
+    const bcs_transformation_parameters<FieldT, MT_hash_type> &parameters,
+    const bcs_transformation_transcript<FieldT, MT_hash_type> &transcript) :
+    bcs_protocol<FieldT, MT_hash_type>(parameters),
     transcript_(transcript),
     is_preprocessing_(false)
 {
 }
 
-template<typename FieldT>
-bcs_verifier<FieldT>::bcs_verifier(const bcs_transformation_parameters<FieldT> &parameters,
-                                   const bcs_transformation_transcript<FieldT> &transcript,
-                                   const bcs_verifier_index<FieldT> &index) :
-    bcs_protocol<FieldT>(parameters),
+template<typename FieldT, typename MT_hash_type>
+bcs_verifier<FieldT, MT_hash_type>::bcs_verifier(
+    const bcs_transformation_parameters<FieldT, MT_hash_type> &parameters,
+    const bcs_transformation_transcript<FieldT, MT_hash_type> &transcript,
+    const bcs_verifier_index<FieldT, MT_hash_type> &index) :
+    bcs_protocol<FieldT, MT_hash_type>(parameters),
     transcript_(transcript),
     is_preprocessing_(true),
     index_(index)
@@ -30,14 +32,11 @@ bcs_verifier<FieldT>::bcs_verifier(const bcs_transformation_parameters<FieldT> &
         index.indexed_messages_.end());
 }
 
-template<typename FieldT>
-void bcs_verifier<FieldT>::seal_interaction_registrations()
+template<typename FieldT, typename hash_digest_type>
+void bcs_verifier<FieldT, hash_digest_type>::seal_interaction_registrations()
 {
     enter_block("verifier_seal_interaction_registrations");
-    bcs_protocol<FieldT>::seal_interaction_registrations();
-
-    /* Compute pseudorandom state (chaining together the MT roots) */
-    hash_digest cur_state = "";
+    bcs_protocol<FieldT, hash_digest_type>::seal_interaction_registrations();
 
     std::size_t processed_MTs = 0;
     std::vector<size_t> MT_index_to_round;
@@ -58,22 +57,29 @@ void bcs_verifier<FieldT>::seal_interaction_registrations()
             }
         }
 
+        /* Absorb MT roots */
         for (auto &kv : mapping)
         {
             MT_index_to_round.emplace_back(round);
             /* We aren't using the oracles at this point, but we know that
                one MT root corresponds to each oracle in this round. */
             UNUSED(kv);
-            cur_state = this->parameters_.compression_hasher(cur_state,
-                                                             this->transcript_.MT_roots_[processed_MTs++],
-                                                             this->digest_len_bytes_);
+            this->hashchain_->absorb(this->transcript_.MT_roots_[processed_MTs++]);
         }
 
         /* Add the prover message hash as a "root" and update the pseudorandom state */
-        const hash_digest message_hash = this->compute_message_hash(round, this->transcript_.prover_messages_);
-        cur_state = this->parameters_.compression_hasher(cur_state, message_hash, this->digest_len_bytes_);
+        this->absorb_prover_messages(round, this->transcript_.prover_messages_);
+        this->squeeze_verifier_random_messages(round);
+    }
 
-        this->pseudorandom_state_.emplace_back(cur_state);
+    /* Check proof of work */
+
+    hash_digest_type pow_challenge = this->hashchain_->squeeze_root_type();
+    bool valid_pow = this->pow_.verify_pow(this->parameters_.compression_hasher, pow_challenge, this->transcript_.proof_of_work_);
+    if (!valid_pow)
+    {
+        printf("Invalid pow\n");
+        this->transcript_is_valid_ = false;
     }
 
     /* Validate all MT queries relative to the transcript. */
@@ -87,25 +93,17 @@ void bcs_verifier<FieldT>::seal_interaction_registrations()
         std::vector<std::vector<FieldT> > &query_responses = this->transcript_.query_responses_[MT_idx];
         auto &proof = this->transcript_.MT_set_membership_proofs_[MT_idx];
 
-        // Step 1) serialize query responses into leaf responses
+        // Step 1) serialize query responses into leafs
         std::vector<std::vector< FieldT> > MT_leaf_columns =
             this->query_responses_to_MT_leaf_responses(query_positions,
                                                        query_responses,
                                                        MT_index_to_round[MT_idx]);
-        // Step 2) hash each leaf column
-        std::vector<hash_digest> column_hashes;
-        for (auto &v : MT_leaf_columns)
-        {
-            column_hashes.emplace_back(this->parameters_.field_hasher(
-                                       v,
-                                       this->digest_len_bytes_));
-        }
-        // Step 3) validate proof
 
+        // Step 2) validate proof
         const bool proof_is_valid = this->Merkle_trees_[MT_idx].validate_set_membership_proof(
             root,
             MT_leaf_positions,
-            column_hashes,
+            MT_leaf_columns,
             proof);
 
         if (!proof_is_valid)
@@ -119,8 +117,8 @@ void bcs_verifier<FieldT>::seal_interaction_registrations()
     leave_block("verifier_seal_interaction_registrations");
 }
 
-template<typename FieldT>
-void bcs_verifier<FieldT>::parse_query_responses_from_transcript()
+template<typename FieldT, typename MT_hash_type>
+void bcs_verifier<FieldT, MT_hash_type>::parse_query_responses_from_transcript()
 {
     std::size_t processed_MTs = 0;
     for (std::size_t round = 0; round < this->num_interaction_rounds_; ++round)
@@ -150,8 +148,8 @@ void bcs_verifier<FieldT>::parse_query_responses_from_transcript()
     }
 }
 
-template<typename FieldT>
-std::vector<std::vector<FieldT> > bcs_verifier<FieldT>::query_responses_to_MT_leaf_responses(
+template<typename FieldT, typename MT_hash_type>
+std::vector<std::vector<FieldT> > bcs_verifier<FieldT, MT_hash_type>::query_responses_to_MT_leaf_responses(
     std::vector<size_t> &query_positions,
     std::vector<std::vector<FieldT> > &query_responses,
     const size_t round)
@@ -168,62 +166,27 @@ std::vector<std::vector<FieldT> > bcs_verifier<FieldT>::query_responses_to_MT_le
     );
 }
 
-template<typename FieldT>
-void bcs_verifier<FieldT>::signal_prover_round_done()
+template<typename FieldT, typename MT_hash_type>
+void bcs_verifier<FieldT, MT_hash_type>::signal_prover_round_done()
 {
     throw std::logic_error("Verifier IOP is not meant for proving.");
 }
 
-template<typename FieldT>
-void bcs_verifier<FieldT>::signal_index_submissions_done()
+template<typename FieldT, typename MT_hash_type>
+void bcs_verifier<FieldT, MT_hash_type>::signal_index_submissions_done()
 {
     throw std::logic_error("Verifier IOP is not meant for indexing.");
 }
 
-template<typename FieldT>
-std::vector<FieldT> bcs_verifier<FieldT>::obtain_verifier_random_message(
+template<typename FieldT, typename MT_hash_type>
+std::vector<FieldT> bcs_verifier<FieldT, MT_hash_type>::obtain_verifier_random_message(
     const verifier_random_message_handle &random_message)
 {
-    const std::size_t message_length = this->verifier_random_message_registrations_[random_message.id()].size();
-
-    /* Find the index of the round containing this message. */
-    const std::size_t round = (std::lower_bound(this->num_verifier_random_messages_at_end_of_round_.begin(),
-                                                this->num_verifier_random_messages_at_end_of_round_.end(),
-                                                random_message.id() + 1) -
-                               this->num_verifier_random_messages_at_end_of_round_.begin());
-
-    /* Use the pseudorandom state from the PREVIOUS round (that's how the
-       "random" message is generated, because the pseudorandom state is
-       constructed at the END of each round.) */
-    hash_digest prev_pseudorandom_state;
-    if (round == 0)
-    {
-        prev_pseudorandom_state = "";
-    }
-    else
-    {
-        prev_pseudorandom_state = this->pseudorandom_state_[round - 1];
-    }
-
-    const std::vector<FieldT> result =
-        this->parameters_.FieldT_randomness_extractor(prev_pseudorandom_state,
-                                                      random_message.id(),
-                                                      message_length);
-    this->verifier_random_messages_[random_message.id()] = result;
-
-#ifdef DEBUG
-    printf("verifier: random message id=%zu, round=%zu\n", random_message.id(), round);
-    for (auto &v : result)
-    {
-        v.print();
-    }
-#endif // DEBUG
-
-    return result;
+    return this->verifier_random_messages_[random_message.id()];
 }
 
-template<typename FieldT>
-FieldT bcs_verifier<FieldT>::get_oracle_evaluation_at_point(
+template<typename FieldT, typename MT_hash_type>
+FieldT bcs_verifier<FieldT, MT_hash_type>::get_oracle_evaluation_at_point(
     const oracle_handle_ptr &handle,
     const std::size_t evaluation_position,
     const bool record)
@@ -236,7 +199,7 @@ FieldT bcs_verifier<FieldT>::get_oracle_evaluation_at_point(
            get_oracle_evaluation_at_point function in iop_protocol),
            which call this function to get each of the constituent
            evaluations. */
-        return bcs_protocol<FieldT>::get_oracle_evaluation_at_point(handle, evaluation_position, false);
+        return bcs_protocol<FieldT, MT_hash_type>::get_oracle_evaluation_at_point(handle, evaluation_position, false);
     }
     else if (std::dynamic_pointer_cast<oracle_handle>(handle))
     {
@@ -260,14 +223,14 @@ FieldT bcs_verifier<FieldT>::get_oracle_evaluation_at_point(
     }
 }
 
-template<typename FieldT>
-std::vector<FieldT> bcs_verifier<FieldT>::receive_prover_message(const prover_message_handle &message)
+template<typename FieldT, typename MT_hash_type>
+std::vector<FieldT> bcs_verifier<FieldT, MT_hash_type>::receive_prover_message(const prover_message_handle &message)
 {
     return this->transcript_.prover_messages_[message.id()];
 }
 
-template<typename FieldT>
-bool bcs_verifier<FieldT>::transcript_is_valid() const
+template<typename FieldT, typename MT_hash_type>
+bool bcs_verifier<FieldT, MT_hash_type>::transcript_is_valid() const
 {
     return this->transcript_is_valid_;
 }

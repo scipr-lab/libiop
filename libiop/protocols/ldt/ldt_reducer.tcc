@@ -94,7 +94,7 @@ size_t LDT_instance_reducer_params<FieldT>::absolute_proximity_parameter() const
 template<typename FieldT>
 size_t LDT_instance_reducer_params<FieldT>::locality() const
 {
-    if (this->make_zk_) {
+    if (!this->make_zk_) {
         return 0;
     }
     /** One masking polynomial per instance. */
@@ -249,7 +249,7 @@ void LDT_instance_reducer<FieldT, multi_LDT_type>::submit_masking_polynomial()
             polynomial<FieldT> random_poly = polynomial<FieldT>::random_polynomial(this->reducer_params_.max_tested_degree_bound());
             std::vector<FieldT> blinding_evaluations =
                 FFT_over_field_subset<FieldT>(random_poly.coefficients(), this->codeword_domain_);
-            oracle<FieldT> blinding_oracle(blinding_evaluations);
+            oracle<FieldT> blinding_oracle(std::move(blinding_evaluations));
             this->IOP_.submit_oracle(this->blinding_vector_handles_[i], std::move(blinding_oracle));
         }
     }

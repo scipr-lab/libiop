@@ -9,6 +9,7 @@
 #ifndef LIBIOP_ALGEBRA_FIELDS_UTILS_HPP_
 #define LIBIOP_ALGEBRA_FIELDS_UTILS_HPP_
 
+#include "libiop/common/common.hpp"
 #include "libiop/algebra/fields/gf64.hpp"
 #include "libiop/algebra/fields/gf128.hpp"
 #include "libiop/algebra/fields/gf192.hpp"
@@ -60,12 +61,6 @@ enum field_type {
     additive_field_type = 2
 };
 
-template<bool B, class T = void>
-struct enable_if { typedef void* type; };
-
-template<class T>
-struct enable_if<true, T> { typedef T type; };
-
 template<typename FieldT>
 field_type get_field_type(const typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type elem)
 {
@@ -112,6 +107,20 @@ std::size_t soundness_log_of_field_size_helper(
     typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type field_elem)
 {
     return FieldT::extension_degree();
+}
+
+template<typename FieldT>
+std::size_t get_word_of_field_elem(
+    typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type field_elem, size_t word)
+{
+    return field_elem.as_words()[word];
+}
+
+template<typename FieldT>
+std::size_t get_word_of_field_elem(
+    typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type field_elem, size_t word)
+{
+    return field_elem.as_bigint().data[word];
 }
 
 } // namespace libiop

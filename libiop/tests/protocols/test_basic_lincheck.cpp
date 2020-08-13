@@ -49,12 +49,12 @@ void run_black_box_multi_lincheck_test(
     const std::size_t fz_degree = variable_domain.num_elements() + b;
     const std::size_t Mz_degree = constraint_domain.num_elements() + b;
     oracle_handle_ptr fz_handle =
-        std::make_shared<oracle_handle>(IOP.register_oracle(codeword_domain_handle, fz_degree, make_zk));
+        std::make_shared<oracle_handle>(IOP.register_oracle("",codeword_domain_handle, fz_degree, make_zk));
     std::vector<oracle_handle_ptr> Mz_handles;
     for (std::size_t i = 0; i < matrices.size(); i++) {
         Mz_handles.emplace_back(
             std::make_shared<oracle_handle>(
-                IOP.register_oracle(codeword_domain_handle, Mz_degree, make_zk)
+                IOP.register_oracle("", codeword_domain_handle, Mz_degree, make_zk)
             ));
     }
     const size_t dummy_security_parameter = 64;

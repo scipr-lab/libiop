@@ -84,7 +84,7 @@ void iop_protocol<FieldT>::assert_oracle_can_be_registered(
 }
 
 template<typename FieldT>
-oracle_handle iop_protocol<FieldT>::register_oracle(const domain_handle &domain, const std::size_t degree, const bool make_zk)
+oracle_handle iop_protocol<FieldT>::register_oracle(std::string name, const domain_handle &domain, const std::size_t degree, const bool make_zk)
 {
     this->assert_oracle_can_be_registered(domain, degree);
     this->update_rounds_and_direction(direction_from_prover);
@@ -94,7 +94,7 @@ oracle_handle iop_protocol<FieldT>::register_oracle(const domain_handle &domain,
             "Cannot register non-index oracles in round 0 of a holographic IOP");
     }
 
-    oracle_registration registration(domain, degree, make_zk);
+    oracle_registration registration(name, domain, degree, make_zk);
     this->oracle_registrations_.emplace_back(std::move(registration));
     this->oracles_.emplace_back(oracle<FieldT>()); /* prepare an empty slot */
     this->oracles_present_.push_back(false);

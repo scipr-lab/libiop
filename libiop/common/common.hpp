@@ -17,6 +17,12 @@
 
 namespace libiop {
 
+template<bool B, class T = void>
+struct enable_if { typedef void* type; };
+
+template<class T>
+struct enable_if<true, T> { typedef T type; };
+
 /* returns ceil(log2(n)), so 1ul<<log2(n) is the smallest power of 2,
    that is not less than n. */
 std::size_t log2(std::size_t n);

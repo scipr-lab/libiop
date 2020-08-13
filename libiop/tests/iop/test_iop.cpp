@@ -26,12 +26,12 @@ TEST(IOPTest, OracleRegistration) {
         const affine_subspace<FieldT> L = linear_subspace<FieldT>::standard_basis(L_dim);
         const domain_handle L_handle = IOP.register_subspace(L);
 
-        const oracle_handle R_handle = IOP.register_oracle(L_handle, 20, make_zk); /* R \in RS[L,21] */
+        const oracle_handle R_handle = IOP.register_oracle("", L_handle, 20, make_zk); /* R \in RS[L,21] */
         UNUSED(R_handle);
 
         /* registering an overflowing oracle (deg >= elements in subspace)
         should raise an error */
-        EXPECT_THROW(IOP.register_oracle(L_handle, 1024, make_zk), std::invalid_argument);
+        EXPECT_THROW(IOP.register_oracle("", L_handle, 1024, make_zk), std::invalid_argument);
     }
 }
 
@@ -66,8 +66,8 @@ TEST(IOPTest, SumcheckTest) {
     /* IOP registrations */
     iop_protocol<FieldT> IOP;
     const domain_handle L_handle = IOP.register_subspace(L);
-    const oracle_handle h_handle = IOP.register_oracle(L_handle, h_degree, make_zk);
-    const oracle_handle g_handle = IOP.register_oracle(L_handle, g_degree, make_zk);
+    const oracle_handle h_handle = IOP.register_oracle("", L_handle, h_degree, make_zk);
+    const oracle_handle g_handle = IOP.register_oracle("", L_handle, g_degree, make_zk);
 
     IOP.seal_interaction_registrations();
 
@@ -158,11 +158,11 @@ TEST(IOPTest, ZeroKnowledgeSumcheckTest) {
     iop_protocol<FieldT> IOP;
     const domain_handle L_handle = IOP.register_subspace(L);
 
-    const oracle_handle pad_handle = IOP.register_oracle(L_handle, f_degree, make_zk);
+    const oracle_handle pad_handle = IOP.register_oracle("", L_handle, f_degree, make_zk);
     const prover_message_handle pad_sum_handle = IOP.register_prover_message(1);
     const verifier_random_message_handle challenge_handle = IOP.register_verifier_random_message(1);
-    const oracle_handle h_handle = IOP.register_oracle(L_handle, h_degree, make_zk);
-    const oracle_handle g_handle = IOP.register_oracle(L_handle, g_degree, make_zk);
+    const oracle_handle h_handle = IOP.register_oracle("", L_handle, h_degree, make_zk);
+    const oracle_handle g_handle = IOP.register_oracle("", L_handle, g_degree, make_zk);
 
     IOP.seal_interaction_registrations();
 

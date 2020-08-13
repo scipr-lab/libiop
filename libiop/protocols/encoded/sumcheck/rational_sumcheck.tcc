@@ -207,6 +207,7 @@ void rational_sumcheck_protocol<FieldT>::register_proof()
     const bool make_zk = false;
     this->reextended_oracle_handle_ =
         this->IOP_.register_oracle(
+            "rational sumcheck reextension",
             this->codeword_domain_handle_,
             this->reextended_oracle_degree_,
             make_zk);

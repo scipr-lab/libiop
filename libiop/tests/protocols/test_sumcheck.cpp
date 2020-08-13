@@ -36,7 +36,7 @@ void run_sumcheck_test(const std::size_t summation_domain_dim,
     std::vector<oracle_handle> poly_oracle_handles;
     poly_oracle_handles.resize(polys_to_sumcheck.size());
     for (std::size_t i = 0; i < polys_to_sumcheck.size(); i++) {
-        poly_oracle_handles[i] = IOP.register_oracle(codeword_domain_handle, poly_degree_bound, make_zk);
+        poly_oracle_handles[i] = IOP.register_oracle("", codeword_domain_handle, poly_degree_bound, make_zk);
     }
 
     batch_sumcheck_protocol<FieldT> sumcheck(IOP,

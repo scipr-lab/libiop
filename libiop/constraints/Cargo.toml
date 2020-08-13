@@ -1,0 +1,40 @@
+[package]
+name = "marlin"
+version = "0.0.1"
+authors = [
+]
+description = "Constraints for subcomponents of the Marlin verifier"
+homepage = "https://libiop.org"
+repository = "https://github.com/scipr/libiop"
+documentation = "https://docs.rs/crypto-primitives/"
+keywords = ["r1cs", "marlin"]
+categories = ["cryptography"]
+include = ["Cargo.toml", "src", "README.md", "LICENSE-APACHE", "LICENSE-MIT"]
+license = "MIT/Apache-2.0"
+edition = "2018"
+
+################################# Dependencies ################################
+
+[dependencies]
+
+digest = "0.7"
+blake2 = "0.7"
+
+rand = { version = "0.7" }
+derivative = "1"
+rayon = { version = "1" }
+
+algebra = { git = "https://github.com/scipr-lab/zexe", branch="master"}
+r1cs-core = { git = "https://github.com/scipr-lab/zexe", optional = true}
+r1cs-std = { git = "https://github.com/scipr-lab/zexe", optional = true}
+bench-utils = { git = "https://github.com/scipr-lab/zexe"}
+num-traits = { version = "0.2", default-features = false }
+
+[features]
+r1cs = [ "r1cs-core", "r1cs-std" ]
+
+[dev-dependencies]
+criterion = "0.2"
+rand_xorshift = { version = "0.2" }
+
+################################# Benchmarks ##################################

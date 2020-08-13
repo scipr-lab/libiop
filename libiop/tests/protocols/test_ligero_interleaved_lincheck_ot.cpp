@@ -114,14 +114,14 @@ bool run_test(naive_sparse_matrix<FieldT> &constraint_matrix,
     for (size_t i = 0; i < num_oracles_input; ++i)
     {
         input_vector_handles.emplace_back(std::make_shared<oracle_handle>(
-            IOP.register_oracle(codeword_domain_handle, systematic_domain.num_elements()+1, make_zk)));
+            IOP.register_oracle("", codeword_domain_handle, systematic_domain.num_elements()+1, make_zk)));
     }
     
     std::vector<oracle_handle_ptr> target_vector_handles;
     for (size_t i = 0; i < num_oracles_target; ++i)
     {
         target_vector_handles.emplace_back(std::make_shared<oracle_handle>(
-            IOP.register_oracle(codeword_domain_handle, systematic_domain.num_elements()+1, make_zk)));
+            IOP.register_oracle("", codeword_domain_handle, systematic_domain.num_elements()+1, make_zk)));
     }
     
     std::vector<oracle_handle_ptr> blinding_vector_handles;
@@ -130,7 +130,7 @@ bool run_test(naive_sparse_matrix<FieldT> &constraint_matrix,
         for (size_t i = 0; i < num_interactions; ++i)
         {
             blinding_vector_handles.emplace_back(std::make_shared<oracle_handle>(
-                IOP.register_oracle(codeword_domain_handle, codeword_domain_dim, make_zk)));
+                IOP.register_oracle("", codeword_domain_handle, codeword_domain_dim, make_zk)));
         }
     }
     

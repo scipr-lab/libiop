@@ -1,16 +1,19 @@
 #include "libiop/algebra/field_subset/subspace.hpp"
 #include "libiop/common/common.hpp"
 #include "libiop/common/profiling.hpp"
-#include "libiop/snark/common/bcs_common.hpp"
+#include "libiop/bcs/bcs_common.hpp"
+#include "libiop/bcs/common_bcs_parameters.hpp"
+#include "libiop/bcs/hashing/blake2b.hpp"
 
 namespace libiop {
 
 /** Initialize snark with FRI localization parameter array */
-template<typename FieldT>
-aurora_snark_parameters<FieldT>::aurora_snark_parameters(
+template<typename FieldT, typename hash_type>
+aurora_snark_parameters<FieldT, hash_type>::aurora_snark_parameters(
     const size_t security_parameter,
     const LDT_reducer_soundness_type ldt_reducer_soundness_type,
     const FRI_soundness_type fri_soundness_type,
+    const bcs_hash_type hash_enum,
     const std::vector<size_t> FRI_localization_parameter_array,
     const size_t RS_extra_dimensions,
     const bool make_zk,
@@ -27,16 +30,17 @@ aurora_snark_parameters<FieldT>::aurora_snark_parameters(
     num_variables_(num_variables),
     FRI_localization_parameter_array_(FRI_localization_parameter_array)
 {
-    this->initialize_bcs_params();
+    this->initialize_bcs_params(hash_enum);
     this->initialize_iop_params();
 }
 
 /** Initialize snark with FRI localization parameter */
-template<typename FieldT>
-aurora_snark_parameters<FieldT>::aurora_snark_parameters(
+template<typename FieldT, typename hash_type>
+aurora_snark_parameters<FieldT, hash_type>::aurora_snark_parameters(
     const size_t security_parameter,
     const LDT_reducer_soundness_type ldt_reducer_soundness_type,
     const FRI_soundness_type fri_soundness_type,
+    const bcs_hash_type hash_enum,
     const size_t FRI_localization_parameter,
     const size_t RS_extra_dimensions,
     const bool make_zk,
@@ -53,12 +57,12 @@ aurora_snark_parameters<FieldT>::aurora_snark_parameters(
     num_variables_(num_variables),
     FRI_localization_parameter_(FRI_localization_parameter)
 {
-    this->initialize_bcs_params();
+    this->initialize_bcs_params(hash_enum);
     this->initialize_iop_params();
 }
 
-template<typename FieldT>
-void aurora_snark_parameters<FieldT>::reset_fri_localization_parameters(
+template<typename FieldT, typename hash_type>
+void aurora_snark_parameters<FieldT, hash_type>::reset_fri_localization_parameters(
     const std::vector<size_t> FRI_localization_parameter_array)
 {
     this->FRI_localization_parameter_array_ = FRI_localization_parameter_array;
@@ -66,11 +70,12 @@ void aurora_snark_parameters<FieldT>::reset_fri_localization_parameters(
 }
 
 
-template<typename FieldT>
-void aurora_snark_parameters<FieldT>::initialize_iop_params()
+template<typename FieldT, typename hash_type>
+void aurora_snark_parameters<FieldT, hash_type>::initialize_iop_params()
 {
     this->iop_params_ = aurora_iop_parameters<FieldT>(
         this->security_parameter_,
+        this->bcs_params_.pow_params_.work_parameter(),
         this->RS_extra_dimensions_,
         this->make_zk_,
         this->domain_type_,
@@ -89,19 +94,14 @@ void aurora_snark_parameters<FieldT>::initialize_iop_params()
     }
 }
 
-template<typename FieldT>
-void aurora_snark_parameters<FieldT>::initialize_bcs_params()
+template<typename FieldT, typename hash_type>
+void aurora_snark_parameters<FieldT, hash_type>::initialize_bcs_params(const bcs_hash_type hash_enum)
 {
-    this->bcs_params_.security_parameter = this->security_parameter_;
-    this->bcs_params_.field_hasher = blake2b_field_element_hash<FieldT>;
-    this->bcs_params_.zk_hasher = blake2b_zk_element_hash;
-    this->bcs_params_.compression_hasher = blake2b_two_to_one_hash;
-    this->bcs_params_.FieldT_randomness_extractor = blake2b_FieldT_randomness_extractor<FieldT>;
-    this->bcs_params_.integer_randomness_extractor = blake2b_integer_randomness_extractor;
+    this->bcs_params_ = default_bcs_params<FieldT, hash_type>(hash_enum, this->security_parameter_, log2(this->num_constraints_));
 }
 
-template<typename FieldT>
-void aurora_snark_parameters<FieldT>::print() const
+template<typename FieldT, typename hash_type>
+void aurora_snark_parameters<FieldT, hash_type>::print() const
 {
     print_indent(); printf("\nAurora SNARK parameters\n");
     print_indent(); printf("* security parameter (bits) = %zu\n", security_parameter_);
@@ -116,16 +116,17 @@ void aurora_snark_parameters<FieldT>::print() const
     this->iop_params_.print();
 }
 
-template<typename FieldT>
-aurora_snark_argument<FieldT> aurora_snark_prover(const r1cs_constraint_system<FieldT> &constraint_system,
-                                                  const r1cs_primary_input<FieldT> &primary_input,
-                                                  const r1cs_auxiliary_input<FieldT> &auxiliary_input,
-                                                  const aurora_snark_parameters<FieldT> &parameters)
+template<typename FieldT, typename hash_type>
+aurora_snark_argument<FieldT, hash_type> aurora_snark_prover(
+    const r1cs_constraint_system<FieldT> &constraint_system,
+    const r1cs_primary_input<FieldT> &primary_input,
+    const r1cs_auxiliary_input<FieldT> &auxiliary_input,
+    const aurora_snark_parameters<FieldT, hash_type> &parameters)
 {
     enter_block("Aurora SNARK prover");
     parameters.print();
 
-    bcs_prover<FieldT> IOP(parameters.bcs_params_);
+    bcs_prover<FieldT, hash_type> IOP(parameters.bcs_params_);
     aurora_iop<FieldT> full_protocol(IOP, constraint_system, parameters.iop_params_);
     full_protocol.register_interactions();
     IOP.seal_interaction_registrations();
@@ -135,7 +136,7 @@ aurora_snark_argument<FieldT> aurora_snark_prover(const r1cs_constraint_system<F
     full_protocol.produce_proof(primary_input, auxiliary_input);
 
     enter_block("Obtain transcript");
-    const aurora_snark_argument<FieldT> transcript = IOP.get_transcript();
+    const aurora_snark_argument<FieldT, hash_type> transcript = IOP.get_transcript();
     leave_block("Obtain transcript");
 
     IOP.describe_sizes();
@@ -144,16 +145,16 @@ aurora_snark_argument<FieldT> aurora_snark_prover(const r1cs_constraint_system<F
     return transcript;
 }
 
-template<typename FieldT>
+template<typename FieldT, typename hash_type>
 bool aurora_snark_verifier(const r1cs_constraint_system<FieldT> &constraint_system,
                            const r1cs_primary_input<FieldT> &primary_input,
-                           const aurora_snark_argument<FieldT> &proof,
-                           const aurora_snark_parameters<FieldT> &parameters)
+                           const aurora_snark_argument<FieldT, hash_type> &proof,
+                           const aurora_snark_parameters<FieldT, hash_type> &parameters)
 {
     enter_block("Aurora SNARK verifier");
     parameters.print();
 
-    bcs_verifier<FieldT> IOP(parameters.bcs_params_, proof);
+    bcs_verifier<FieldT, hash_type> IOP(parameters.bcs_params_, proof);
 
     enter_block("Aurora IOP protocol initialization and registration");
     aurora_iop<FieldT> full_protocol(IOP, constraint_system, parameters.iop_params_);

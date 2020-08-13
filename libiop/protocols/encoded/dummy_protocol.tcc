@@ -72,7 +72,7 @@ dummy_protocol<FieldT>::dummy_protocol(
     for (size_t i = 0; i < this->num_oracles_; ++i)
     {
         this->constituent_oracles_.emplace_back(
-            this->IOP_.register_oracle(this->codeword_domain_handle_, this->degree_, this->make_zk_));
+            this->IOP_.register_oracle("dummy", this->codeword_domain_handle_, this->degree_, this->make_zk_));
         this->constituent_oracle_ptrs_.emplace_back(
             std::make_shared<oracle_handle>(this->constituent_oracles_[i]));
     }

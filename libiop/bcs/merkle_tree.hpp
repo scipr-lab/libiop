@@ -16,14 +16,15 @@
 #include <bits/stdc++.h>
 
 #include "libiop/algebra/field_subset/field_subset.hpp"
-#include "libiop/snark/common/hashing.hpp"
+#include "libiop/bcs/hashing/hashing.hpp"
 
 namespace libiop {
 
 /* Authentication paths for a set of positions */
+template<typename hash_digest_type>
 struct merkle_tree_set_membership_proof {
-    std::vector<hash_digest> auxiliary_hashes;
-    std::vector<hash_digest> randomness_hashes;
+    std::vector<hash_digest_type> auxiliary_hashes;
+    std::vector<zk_salt_type> randomness_hashes;
 
     /* TODO: Write a test for this */
     std::size_t size_in_bytes() const
@@ -31,30 +32,31 @@ struct merkle_tree_set_membership_proof {
         return std::accumulate(this->auxiliary_hashes.begin(),
                                this->auxiliary_hashes.end(),
                                0,
-                               [] (const std::size_t av, const hash_digest &h) { return av + h.size(); }) +
+                               [] (const std::size_t av, const hash_digest_type &h) { 
+                                   return av + get_hash_size<hash_digest_type>(h); }) +
                std::accumulate(this->randomness_hashes.begin(),
                                this->randomness_hashes.end(),
                                0,
-                               [] (const std::size_t av, const hash_digest &h) { return av + h.size(); });
+                               [] (const std::size_t av, const zk_salt_type &h) {
+                                    return av + get_hash_size<zk_salt_type>(h); });
     }
 };
 
-template<typename FieldT>
+template<typename FieldT, typename hash_digest_type>
 class merkle_tree {
 protected:
     bool constructed_;
-    std::vector<hash_digest> inner_nodes_;
+    std::vector<hash_digest_type> inner_nodes_;
 
     std::size_t num_leaves_;
-    field_element_hash_function<FieldT> leaf_hasher_;
-    zk_element_hash_function zk_leaf_hasher_;
-    two_to_one_hash_function node_hasher_;
+    std::shared_ptr<leafhash<FieldT, hash_digest_type>> leaf_hasher_;
+    two_to_one_hash_function<hash_digest_type> node_hasher_;
     std::size_t digest_len_bytes_;
     bool make_zk_;
     std::size_t num_zk_bytes_;
 
     /* Each element will be hashed (individually) to produce a random hash digest. */
-    std::vector<hash_digest> zk_leaf_randomness_elements_;
+    std::vector<zk_salt_type> zk_leaf_randomness_elements_;
     void sample_leaf_randomness();
     void compute_inner_nodes();
 public:
@@ -63,9 +65,8 @@ public:
     before hashing, to prevent a low entropy leaf value from being inferred
     from its hash. */
     merkle_tree(const std::size_t num_leaves,
-                const field_element_hash_function<FieldT> &leaf_hasher,
-                const zk_element_hash_function &zk_leaf_hasher,
-                const two_to_one_hash_function &node_hasher,
+                const std::shared_ptr<leafhash<FieldT, hash_digest_type>> &leaf_hasher,
+                const two_to_one_hash_function<hash_digest_type> &node_hasher,
                 const std::size_t digest_len_bytes,
                 const bool make_zk,
                 const std::size_t security_parameter);
@@ -100,15 +101,15 @@ public:
         const std::vector<std::vector<FieldT> > &query_responses,
         const size_t coset_serialization_size) const;
 
-    hash_digest get_root() const;
+    hash_digest_type get_root() const;
 
-    merkle_tree_set_membership_proof get_set_membership_proof(
+    merkle_tree_set_membership_proof<hash_digest_type> get_set_membership_proof(
         const std::vector<std::size_t> &positions) const;
     bool validate_set_membership_proof(
-        const hash_digest &root,
+        const hash_digest_type &root,
         const std::vector<std::size_t> &positions,
-        const std::vector<hash_digest> &contents_hashes,
-        const merkle_tree_set_membership_proof &proof);
+        const std::vector<std::vector<FieldT>> &leaf_contents,
+        const merkle_tree_set_membership_proof<hash_digest_type> &proof);
 
     /* Returns number of two to one hashes */
     size_t count_hashes_to_verify_set_membership_proof(
@@ -122,6 +123,6 @@ public:
 
 } // namespace libiop
 
-#include "libiop/snark/common/merkle_tree.tcc"
+#include "libiop/bcs/merkle_tree.tcc"
 
 #endif // LIBIOP_SNARK_COMMON_MERKLE_TREE_HPP_

@@ -39,9 +39,9 @@ void run_rational_sumcheck_test(
     const size_t denominator_degree_bound = denominator.num_terms();
 
     oracle_handle numerator_oracle_handle =
-        IOP.register_oracle(codeword_domain_handle, numerator_degree_bound, make_zk);
+        IOP.register_oracle("", codeword_domain_handle, numerator_degree_bound, make_zk);
     oracle_handle denominator_oracle_handle =
-        IOP.register_oracle(codeword_domain_handle, denominator_degree_bound, make_zk);
+        IOP.register_oracle("", codeword_domain_handle, denominator_degree_bound, make_zk);
 
     rational_sumcheck_protocol<FieldT> sumcheck(
         IOP,

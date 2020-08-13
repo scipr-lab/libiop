@@ -18,10 +18,12 @@ namespace libiop {
 /* Test FRI*/
 TEST(FriOptimizerPredictedProofSizeTest, OptimizerTest)
 {
+    typedef binary_hash_digest hash_type;
     typedef gf192 FieldT;
     const std::vector<size_t> locality_vector = {1};
     const std::vector<size_t> localization_vector = {1, 3, 3};
     const size_t codeword_dim = 18;
+    const size_t interactive_repetitions = 1;
     const size_t num_queries = 32;
     const size_t RS_extra_dimensions = 2;
     const size_t max_tested_degree = 1ull << (codeword_dim - RS_extra_dimensions);
@@ -30,15 +32,15 @@ TEST(FriOptimizerPredictedProofSizeTest, OptimizerTest)
 
     const size_t expected_size = argument_size_predictor<FieldT>(
         locality_vector, localization_vector, codeword_dim,
-        num_queries, max_tested_degree, hash_size_in_bytes);
+        num_queries, interactive_repetitions, max_tested_degree, hash_size_in_bytes);
 
     const size_t num_samples = 30;
     size_t total_argument_size = 0;
-    FRI_snark_parameters<FieldT> params = {codeword_dim, 128, RS_extra_dimensions, 0,
+    FRI_snark_parameters<FieldT> params = {codeword_dim, 128, blake2b_type, RS_extra_dimensions, 0,
         localization_vector, 1, num_queries, locality_vector[0], additive_field_type};
     for (size_t i = 0; i < num_samples; i++)
     {
-        FRI_snark_proof<FieldT> proof = FRI_snark_prover<FieldT>(params);
+        FRI_snark_proof<FieldT, hash_type> proof = FRI_snark_prover<FieldT, hash_type>(params);
         total_argument_size += proof.size_in_bytes();
         if (debug)
         {

@@ -1,12 +1,13 @@
 #include "libiop/algebra/field_subset/subspace.hpp"
 #include "libiop/common/common.hpp"
 #include "libiop/common/profiling.hpp"
-#include "libiop/snark/common/bcs_common.hpp"
+#include "libiop/bcs/bcs_common.hpp"
+#include "libiop/bcs/hashing/blake2b.hpp"
 
 namespace libiop {
 
-template<typename FieldT>
-void ligero_snark_parameters<FieldT>::describe()
+template<typename FieldT, typename MT_root_hash>
+void ligero_snark_parameters<FieldT, MT_root_hash>::describe()
 {
     print_indent(); printf("Interleaved R1CS SNARK parameters:\n");
     print_indent(); printf("Security level: %zu\n", security_level_);
@@ -16,23 +17,9 @@ void ligero_snark_parameters<FieldT>::describe()
     print_indent(); printf("Domain type = %s\n", field_subset_type_names[this->domain_type_]);
 }
 
-template<typename FieldT>
-bcs_transformation_parameters<FieldT> obtain_bcs_parameters_from_ligero_snark_params(
-    const ligero_snark_parameters<FieldT> &parameters)
-{
-    bcs_transformation_parameters<FieldT> bcs_parameters;
-    bcs_parameters.security_parameter = parameters.security_level_;
-    bcs_parameters.field_hasher = blake2b_field_element_hash<FieldT>;
-    bcs_parameters.zk_hasher = blake2b_zk_element_hash;
-    bcs_parameters.compression_hasher = blake2b_two_to_one_hash;
-    bcs_parameters.FieldT_randomness_extractor = blake2b_FieldT_randomness_extractor<FieldT>;
-    bcs_parameters.integer_randomness_extractor = blake2b_integer_randomness_extractor;
-    return bcs_parameters;
-}
-
-template<typename FieldT>
+template<typename FieldT, typename MT_root_hash>
 ligero_iop_parameters<FieldT> obtain_iop_parameters_from_ligero_snark_params(
-    const ligero_snark_parameters<FieldT> &parameters,
+    const ligero_snark_parameters<FieldT, MT_root_hash> &parameters,
     const std::size_t num_constraints,
     const std::size_t num_variables)
 {
@@ -49,22 +36,21 @@ ligero_iop_parameters<FieldT> obtain_iop_parameters_from_ligero_snark_params(
     return iop_parameters;
 }
 
-template<typename FieldT>
-ligero_snark_argument<FieldT> ligero_snark_prover(const r1cs_constraint_system<FieldT> &constraint_system,
-                                                  const r1cs_primary_input<FieldT> &primary_input,
-                                                  const r1cs_auxiliary_input<FieldT> &auxiliary_input,
-                                                  const ligero_snark_parameters<FieldT> &parameters)
+template<typename FieldT, typename MT_root_hash>
+ligero_snark_argument<FieldT, MT_root_hash> ligero_snark_prover(
+    const r1cs_constraint_system<FieldT> &constraint_system,
+    const r1cs_primary_input<FieldT> &primary_input,
+    const r1cs_auxiliary_input<FieldT> &auxiliary_input,
+    const ligero_snark_parameters<FieldT, MT_root_hash> &parameters)
 {
     enter_block("Ligero SNARK prover");
-    const bcs_transformation_parameters<FieldT> bcs_params =
-        obtain_bcs_parameters_from_ligero_snark_params(parameters);
     const ligero_iop_parameters<FieldT> iop_params =
         obtain_iop_parameters_from_ligero_snark_params<FieldT>(
             parameters,
             constraint_system.num_constraints(),
             constraint_system.num_variables());
 
-    bcs_prover<FieldT> IOP(bcs_params);
+    bcs_prover<FieldT, MT_root_hash> IOP(parameters.bcs_params_);
     ligero_iop<FieldT> full_protocol(IOP,
                                      constraint_system,
                                      iop_params);
@@ -76,7 +62,7 @@ ligero_snark_argument<FieldT> ligero_snark_prover(const r1cs_constraint_system<F
     full_protocol.produce_proof(primary_input, auxiliary_input);
 
     enter_block("Obtain transcript");
-    const ligero_snark_argument<FieldT> transcript = IOP.get_transcript();
+    const ligero_snark_argument<FieldT, MT_root_hash> transcript = IOP.get_transcript();
     leave_block("Obtain transcript");
 
     IOP.describe_sizes();
@@ -85,22 +71,20 @@ ligero_snark_argument<FieldT> ligero_snark_prover(const r1cs_constraint_system<F
     return transcript;
 }
 
-template<typename FieldT>
+template<typename FieldT, typename MT_root_hash>
 bool ligero_snark_verifier(const r1cs_constraint_system<FieldT> &constraint_system,
-                                     const r1cs_primary_input<FieldT> &primary_input,
-                                     const ligero_snark_argument<FieldT> &proof,
-                                     const ligero_snark_parameters<FieldT> &parameters)
+                           const r1cs_primary_input<FieldT> &primary_input,
+                           const ligero_snark_argument<FieldT, MT_root_hash> &proof,
+                           const ligero_snark_parameters<FieldT, MT_root_hash> &parameters)
 {
     enter_block("Ligero SNARK verifier");
-    const bcs_transformation_parameters<FieldT> bcs_params =
-        obtain_bcs_parameters_from_ligero_snark_params(parameters);
     const ligero_iop_parameters<FieldT> iop_params =
         obtain_iop_parameters_from_ligero_snark_params<FieldT>(
             parameters,
             constraint_system.num_constraints(),
             constraint_system.num_variables());
 
-    bcs_verifier<FieldT> IOP(bcs_params, proof);
+    bcs_verifier<FieldT, MT_root_hash> IOP(parameters.bcs_params_, proof);
 
     ligero_iop<FieldT> full_protocol(IOP,
                                      constraint_system,

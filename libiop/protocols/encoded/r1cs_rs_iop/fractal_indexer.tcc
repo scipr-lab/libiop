@@ -45,9 +45,9 @@ void matrix_indexer<FieldT>::register_oracles()
     this->val_oracle_handle_ =
         this->IOP_.register_index_oracle(
             this->codeword_domain_handle_, oracle_degree_bound);
-    // this->row_times_col_oracle_handle_ =
-    //     this->IOP_.register_index_oracle(
-    //         this->codeword_domain_handle_, oracle_degree_bound);
+    this->row_times_col_oracle_handle_ =
+        this->IOP_.register_index_oracle(
+            this->codeword_domain_handle_, oracle_degree_bound);
 }
 
 template<typename FieldT>
@@ -74,13 +74,12 @@ std::vector<std::vector<FieldT>> matrix_indexer<FieldT>::compute_oracles_over_K(
     std::vector<FieldT> row_evals;
     std::vector<FieldT> col_evals;
     std::vector<FieldT> val_evals;
-    // std::vector<FieldT> row_times_col_evals;
+    std::vector<FieldT> row_times_col_evals;
     row_evals.reserve(this->index_domain_.num_elements());
     col_evals.reserve(this->index_domain_.num_elements());
     val_evals.reserve(this->index_domain_.num_elements());
-    // row_times_col_evals.reserve(this->index_domain_.num_elements());
+    row_times_col_evals.reserve(this->index_domain_.num_elements());
 
-    size_t k_index = 0;
     for (size_t i = 0; i < this->matrix_->num_rows(); i++)
     {
         const linear_combination<FieldT> row = this->matrix_->get_row(i);
@@ -93,7 +92,7 @@ std::vector<std::vector<FieldT>> matrix_indexer<FieldT>::compute_oracles_over_K(
                 this->matrix_domain_.reindex_by_subset(this->input_variable_dim_, term.index_);
             const FieldT col_index_elem = this->matrix_domain_.element_by_index(col_index);
             col_evals.emplace_back(col_index_elem);
-            // row_times_col_evals.emplace_back(row_index_elem * col_index_elem);
+            row_times_col_evals.emplace_back(row_index_elem * col_index_elem);
 
             const FieldT col_derivative =
                 this->bivariate_lagrange_poly_.evaluation_at_point(col_index_elem, col_index_elem);
@@ -108,7 +107,9 @@ std::vector<std::vector<FieldT>> matrix_indexer<FieldT>::compute_oracles_over_K(
     col_evals.resize(this->index_domain_.num_elements(),
                      this->index_domain_.element_by_index(0));
     val_evals.resize(this->index_domain_.num_elements(), FieldT::zero());
-    return {row_evals, col_evals, val_evals};
+    row_times_col_evals.resize(this->index_domain_.num_elements(),
+        this->index_domain_.element_by_index(0).squared());
+    return {row_evals, col_evals, val_evals, row_times_col_evals};
 }
 
 template<typename FieldT>
@@ -131,13 +132,12 @@ void matrix_indexer<FieldT>::compute_oracles()
             this->codeword_domain_);
     this->IOP_.submit_oracle(this->col_oracle_handle_, col_poly_over_codeword_domain);
 
-    // row_times_col_evals.resize(this->index_domain_.num_elements(), FieldT::zero());
-    // const std::vector<FieldT> row_times_col_poly_over_codeword_domain
-    //     = FFT_over_field_subset<FieldT>(
-    //         IFFT_over_field_subset<FieldT>(
-    //             row_times_col_evals, this->index_domain_),
-    //         this->codeword_domain_);
-    // this->IOP_.submit_oracle(this->row_times_col_oracle_handle_, row_times_col_poly_over_codeword_domain);
+    const std::vector<FieldT> row_times_col_poly_over_codeword_domain
+        = FFT_over_field_subset<FieldT>(
+            IFFT_over_field_subset<FieldT>(
+                index_oracles_over_K[3], this->index_domain_),
+            this->codeword_domain_);
+    this->IOP_.submit_oracle(this->row_times_col_oracle_handle_, row_times_col_poly_over_codeword_domain);
 
     const std::vector<FieldT> val_poly_over_codeword_domain
         = FFT_over_field_subset<FieldT>(
@@ -178,7 +178,7 @@ std::vector<oracle_handle_ptr> matrix_indexer<FieldT>::get_all_oracle_handles() 
     result.emplace_back(std::make_shared<oracle_handle>(this->get_row_oracle_handle()));
     result.emplace_back(std::make_shared<oracle_handle>(this->get_col_oracle_handle()));
     result.emplace_back(std::make_shared<oracle_handle>(this->get_val_oracle_handle()));
-    // result.emplace_back(std::make_shared<oracle_handle>(this->get_row_times_col_oracle_handle()));
+    result.emplace_back(std::make_shared<oracle_handle>(this->get_row_times_col_oracle_handle()));
     return result;
 }
 

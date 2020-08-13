@@ -30,6 +30,7 @@ template<typename FieldT>
 class fractal_iop_parameters {
     protected:
     size_t security_parameter_;
+    size_t pow_bits_;
     size_t RS_extra_dimensions_;
     bool make_zk_;
     std::shared_ptr<r1cs_constraint_system<FieldT>> constraint_system_;
@@ -44,6 +45,7 @@ class fractal_iop_parameters {
     fractal_iop_parameters() {};
     fractal_iop_parameters(
         const size_t security_parameter,
+        const size_t pow_bits,
         const size_t RS_extra_dimensions,
         const bool make_zk,
         const std::shared_ptr<r1cs_constraint_system<FieldT>> &constraint_system);

@@ -68,7 +68,7 @@ bool run_test(const std::size_t codeword_domain_dim,
     const field_subset<FieldT> codeword_domain =
         make_domain_helper<FieldT>(codeword_domain_dim, FieldT::zero());
     const domain_handle codeword_domain_handle = IOP.register_domain(codeword_domain);
-    const oracle_handle poly_handle = IOP.register_oracle(codeword_domain_handle, poly_degree_bound, false);
+    const oracle_handle poly_handle = IOP.register_oracle("", codeword_domain_handle, poly_degree_bound, false);
     const std::vector<oracle_handle_ptr> poly_handles = {std::make_shared<oracle_handle>(poly_handle) };
     const size_t security_bits = 129;
     const size_t tested_poly_degree_bound = 1ull << (codeword_domain_dim - RS_extra_dimensions);

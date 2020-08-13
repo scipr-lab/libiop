@@ -25,6 +25,7 @@ template<typename FieldT>
 class aurora_iop_parameters {
     protected:
     size_t security_parameter_;
+    size_t pow_bits_;
     size_t RS_extra_dimensions_;
     bool make_zk_;
     field_subset_type domain_type_;
@@ -39,6 +40,7 @@ class aurora_iop_parameters {
     public:
     aurora_iop_parameters() {};
     aurora_iop_parameters(const size_t security_parameter,
+                          const size_t pow_bits,
                           const size_t RS_extra_dimensions,
                           const bool make_zk,
                           const libiop::field_subset_type domain_type,

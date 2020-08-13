@@ -73,7 +73,7 @@ static void BM_sumcheck_additive_eval_at_point(benchmark::State &state) {
         get_random_polys_and_sum(num_polys, summation_domain, poly_degree_bound);
     poly_oracle_handles.resize(num_polys);
     for (std::size_t i = 0; i < num_polys; i++) {
-        poly_oracle_handles[i] = IOP.register_oracle(codeword_domain_handle, poly_degree_bound, make_zk);
+        poly_oracle_handles[i] = IOP.register_oracle("polynomial input", codeword_domain_handle, poly_degree_bound, make_zk);
     }
 
     batch_sumcheck_protocol<FieldT> sumcheck(IOP,

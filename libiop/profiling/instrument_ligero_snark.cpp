@@ -17,6 +17,8 @@
 #include "libiop/algebra/fields/gf256.hpp"
 
 #include "libiop/snark/ligero_snark.hpp"
+#include "libiop/bcs/bcs_common.hpp"
+#include "libiop/bcs/common_bcs_parameters.hpp"
 #include "libiop/relations/examples/r1cs_examples.hpp"
 
 #ifndef CPPDEBUG
@@ -29,12 +31,14 @@ bool process_prover_command_line(const int argc, const char** argv,
                                  std::size_t &field_size,
                                  bool &heuristic_ldt_reducer_soundness,
                                  bool &make_zk,
+                                 libiop::bcs_hash_type &hash_enum,
                                  bool &is_multiplicative)
 {
     namespace po = boost::program_options;
 
     try
     {
+        size_t hash_enum_val;
         po::options_description desc("Usage");
         desc.add_options()
             ("help", "print this help message")
@@ -46,6 +50,7 @@ bool process_prover_command_line(const int argc, const char** argv,
             ("RS_extra_dimensions", po::value<std::size_t>(&RS_extra_dimensions)->default_value(2))
             ("field_size", po::value<std::size_t>(&field_size)->default_value(192))
             ("make_zk", po::value<bool>(&make_zk)->default_value(true))
+            ("hash_enum", po::value<std::size_t>(&hash_enum_val)->default_value((size_t) libiop::blake2b_type))             /* Find a better solution for this in the future */
             ("is_multiplicative", po::value<bool>(&is_multiplicative)->default_value(false));
 
         po::variables_map vm;
@@ -58,6 +63,7 @@ bool process_prover_command_line(const int argc, const char** argv,
         }
 
         po::notify(vm);
+        hash_enum = static_cast<libiop::bcs_hash_type>(hash_enum_val);
     }
     catch(std::exception& e)
     {
@@ -71,23 +77,25 @@ bool process_prover_command_line(const int argc, const char** argv,
 
 using namespace libiop;
 
-template<typename FieldT>
+template<typename FieldT, typename hash_type>
 void instrument_ligero_snark(const std::size_t log_n_min,
                              const std::size_t log_n_max,
                              const float height_width_ratio,
                              const std::size_t RS_extra_dimensions,
                              const std::size_t security_level,
                              const LDT_reducer_soundness_type ldt_reducer_soundness_type,
+                             const bcs_hash_type hash_enum,
                              const bool make_zk,
                              const field_subset_type domain_type)
 {
-    ligero_snark_parameters<FieldT> parameters;
+    ligero_snark_parameters<FieldT, hash_type> parameters;
     parameters.security_level_ = security_level;
     parameters.LDT_reducer_soundness_type_ = ldt_reducer_soundness_type;
     parameters.height_width_ratio_ = height_width_ratio;
     parameters.RS_extra_dimensions_ = RS_extra_dimensions;
     parameters.make_zk_ = make_zk;
     parameters.domain_type_ = domain_type;
+    parameters.bcs_params_ = default_bcs_params<FieldT, hash_type>(hash_enum, security_level, log_n_min);
     parameters.describe();
 
     for (std::size_t log_n = log_n_min; log_n <= log_n_max; ++log_n)
@@ -98,6 +106,7 @@ void instrument_ligero_snark(const std::size_t log_n_min,
         const std::size_t k = 15;
         const std::size_t m = n - 1;
         r1cs_example<FieldT> example = generate_r1cs_example<FieldT>(n, k, m);
+        parameters.bcs_params_ = default_bcs_params<FieldT, hash_type>(hash_enum, security_level, log_n);
 
         enter_block("Check satisfiability of R1CS example");
         const bool is_satisfied = example.constraint_system_.is_satisfied(
@@ -113,7 +122,7 @@ void instrument_ligero_snark(const std::size_t log_n_min,
         print_indent(); printf("* R1CS size of primary input (bytes): %zu\n", example.primary_input_.size() * sizeof(FieldT));
         print_indent(); printf("* R1CS size of auxiliary input (bytes): %zu\n", example.auxiliary_input_.size() * sizeof(FieldT));
         printf("\n");
-        const ligero_snark_argument<FieldT> proof = ligero_snark_prover<FieldT>(
+        const ligero_snark_argument<FieldT, hash_type> proof = ligero_snark_prover<FieldT, hash_type>(
             example.constraint_system_,
             example.primary_input_,
             example.auxiliary_input_,
@@ -132,7 +141,7 @@ void instrument_ligero_snark(const std::size_t log_n_min,
 
         printf("\n");
 
-        const bool bit = ligero_snark_verifier<FieldT>(
+        const bool bit = ligero_snark_verifier<FieldT, hash_type>(
             example.constraint_system_,
             example.primary_input_,
             proof,
@@ -154,6 +163,7 @@ int main(int argc, const char * argv[])
     std::size_t security_level;
     std::size_t field_size;
     bool heuristic_ldt_reducer_soundness;
+    bcs_hash_type hash_enum;
     bool make_zk;
     bool is_multiplicative;
 
@@ -173,7 +183,7 @@ int main(int argc, const char * argv[])
 #else
     if (!process_prover_command_line(argc, argv, log_n_min, log_n_max, height_width_ratio, RS_extra_dimensions,
                                      security_level, field_size,
-                                     heuristic_ldt_reducer_soundness, make_zk, is_multiplicative))
+                                     heuristic_ldt_reducer_soundness, make_zk, hash_enum, is_multiplicative))
     {
         return 1;
     }
@@ -196,21 +206,31 @@ int main(int argc, const char * argv[])
     printf("- LDT_reducer_soundness_type = %s\n", LDT_reducer_soundness_type_to_string(ldt_reducer_soundness_type));
     printf("- field_size = %zu\n", field_size);
     printf("- make_zk = %d\n", make_zk);
+    printf("- hash_enum = %s\n", bcs_hash_type_names[hash_enum]);
 
     if (is_multiplicative)
     {
         switch (field_size) {
             case 181:
                 edwards_pp::init_public_params();
-                instrument_ligero_snark<edwards_Fr>(log_n_min, log_n_max, height_width_ratio, RS_extra_dimensions,
-                                                    security_level, ldt_reducer_soundness_type, make_zk,
+                instrument_ligero_snark<edwards_Fr, binary_hash_digest>(log_n_min, log_n_max, height_width_ratio, RS_extra_dimensions,
+                                                    security_level, ldt_reducer_soundness_type, hash_enum, make_zk,
                                                     multiplicative_coset_type);
                 break;
             case 256:
                 libff::alt_bn128_pp::init_public_params();
-                instrument_ligero_snark<libff::alt_bn128_Fr>(log_n_min, log_n_max, height_width_ratio, RS_extra_dimensions,
-                                                              security_level, ldt_reducer_soundness_type, make_zk,
-                                                              multiplicative_coset_type);
+                if (hash_enum == blake2b_type)
+                {
+                    instrument_ligero_snark<libff::alt_bn128_Fr, binary_hash_digest>(log_n_min, log_n_max, height_width_ratio, RS_extra_dimensions,
+                                                                security_level, ldt_reducer_soundness_type, hash_enum, make_zk,
+                                                                multiplicative_coset_type);
+                } 
+                else
+                {
+                    instrument_ligero_snark<libff::alt_bn128_Fr, libff::alt_bn128_Fr>(log_n_min, log_n_max, height_width_ratio, RS_extra_dimensions,
+                                                                security_level, ldt_reducer_soundness_type, hash_enum, make_zk,
+                                                                multiplicative_coset_type);
+                }
                 break;
             default:
                 throw std::invalid_argument("Field size not supported.");
@@ -221,23 +241,23 @@ int main(int argc, const char * argv[])
         switch (field_size)
         {
             case 64:
-                instrument_ligero_snark<gf64>(log_n_min, log_n_max, height_width_ratio, RS_extra_dimensions,
-                                                security_level, ldt_reducer_soundness_type, make_zk,
+                instrument_ligero_snark<gf64, binary_hash_digest>(log_n_min, log_n_max, height_width_ratio, RS_extra_dimensions,
+                                                security_level, ldt_reducer_soundness_type, hash_enum, make_zk,
                                                 affine_subspace_type);
                 break;
             case 128:
-                instrument_ligero_snark<gf128>(log_n_min, log_n_max, height_width_ratio, RS_extra_dimensions,
-                                                security_level, ldt_reducer_soundness_type, make_zk,
+                instrument_ligero_snark<gf128, binary_hash_digest>(log_n_min, log_n_max, height_width_ratio, RS_extra_dimensions,
+                                                security_level, ldt_reducer_soundness_type, hash_enum, make_zk,
                                                 affine_subspace_type);
                 break;
             case 192:
-                instrument_ligero_snark<gf192>(log_n_min, log_n_max, height_width_ratio, RS_extra_dimensions,
-                                                security_level, ldt_reducer_soundness_type, make_zk,
+                instrument_ligero_snark<gf192, binary_hash_digest>(log_n_min, log_n_max, height_width_ratio, RS_extra_dimensions,
+                                                security_level, ldt_reducer_soundness_type, hash_enum, make_zk,
                                                 affine_subspace_type);
                 break;
             case 256:
-                instrument_ligero_snark<gf256>(log_n_min, log_n_max, height_width_ratio, RS_extra_dimensions,
-                                                security_level, ldt_reducer_soundness_type, make_zk,
+                instrument_ligero_snark<gf256, binary_hash_digest>(log_n_min, log_n_max, height_width_ratio, RS_extra_dimensions,
+                                                security_level, ldt_reducer_soundness_type, hash_enum, make_zk,
                                                 affine_subspace_type);
                 break;
             default:

@@ -68,7 +68,9 @@ FRI_iop_protocol<FieldT>::FRI_iop_protocol(iop_protocol<FieldT> &IOP,
             parameters.RS_extra_dimensions_,
             LDT_reducer_params.absolute_proximity_parameter(),
             localization_parameters);
-    FRI_params.override_security_parameters(parameters.num_interactive_repetitions_, parameters.num_query_repetitions_);
+    FRI_params.override_security_parameters(
+        parameters.num_interactive_repetitions_,
+        parameters.num_query_repetitions_);
     FRI_params.print();
     std::shared_ptr<multi_LDT_parameter_base<FieldT>> shared_LDT_params =
         std::make_shared<FRI_protocol_parameters<FieldT>>(FRI_params);

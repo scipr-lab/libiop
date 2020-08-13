@@ -59,6 +59,9 @@ public:
     size_t locality() const;
     long double achieved_interactive_soundness() const;
 
+    size_t tested_degree_bound() const;
+    size_t constraint_degree_bound() const;
+
     void print() const;
 };
 

@@ -2,14 +2,14 @@
 #include <stdexcept>
 
 #include "libiop/common/common.hpp"
-#include "libiop/snark/common/hashing.hpp"
+#include "libiop/bcs/hashing/hashing.hpp"
 
 namespace libiop {
 
-hash_digest blake2b_zk_element_hash(const std::vector<uint8_t> &bytes,
-                                        const std::size_t digest_len_bytes)
+binary_hash_digest blake2b_zk_element_hash(const std::vector<uint8_t> &bytes,
+                                           const std::size_t digest_len_bytes)
 {
-    hash_digest result(digest_len_bytes, 'X');
+    binary_hash_digest result(digest_len_bytes, 'X');
 
     /* see https://download.libsodium.org/doc/hashing/generic_hashing.html */
     const int status = crypto_generichash_blake2b((unsigned char*)&result[0],
@@ -25,13 +25,13 @@ hash_digest blake2b_zk_element_hash(const std::vector<uint8_t> &bytes,
     return result;
 }
 
-hash_digest blake2b_two_to_one_hash(const hash_digest &first,
-                                    const hash_digest &second,
-                                    const std::size_t digest_len_bytes)
+binary_hash_digest blake2b_two_to_one_hash(const binary_hash_digest &first,
+                                           const binary_hash_digest &second,
+                                           const std::size_t digest_len_bytes)
 {
-    const hash_digest first_plus_second = first + second;
+    const binary_hash_digest first_plus_second = first + second;
 
-    hash_digest result(digest_len_bytes, 'X');
+    binary_hash_digest result(digest_len_bytes, 'X');
 
     /* see https://download.libsodium.org/doc/hashing/generic_hashing.html */
     const int status = crypto_generichash_blake2b((unsigned char*)&result[0],
@@ -47,7 +47,7 @@ hash_digest blake2b_two_to_one_hash(const hash_digest &first,
     return result;
 }
 
-std::size_t blake2b_integer_randomness_extractor(const hash_digest &root,
+std::size_t blake2b_integer_randomness_extractor(const binary_hash_digest &root,
                                                  const std::size_t index,
                                                  const std::size_t upper_bound)
 {

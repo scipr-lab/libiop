@@ -3,10 +3,12 @@ namespace libiop {
 template<typename FieldT>
 fractal_iop_parameters<FieldT>::fractal_iop_parameters(
     const size_t security_parameter,
+    const size_t pow_bits,
     const size_t RS_extra_dimensions,
     const bool make_zk,
     const std::shared_ptr<r1cs_constraint_system<FieldT>> &constraint_system) :
     security_parameter_(security_parameter),
+    pow_bits_(pow_bits),
     RS_extra_dimensions_(RS_extra_dimensions),
     make_zk_(make_zk),
     constraint_system_(constraint_system)
@@ -33,7 +35,7 @@ fractal_iop_parameters<FieldT>::fractal_iop_parameters(
     this->matrix_domain_ = field_subset<FieldT>(this->constraint_system_->num_constraints());
     /** TODO: Calculate max tested degree / constraint degree precisely.
      *  TODO: Make decision w.r.t. rational linear combination */
-    const size_t max_tested_degree = 6 * this->index_domain_.num_elements();
+    const size_t max_tested_degree = 4 * this->index_domain_.num_elements();
     this->codeword_domain_dim_ = log2(max_tested_degree) + this->RS_extra_dimensions_;
 
     const field_subset<FieldT> unshifted_codeword_domain(1ull << this->codeword_domain_dim_);
@@ -71,20 +73,33 @@ void fractal_iop_parameters<FieldT>::set_ldt_parameters(
      *  since 3(2^{-security parameter - 3}) < 2^{-security parameter - 1}.
      *  Eventually we should put a larger portion of the interactive soundness error onto the encoded Aurora protocol,
      *  and less so on the LDT components.
+     *  The query soundness is "boosted" by the proof of work in the BCS transform, by pow bits.
+     *  Hence we need fewer queries from it.
      */
-    const size_t query_soundness_error_bits = this->security_parameter_ + 1;
+    const size_t query_soundness_error_bits = this->security_parameter_ + 1 - this->pow_bits_;
     const size_t interactive_soundness_error_bits = this->security_parameter_ + 3;
     const bool holographic = true;
-    /** Now we need to initialize the reducer parameters, and the FRI parameters.
+    /** Now we need to initialize the rs-iop parameters, reducer parameters, and the FRI parameters.
      *  To initialize these, we need to know the tested and constraint degree bounds.
-     *  We currently put everything into a single LDT,
-     *  bottlenecked by the rational linear combination.
+     *  We currently put everything into a single LDT, bottlenecked by the rational linear combination.
+     *  The degree bounds of our protocol are not bottle necked by the query bound, so we first 
+     *  instantiate the RS-iop parameters to get the degree bounds, and then later update them with the 
+     *  correct degree bounds.
      */
-    /* TODO: Get from elsewhere */
+    this->encoded_aurora_params_ = encoded_aurora_parameters<FieldT>(
+        interactive_soundness_error_bits,
+        this->codeword_domain_dim_,
+        this->matrix_domain_.dimension(),
+        this->matrix_domain_.dimension(),
+        0,
+        false,
+        holographic,
+        this->codeword_domain_.type());
+
     const size_t max_tested_degree_bound =
-        6 * this->index_domain_.num_elements();
+        this->encoded_aurora_params_.max_tested_degree_bound();
     const size_t max_constraint_degree_bound =
-        7 * this->index_domain_.num_elements();
+        this->encoded_aurora_params_.max_constraint_degree_bound();
     /** Round max tested degree bound to something FRI can test.
      *  The LDT reducer handles shifting rates so that they are all tested at the correct rate. */
     const size_t max_LDT_tested_degree_bound =
@@ -109,6 +124,7 @@ void fractal_iop_parameters<FieldT>::set_ldt_parameters(
         localization_parameters);
 
     this->query_bound_ = this->FRI_params_.queries_to_input_oracles();
+    // override parameters with the correct query bound. 
     this->encoded_aurora_params_ = encoded_aurora_parameters<FieldT>(
         interactive_soundness_error_bits,
         this->codeword_domain_dim_,

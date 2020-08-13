@@ -93,7 +93,7 @@ Efficient IOP protocols such as the above are obtained by combining two componen
 
 ## BCS transformation
 
-The folder [`libiop/snark/common`](libiop/snark/common) contains the BCS transformation as a standalone component.
+The folder [`libiop/bcs`](libiop/bcs) contains the BCS transformation as a standalone component.
 
 The folder [`libiop/snark`](libiop/snark) contains zkSNARKs obtained by applying the BCS transformation to the IOP protocols above.
 

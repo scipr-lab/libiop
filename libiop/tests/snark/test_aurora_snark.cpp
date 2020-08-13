@@ -12,6 +12,7 @@ namespace libiop {
 TEST(AuroraSnarkTest, SimpleTest) {
     /* Set up R1CS */
     typedef gf64 FieldT;
+    typedef binary_hash_digest hash_type;
 
     const std::size_t num_constraints = 1 << 13;
     const std::size_t num_inputs = (1 << 5) - 1;
@@ -31,16 +32,18 @@ TEST(AuroraSnarkTest, SimpleTest) {
     /* Actual SNARK test */
     for (std::size_t i = 0; i < 2; i++) {
         const bool make_zk = (i == 0) ? false : true;
-        aurora_snark_parameters<FieldT> params(security_parameter,
-                                               ldt_reducer_soundness_type,
-                                               fri_soundness_type,
-                                               FRI_localization_parameter,
-                                               RS_extra_dimensions,
-                                               make_zk,
-                                               domain_type,
-                                               num_constraints,
-                                               num_variables);
-        const aurora_snark_argument<FieldT> argument = aurora_snark_prover<FieldT>(
+        aurora_snark_parameters<FieldT, hash_type> params(
+            security_parameter,
+            ldt_reducer_soundness_type,
+            fri_soundness_type,
+            blake2b_type,
+            FRI_localization_parameter,
+            RS_extra_dimensions,
+            make_zk,
+            domain_type,
+            num_constraints,
+            num_variables);
+        const aurora_snark_argument<FieldT, hash_type> argument = aurora_snark_prover<FieldT>(
             r1cs_params.constraint_system_,
             r1cs_params.primary_input_,
             r1cs_params.auxiliary_input_,
@@ -50,7 +53,7 @@ TEST(AuroraSnarkTest, SimpleTest) {
         printf("bcs size in bytes %lu\n", argument.BCS_size_in_bytes());
         printf("argument size in bytes %lu\n", argument.size_in_bytes());
 
-        const bool bit = aurora_snark_verifier<FieldT>(
+        const bool bit = aurora_snark_verifier<FieldT, hash_type>(
             r1cs_params.constraint_system_,
             r1cs_params.primary_input_,
             argument,
@@ -64,6 +67,7 @@ TEST(AuroraSnarkMultiplicativeTest, SimpleTest) {
     /* Set up R1CS */
     edwards_pp::init_public_params();
     typedef edwards_Fr FieldT;
+    typedef binary_hash_digest hash_type;
 
     const size_t num_constraints = 1 << 13;
     const size_t num_inputs = (1 << 5) - 1;
@@ -83,16 +87,18 @@ TEST(AuroraSnarkMultiplicativeTest, SimpleTest) {
     /* Actual SNARK test */
     for (std::size_t i = 0; i < 2; i++) {
         const bool make_zk = (i == 0) ? false : true;
-        aurora_snark_parameters<FieldT> params(security_parameter,
-                                               ldt_reducer_soundness_type,
-                                               fri_soundness_type,
-                                               FRI_localization_parameter,
-                                               RS_extra_dimensions,
-                                               make_zk,
-                                               domain_type,
-                                               num_constraints,
-                                               num_variables);
-        const aurora_snark_argument<FieldT> argument = aurora_snark_prover<FieldT>(
+        aurora_snark_parameters<FieldT, hash_type> params(
+            security_parameter,
+            ldt_reducer_soundness_type,
+            fri_soundness_type,
+            blake2b_type,
+            FRI_localization_parameter,
+            RS_extra_dimensions,
+            make_zk,
+            domain_type,
+            num_constraints,
+            num_variables);
+        const aurora_snark_argument<FieldT, hash_type> argument = aurora_snark_prover<FieldT>(
             r1cs_params.constraint_system_,
             r1cs_params.primary_input_,
             r1cs_params.auxiliary_input_,

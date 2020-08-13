@@ -12,12 +12,12 @@
 #include <set>
 
 #include "libiop/common/profiling.hpp"
-#include "libiop/snark/common/bcs_common.hpp"
+#include "libiop/bcs/bcs_common.hpp"
 
 namespace libiop {
 
-template<typename FieldT>
-class bcs_indexer : public bcs_protocol<FieldT> {
+template<typename FieldT, typename MT_hash_type>
+class bcs_indexer : public bcs_protocol<FieldT, MT_hash_type> {
 protected:
     std::size_t MTs_processed_ = 0;
     size_t prover_messages_indexed = 0;
@@ -25,7 +25,7 @@ protected:
 
     bool get_prover_index_has_been_called_ = false;
 public:
-    bcs_indexer(const bcs_transformation_parameters<FieldT> &parameters);
+    bcs_indexer(const bcs_transformation_parameters<FieldT, MT_hash_type> &parameters);
 
     /* Produces the merkle tree for the index oracles */
     virtual void signal_index_submissions_done();
@@ -35,12 +35,12 @@ public:
     virtual std::vector<FieldT> obtain_verifier_random_message(const verifier_random_message_handle &random_message);
     virtual FieldT obtain_query_response(const query_handle &query);
 
-    bcs_prover_index<FieldT> get_bcs_prover_index();
-    bcs_verifier_index<FieldT> get_verifier_index();
+    bcs_prover_index<FieldT, MT_hash_type> get_bcs_prover_index();
+    bcs_verifier_index<FieldT, MT_hash_type> get_verifier_index();
 };
 
 } // namespace libiop
 
-#include "libiop/snark/common/bcs_indexer.tcc"
+#include "libiop/bcs/bcs_indexer.tcc"
 
 #endif // LIBIOP_SNARK_COMMON_BCS16_INDEXER_HPP_

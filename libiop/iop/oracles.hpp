@@ -90,7 +90,7 @@ public:
        oracles might want to share the same Lagrange polynomial
        evaluations. */
 
-    ~virtual_oracle() = default;
+    virtual ~virtual_oracle() = default;
 };
 
 } // namespace libiop

@@ -191,7 +191,7 @@ batch_sumcheck_protocol<FieldT>::batch_sumcheck_protocol(
 template<typename FieldT>
 void batch_sumcheck_protocol<FieldT>::register_masking_polynomial()
 {
-    this->masking_poly_handle_ = this->IOP_.register_oracle(this->codeword_domain_handle_, this->degree_bound_, this->make_zk_);
+    this->masking_poly_handle_ = this->IOP_.register_oracle("sumcheck_mask", this->codeword_domain_handle_, this->degree_bound_, this->make_zk_);
 }
 
 template<typename FieldT>
@@ -235,7 +235,7 @@ void batch_sumcheck_protocol<FieldT>::register_proof()
 {
     /* h does not have to be in a zk commitment, as zk-sumcheck operates on a uniform codeword of the given rate. */
     const bool make_h_oracle_zk = false;
-    this->h_handle_ = this->IOP_.register_oracle(this->codeword_domain_handle_, this->h_degree_, make_h_oracle_zk);
+    this->h_handle_ = this->IOP_.register_oracle("sumcheck h", this->codeword_domain_handle_, this->h_degree_, make_h_oracle_zk);
 
     /* We know that at this point all oracles have been registered already */
     /* +1 accounts for the pad, which is only used in the zero knowledge case */

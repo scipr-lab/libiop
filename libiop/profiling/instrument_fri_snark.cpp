@@ -79,7 +79,7 @@ bool process_prover_command_line(const int argc, const char** argv,
 
 using namespace libiop;
 
-template<typename FieldT>
+template<typename FieldT, typename hash_type>
 void instrument_FRI(std::size_t log_n_min,
                     std::size_t log_n_max,
                     std::size_t security_level,
@@ -122,6 +122,7 @@ void instrument_FRI(std::size_t log_n_min,
         FRI_snark_parameters<FieldT> params;
         params.codeword_domain_dim_ = codeword_domain_dim;
         params.security_level_ = security_level;
+        params.hash_enum_ = blake2b_type;
         params.RS_extra_dimensions_ = RS_extra_dimensions;
         params.localization_parameter_array_ = localization_parameter_array;
         params.localization_parameter_ = localization_parameter;
@@ -130,7 +131,7 @@ void instrument_FRI(std::size_t log_n_min,
         params.field_type_ = get_field_type<FieldT>(FieldT::zero());
         params.num_oracles_ = num_oracles;
 
-        const FRI_snark_proof<FieldT> proof = FRI_snark_prover<FieldT>(params);
+        const FRI_snark_proof<FieldT, hash_type> proof = FRI_snark_prover<FieldT, hash_type>(params);
         printf("\n");
         print_indent(); printf("* Argument size in bytes (IOP): %zu\n", proof.IOP_size_in_bytes());
         print_indent(); printf("* Argument size in bytes (BCS): %zu\n", proof.BCS_size_in_bytes());
@@ -142,7 +143,7 @@ void instrument_FRI(std::size_t log_n_min,
         print_indent(); printf("* Argument size in bytes (total, no pruning): %zu\n", proof.size_in_bytes_without_pruning());
         printf("\n");
 
-        const bool bit = FRI_snark_verifier<FieldT>(proof, params);
+        const bool bit = FRI_snark_verifier<FieldT, hash_type>(proof, params);
 
         libiop::print_indent(); printf("* Verifier satisfied: %s\n", bit ? "true" : "false");
     }
@@ -200,13 +201,13 @@ int main(int argc, const char * argv[])
         switch (field_size) {
             case 181:
                 edwards_pp::init_public_params();
-                instrument_FRI<edwards_Fr>(log_n_min, log_n_max, security_level, true,
+                instrument_FRI<edwards_Fr, binary_hash_digest>(log_n_min, log_n_max, security_level, true,
                                    localization_parameter, num_localization_steps, num_oracles,
                                    num_interactive_repetitions, num_query_repetitions);
                 break;
             case 256:
                 libff::alt_bn128_pp::init_public_params();
-                instrument_FRI<alt_bn128_Fr>(log_n_min, log_n_max, security_level, true,
+                instrument_FRI<alt_bn128_Fr, binary_hash_digest>(log_n_min, log_n_max, security_level, true,
                                    localization_parameter, num_localization_steps, num_oracles,
                                    num_interactive_repetitions, num_query_repetitions);
                 break;
@@ -217,22 +218,22 @@ int main(int argc, const char * argv[])
         switch (field_size)
         {
             case 64:
-                instrument_FRI<gf64>(log_n_min, log_n_max, security_level, false,
+                instrument_FRI<gf64, binary_hash_digest>(log_n_min, log_n_max, security_level, false,
                                    localization_parameter, num_localization_steps, num_oracles,
                                    num_interactive_repetitions, num_query_repetitions);
                 break;
             case 128:
-                instrument_FRI<gf128>(log_n_min, log_n_max, security_level, false,
+                instrument_FRI<gf128, binary_hash_digest>(log_n_min, log_n_max, security_level, false,
                                    localization_parameter, num_localization_steps, num_oracles,
                                    num_interactive_repetitions, num_query_repetitions);
                 break;
             case 192:
-                instrument_FRI<gf192>(log_n_min, log_n_max, security_level, false,
+                instrument_FRI<gf192, binary_hash_digest>(log_n_min, log_n_max, security_level, false,
                                    localization_parameter, num_localization_steps, num_oracles,
                                    num_interactive_repetitions, num_query_repetitions);
                 break;
             case 256:
-                instrument_FRI<gf256>(log_n_min, log_n_max, security_level, false,
+                instrument_FRI<gf256, binary_hash_digest>(log_n_min, log_n_max, security_level, false,
                                    localization_parameter, num_localization_steps, num_oracles,
                                    num_interactive_repetitions, num_query_repetitions);
                 break;

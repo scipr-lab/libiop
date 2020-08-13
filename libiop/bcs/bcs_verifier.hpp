@@ -11,24 +11,25 @@
 #include <set>
 
 #include "libiop/common/profiling.hpp"
-#include "libiop/snark/common/bcs_common.hpp"
+#include "libiop/bcs/bcs_common.hpp"
 
 namespace libiop {
 
-template<typename FieldT>
-class bcs_verifier : public bcs_protocol<FieldT> {
+template<typename FieldT, typename MT_hash_type>
+class bcs_verifier : public bcs_protocol<FieldT, MT_hash_type> {
 protected:
-    bcs_transformation_transcript<FieldT> transcript_;
+    bcs_transformation_transcript<FieldT, MT_hash_type> transcript_;
     std::map<std::pair<std::size_t, std::size_t>, FieldT> oracle_id_and_pos_idx_to_value_;
     bool transcript_is_valid_;
+
     bool is_preprocessing_ = false;
-    bcs_verifier_index<FieldT> index_;
+    bcs_verifier_index<FieldT, MT_hash_type> index_;
 public:
-    bcs_verifier(const bcs_transformation_parameters<FieldT> &parameters,
-                  const bcs_transformation_transcript<FieldT> &transcript);
-    bcs_verifier(const bcs_transformation_parameters<FieldT> &parameters,
-                  const bcs_transformation_transcript<FieldT> &transcript,
-                  const bcs_verifier_index<FieldT> &index);
+    bcs_verifier(const bcs_transformation_parameters<FieldT, MT_hash_type> &parameters,
+                 const bcs_transformation_transcript<FieldT, MT_hash_type> &transcript);
+    bcs_verifier(const bcs_transformation_parameters<FieldT, MT_hash_type> &parameters,
+                 const bcs_transformation_transcript<FieldT, MT_hash_type> &transcript,
+                 const bcs_verifier_index<FieldT, MT_hash_type> &index);
 
     /* This performs the actual verification: go through the rounds,
        computing the "random" verifier messages and checking the authentication
@@ -56,6 +57,6 @@ protected:
 
 } // namespace libiop
 
-#include "libiop/snark/common/bcs_verifier.tcc"
+#include "libiop/bcs/bcs_verifier.tcc"
 
 #endif // LIBIOP_SNARK_COMMON_BCS16_VERIFIER_HPP_

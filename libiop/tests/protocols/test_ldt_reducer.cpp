@@ -52,7 +52,7 @@ bool run_test(const std::size_t codeword_domain_dim,
     std::vector<oracle_handle> poly_handles;
     for (size_t i = 0; i < num_vectors; ++i)
     {
-        poly_handles.emplace_back(IOP.register_oracle(codeword_domain_handle, poly_degree_bounds[i], make_zk));
+        poly_handles.emplace_back(IOP.register_oracle("", codeword_domain_handle, poly_degree_bounds[i], make_zk));
     }
     std::vector<oracle_handle_ptr> poly_handle_ptrs;
     for (size_t i = 0; i < num_vectors; ++i)

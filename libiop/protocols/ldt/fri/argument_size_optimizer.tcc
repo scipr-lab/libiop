@@ -31,7 +31,7 @@ size_t num_hashes_in_a_membership_proof(size_t num_queries, size_t depth)
          *  Empirically, this over-estimate seems to be within 5% of the actual numbers
          */
         float width = 1ull << d;
-        float estimated_num_hashes = num_queries * pow((width - 1) / width, num_queries - 1);
+        float estimated_num_hashes = num_queries * std::pow((width - 1) / width, num_queries - 1);
         sum += estimated_num_hashes;
     }
 
@@ -109,6 +109,7 @@ size_t argument_size_predictor(
     std::vector<size_t> fri_localization_vector,
     size_t codeword_dim,
     size_t num_queries,
+    size_t interactive_repetitions,
     size_t max_tested_degree,
     size_t hash_size_in_bytes)
 {
@@ -120,7 +121,8 @@ size_t argument_size_predictor(
     size_t num_query_answers =
         num_elements_in_query_answers(oracle_locality_vector, fri_localization_vector,
             num_queries, codeword_dim);
-    const size_t IOP_size = field_size_in_bytes * (num_prover_messages + num_query_answers);
+    const size_t IOP_size_per_repetition = field_size_in_bytes * (num_prover_messages + num_query_answers);
+    const size_t IOP_size = interactive_repetitions * IOP_size_per_repetition;
 
     const size_t total_hashes = num_hashes_in_all_membership_proofs(
         oracle_locality_vector, fri_localization_vector, num_queries, codeword_dim);
@@ -140,6 +142,7 @@ std::vector<size_t> compute_argument_size_optimal_localization_parameters(
     std::vector<size_t> oracle_locality_vector,
     size_t codeword_dim,
     size_t num_queries,
+    size_t interactive_repetitions,
     size_t max_tested_degree,
     size_t hash_size_in_bytes)
 {
@@ -156,7 +159,7 @@ std::vector<size_t> compute_argument_size_optimal_localization_parameters(
     {
         size_t current = argument_size_predictor<FieldT>(
                             oracle_locality_vector, options[i],
-                            codeword_dim, num_queries, max_tested_degree,
+                            codeword_dim, num_queries, interactive_repetitions, max_tested_degree,
                             hash_size_in_bytes);
         if (current < min)
         {

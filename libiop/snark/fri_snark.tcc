@@ -2,7 +2,8 @@
 #include "libiop/common/common.hpp"
 #include "libiop/common/profiling.hpp"
 #include "libiop/protocols/fri_iop.hpp"
-#include "libiop/snark/common/bcs_common.hpp"
+#include "libiop/bcs/bcs_common.hpp"
+#include "libiop/bcs/common_bcs_parameters.hpp"
 
 namespace libiop {
 
@@ -17,43 +18,39 @@ void FRI_snark_parameters<FieldT>::describe()
     print_indent(); printf("* Num query repetitions: %zu\n", num_query_repetitions_);
 }
 
-template<typename FieldT>
-const std::pair<bcs_transformation_parameters<FieldT>,
+template<typename FieldT, typename hash_type>
+const std::pair<bcs_transformation_parameters<FieldT, hash_type>,
                 FRI_iop_protocol_parameters>
 obtain_bcs_and_FRI_parameters_from_FRI_snark_parameters(const FRI_snark_parameters<FieldT> &parameters)
 {
-    bcs_transformation_parameters<FieldT> bcs_parameters;
-    bcs_parameters.security_parameter = parameters.security_level_;
-    bcs_parameters.field_hasher = blake2b_field_element_hash<FieldT>;
-    bcs_parameters.zk_hasher = blake2b_zk_element_hash;
-    bcs_parameters.compression_hasher = blake2b_two_to_one_hash;
-    bcs_parameters.FieldT_randomness_extractor = blake2b_FieldT_randomness_extractor<FieldT>;
-    bcs_parameters.integer_randomness_extractor = blake2b_integer_randomness_extractor;
+    bcs_transformation_parameters<FieldT, hash_type> bcs_parameters =
+        default_bcs_params<FieldT, hash_type>(
+            parameters.hash_enum_, parameters.security_level_, parameters.codeword_domain_dim_);
 
     FRI_iop_protocol_parameters FRI_parameters;
     FRI_parameters.RS_extra_dimensions_ = parameters.RS_extra_dimensions_;
     FRI_parameters.codeword_domain_dim_ = parameters.codeword_domain_dim_;
     FRI_parameters.localization_parameter_ = parameters.localization_parameter_;
     FRI_parameters.localization_parameter_array_ = parameters.localization_parameter_array_;
-    FRI_parameters.num_interactive_repetitions_ = parameters.num_interactive_repetitions_;
     FRI_parameters.num_query_repetitions_ = parameters.num_query_repetitions_;
-    FRI_parameters.field_type_ = parameters.field_type_;
+    FRI_parameters.num_interactive_repetitions_ = parameters.num_interactive_repetitions_;
     FRI_parameters.num_oracles_ = parameters.num_oracles_;
+    FRI_parameters.field_type_ = parameters.field_type_;
 
     return std::make_pair(bcs_parameters, FRI_parameters);
 }
 
-template<typename FieldT>
-FRI_snark_proof<FieldT> FRI_snark_prover(const FRI_snark_parameters<FieldT> &parameters)
+template<typename FieldT, typename hash_type>
+FRI_snark_proof<FieldT, hash_type> FRI_snark_prover(const FRI_snark_parameters<FieldT> &parameters)
 {
     enter_block("FRI SNARK prover");
-    const std::pair<bcs_transformation_parameters<FieldT>,
+    const std::pair<bcs_transformation_parameters<FieldT, hash_type>,
                     FRI_iop_protocol_parameters>
         bcs_and_FRI_parameters =
-        obtain_bcs_and_FRI_parameters_from_FRI_snark_parameters<FieldT>(parameters);
+        obtain_bcs_and_FRI_parameters_from_FRI_snark_parameters<FieldT, hash_type>(parameters);
 
-    bcs_transformation_parameters<FieldT> bcs_parameters = bcs_and_FRI_parameters.first;
-    bcs_prover<FieldT> IOP(bcs_parameters);
+    bcs_transformation_parameters<FieldT, hash_type> bcs_parameters = bcs_and_FRI_parameters.first;
+    bcs_prover<FieldT, hash_type> IOP(bcs_parameters);
 
     FRI_iop_protocol<FieldT> full_protocol(IOP,
                                            {FieldT::zero()},
@@ -70,7 +67,7 @@ FRI_snark_proof<FieldT> FRI_snark_prover(const FRI_snark_parameters<FieldT> &par
     full_protocol.verifier_predicate();
     leave_block("Run verifier to populate virtual oracle data structures");
 
-    const FRI_snark_proof<FieldT> transcript = IOP.get_transcript();
+    const FRI_snark_proof<FieldT, hash_type> transcript = IOP.get_transcript();
     leave_block("Obtain transcript");
 
     IOP.describe_sizes();
@@ -79,18 +76,18 @@ FRI_snark_proof<FieldT> FRI_snark_prover(const FRI_snark_parameters<FieldT> &par
     return transcript;
 }
 
-template<typename FieldT>
-bool FRI_snark_verifier(const FRI_snark_proof<FieldT> &proof,
+template<typename FieldT, typename hash_type>
+bool FRI_snark_verifier(const FRI_snark_proof<FieldT, hash_type> &proof,
                         const FRI_snark_parameters<FieldT> &parameters)
 {
     enter_block("FRI SNARK verifier");
-    const std::pair<bcs_transformation_parameters<FieldT>,
+    const std::pair<bcs_transformation_parameters<FieldT, hash_type>,
                     FRI_iop_protocol_parameters>
         bcs_and_FRI_parameters =
-        obtain_bcs_and_FRI_parameters_from_FRI_snark_parameters<FieldT>(parameters);
+        obtain_bcs_and_FRI_parameters_from_FRI_snark_parameters<FieldT, hash_type>(parameters);
 
-    bcs_transformation_parameters<FieldT> bcs_parameters = bcs_and_FRI_parameters.first;
-    bcs_verifier<FieldT> IOP(bcs_parameters, proof);
+    bcs_transformation_parameters<FieldT, hash_type> bcs_parameters = bcs_and_FRI_parameters.first;
+    bcs_verifier<FieldT, hash_type> IOP(bcs_parameters, proof);
 
     FRI_iop_protocol<FieldT> full_protocol(IOP,
                                            {FieldT::zero()},
@@ -114,19 +111,19 @@ bool FRI_snark_verifier(const FRI_snark_proof<FieldT> &proof,
     return decision;
 }
 
-template<typename FieldT>
+template<typename FieldT, typename hash_type>
 void FRI_snark_print_detailed_argument_size(
     FRI_snark_parameters<FieldT> params,
-    FRI_snark_proof<FieldT> argument)
+    FRI_snark_proof<FieldT, hash_type> argument)
 {
     /* TODO: Lower all this boiler plate */
-    const std::pair<bcs_transformation_parameters<FieldT>,
+    const std::pair<bcs_transformation_parameters<FieldT, hash_type>,
                     FRI_iop_protocol_parameters>
         bcs_and_FRI_parameters =
-        obtain_bcs_and_FRI_parameters_from_FRI_snark_parameters<FieldT>(params);
+        obtain_bcs_and_FRI_parameters_from_FRI_snark_parameters<FieldT, hash_type>(params);
 
     /* We go through registration on the verifier to know what the domains look like */
-    bcs_verifier<FieldT> verifier(bcs_and_FRI_parameters.first, argument);
+    bcs_verifier<FieldT, hash_type> verifier(bcs_and_FRI_parameters.first, argument);
     FRI_iop_protocol<FieldT> full_protocol(verifier,
                                            {FieldT::zero()},
                                            bcs_and_FRI_parameters.second);
@@ -136,7 +133,7 @@ void FRI_snark_print_detailed_argument_size(
     verifier.seal_query_registrations();
     const bool holographic = false;
 
-    print_detailed_transcript_data<FieldT>(
+    print_detailed_transcript_data<FieldT, hash_type>(
         holographic,
         argument,
         bcs_and_FRI_parameters.first,

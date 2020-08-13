@@ -26,7 +26,7 @@ void run_test(const field_subset<FieldT> codeword_domain,
 
     bool make_zk = false;
     oracle_handle_ptr poly_handle = std::make_shared<oracle_handle>(
-        IOP.register_oracle(codeword_domain_handle, degree, make_zk));
+        IOP.register_oracle("", codeword_domain_handle, degree, make_zk));
 
     single_boundary_constraint<FieldT> boundary_constraint(codeword_domain);
     boundary_constraint.set_evaluation_point_and_eval(evaluation_point, claimed_oracle_eval);

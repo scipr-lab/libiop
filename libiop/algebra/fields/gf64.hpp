@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <vector>
+#include <ostream>
 
 namespace libiop {
 
@@ -56,6 +57,9 @@ public:
     static gf64 multiplicative_generator; // generator of gf64^*
 
     static std::size_t extension_degree() { return 64; }
+
+    friend std::ostream& operator<<(std::ostream &out, const gf64 &p);
+    // friend std::istream& operator>>(std::istream &in, gf64 &p);
 private:
     uint64_t value_;
 };

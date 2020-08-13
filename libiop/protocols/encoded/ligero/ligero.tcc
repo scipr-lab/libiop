@@ -107,16 +107,16 @@ interleaved_r1cs_protocol<FieldT>::interleaved_r1cs_protocol(
     for (size_t i = 0; i < this->num_oracles_input_; ++i)
     {
         this->w_vector_handles_.emplace_back(std::make_shared<oracle_handle>(
-            this->IOP_.register_oracle(this->codeword_domain_handle_, this->systematic_domain_size_, this->make_zk_)));
+            this->IOP_.register_oracle("w", this->codeword_domain_handle_, this->systematic_domain_size_, this->make_zk_)));
     }
     for (size_t i = 0; i < this->num_oracles_vectors_; ++i)
     {
         this->a_vector_handles_.emplace_back(std::make_shared<oracle_handle>(
-            this->IOP_.register_oracle(this->codeword_domain_handle_, this->systematic_domain_size_, this->make_zk_)));
+            this->IOP_.register_oracle("a", this->codeword_domain_handle_, this->systematic_domain_size_, this->make_zk_)));
         this->b_vector_handles_.emplace_back(std::make_shared<oracle_handle>(
-            this->IOP_.register_oracle(this->codeword_domain_handle_, this->systematic_domain_size_, this->make_zk_)));
+            this->IOP_.register_oracle("b", this->codeword_domain_handle_, this->systematic_domain_size_, this->make_zk_)));
         this->c_vector_handles_.emplace_back(std::make_shared<oracle_handle>(
-            this->IOP_.register_oracle(this->codeword_domain_handle_, this->systematic_domain_size_, this->make_zk_)));
+            this->IOP_.register_oracle("c", this->codeword_domain_handle_, this->systematic_domain_size_, this->make_zk_)));
     }
     this->concatenated_vector_handles_ = this->w_vector_handles_; // Copy
     this->concatenated_vector_handles_.insert(this->concatenated_vector_handles_.end(),
@@ -138,13 +138,13 @@ interleaved_r1cs_protocol<FieldT>::interleaved_r1cs_protocol(
         for (size_t i = 0; i < this->num_interactions_; ++i)
         {
             this->lincheck_A_blinding_vector_handles_[i] = std::make_shared<oracle_handle>(
-                IOP.register_oracle(this->codeword_domain_handle_, this->systematic_domain_size_, this->make_zk_));
+                IOP.register_oracle("lincheck a mask", this->codeword_domain_handle_, this->systematic_domain_size_, this->make_zk_));
             this->lincheck_B_blinding_vector_handles_[i] = std::make_shared<oracle_handle>(
-                IOP.register_oracle(this->codeword_domain_handle_, this->systematic_domain_size_, this->make_zk_));
+                IOP.register_oracle("lincheck b mask", this->codeword_domain_handle_, this->systematic_domain_size_, this->make_zk_));
             this->lincheck_C_blinding_vector_handles_[i] = std::make_shared<oracle_handle>(
-                IOP.register_oracle(this->codeword_domain_handle_, this->systematic_domain_size_, this->make_zk_));
+                IOP.register_oracle("lincheck c mask", this->codeword_domain_handle_, this->systematic_domain_size_, this->make_zk_));
             this->rowcheck_blinding_vector_handles_[i] = std::make_shared<oracle_handle>(
-                IOP.register_oracle(this->codeword_domain_handle_, this->systematic_domain_size_, this->make_zk_));
+                IOP.register_oracle("rowcheck mask", this->codeword_domain_handle_, this->systematic_domain_size_, this->make_zk_));
         }
     }
 }

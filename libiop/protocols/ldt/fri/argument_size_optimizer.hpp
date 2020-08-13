@@ -14,7 +14,7 @@
 #include "libiop/algebra/fields/utils.hpp"
 #include "libiop/algebra/utils.hpp"
 #include "libiop/protocols/ldt/fri/fri_aux.hpp"
-#include "libiop/snark/common/bcs_common.hpp"
+#include "libiop/bcs/bcs_common.hpp"
 
 namespace libiop {
 
@@ -31,6 +31,7 @@ std::vector<size_t> compute_argument_size_optimal_localization_parameters(
     std::vector<size_t> oracle_locality_vector,
     size_t codeword_dim,
     size_t query_repetitions,
+    size_t interactive_repetitions,
     size_t max_tested_degree,
     size_t hash_size_in_bytes);
 
@@ -46,6 +47,7 @@ size_t argument_size_predictor(
     std::vector<size_t> fri_localization_vector,
     size_t codeword_dim,
     size_t query_repetitions,
+    size_t interactive_repetitions,
     size_t max_tested_degree,
     size_t hash_size_in_bytes);
 

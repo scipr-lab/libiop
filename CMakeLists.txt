@@ -2,45 +2,20 @@ cmake_minimum_required(VERSION 2.8)
 
 project (libiop)
 
-option(
-  DEBUG
-  "Enable debugging mode"
-  OFF
-)
+# cmake_minimum_required(VERSION 3.1)
 
-option(
-  CPPDEBUG
-  "Enable debugging of C++ STL (does not imply DEBUG)"
-  OFF
-)
+# set(PROJECT_VERSION 0.1.0)
+# project (libiop
+#   DESCRIPTION "Library for building IOP based SNARKs"
+#   LANGUAGES CXX C)
 
-option(
-  PERFORMANCE
-  "Enable link-time and aggressive optimizations"
-  OFF
-)
-
-option(
-  USE_ASAN
-  "Enable Clang address sanitizer"
-  OFF
-)
-
-option(
-  USE_UBSAN
-  "Enable Clang undefined behavior sanitizer"
-  OFF
-)
-
-option(
-  USE_ASM
-  "Use architecture-specific optimized assembly code"
-  ON
-)
-
+# Performance options
+option(PERFORMANCE "Enable link-time and aggressive optimizations" OFF)
+option(MULTICORE "Enable parallelized execution, using OpenMP" OFF)
+option(USE_ASM "Use architecture-specific optimized assembly code" ON)
 option(
   ASM_MINIMIZE_CLMULS
-  "When USE_ASM is on, minimize the number of CLMUL instructions (for CPUs where CLMUL is slow)"
+  "When USE_ASM is on, minimize the number of CLMUL instructions in binary fields (for CPUs where CLMUL is slow)"
   OFF
 )
 
@@ -52,17 +27,18 @@ set(
   "Override C++ compiler optimization flags"
 )
 
-option(
-  MULTICORE
-  "Enable parallelized execution, using OpenMP"
-  OFF
-)
+# Profiling
+option(WITH_PROCPS "Use procps for memory profiling" OFF)
+# TODO: Expose the libff opcount flag here
 
-option(
-  WITH_PROCPS
-  "Use procps for memory profiling"
-  OFF
-)
+# Debugging flags
+option(DEBUG "Enable debugging mode" OFF)
+option(CPPDEBUG "Enable debugging of C++ STL (does not imply DEBUG)" OFF)
+# Should these be part of DEBUG/CPPDebug?
+option(USE_ASAN "Enable Clang address sanitizer" OFF)
+option(USE_UBSAN "Enable Clang undefined behavior sanitizer" OFF)
+
+
 
 if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
   # Common compilation flags and warning configuration
@@ -78,7 +54,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
     )
   set(
     CMAKE_CXX_FLAGS
-    "${CMAKE_CXX_FLAGS} -std=c++11 -Wall -Wextra -Wfatal-errors ${DISABLED_WARNINGS}"
+    "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra -Wfatal-errors ${DISABLED_WARNINGS} -L/usr/local/lib"
     )
   # Default optimizations flags (to override, use -DOPT_FLAGS=...)
   if("${OPT_FLAGS}" STREQUAL "")

@@ -11,23 +11,23 @@
 #include <set>
 
 #include "libiop/common/profiling.hpp"
-#include "libiop/snark/common/bcs_common.hpp"
+#include "libiop/bcs/bcs_common.hpp"
 
 namespace libiop {
 
-template<typename FieldT>
-class bcs_prover : public bcs_protocol<FieldT> {
+template<typename FieldT, typename MT_hash_type>
+class bcs_prover : public bcs_protocol<FieldT, MT_hash_type> {
 protected:
     std::size_t processed_MTs_ = 0;
     bool is_preprocessing_ = false;
     size_t num_indexed_MTs_ = 0;
     std::vector<std::vector<FieldT>> indexed_prover_messages_;
-    void remove_index_info_from_transcript(bcs_transformation_transcript<FieldT> &transcript);
+    void remove_index_info_from_transcript(bcs_transformation_transcript<FieldT, MT_hash_type> &transcript);
 public:
-    bcs_prover(const bcs_transformation_parameters<FieldT> &parameters);
+    bcs_prover(const bcs_transformation_parameters<FieldT, MT_hash_type> &parameters);
     /* Mutates index */
-    bcs_prover(const bcs_transformation_parameters<FieldT> &parameters,
-               bcs_prover_index<FieldT> &index);
+    bcs_prover(const bcs_transformation_parameters<FieldT, MT_hash_type> &parameters,
+               bcs_prover_index<FieldT, MT_hash_type> &index);
 
     /** The overloaded method for signal_prover_round_done performs
      *  hashing of all oracles and prover messages submitted in the
@@ -43,7 +43,7 @@ public:
     virtual std::vector<FieldT> obtain_verifier_random_message(const verifier_random_message_handle &random_message);
 
     virtual FieldT obtain_query_response(const query_handle &query);
-    bcs_transformation_transcript<FieldT> get_transcript();
+    bcs_transformation_transcript<FieldT, MT_hash_type> get_transcript();
 
     std::size_t MT_size() const;
     std::size_t state_size() const;
@@ -53,6 +53,6 @@ public:
 
 } // namespace libiop
 
-#include "libiop/snark/common/bcs_prover.tcc"
+#include "libiop/bcs/bcs_prover.tcc"
 
 #endif // LIBIOP_SNARK_COMMON_BCS16_PROVER_HPP_

@@ -77,6 +77,26 @@ long double holographic_lincheck_parameters<FieldT>::achieved_interactive_soundn
 }
 
 template<typename FieldT>
+size_t holographic_lincheck_parameters<FieldT>::tested_degree_bound() const
+{
+    /** The largest tested degree is due to the rational sumcheck virtual oracle.
+     *  This has tested degree 3K - 3. We round this degree bound to 3K. */
+    // const size_t max_tested_degree = 3 * this->index_domain_.num_elements();
+    const size_t max_tested_degree = 3 * (1ull << this->constraint_domain_dim_);
+    return max_tested_degree;
+}
+
+template<typename FieldT>
+size_t holographic_lincheck_parameters<FieldT>::constraint_degree_bound() const
+{
+    /** Rational sumcheck's numerator has degree 4K - 4, due to g * product_of_denominators.
+     *  We round the degree bound of this protocol to 4K, and rely on degree shifting to test the exact degree. */
+    // const size_t max_constraint_degree = 4 * this->index_domain_.num_elements();
+    const size_t max_constraint_degree = 4 * (1ull << this->constraint_domain_dim_);
+    return max_constraint_degree;
+}
+
+template<typename FieldT>
 void holographic_lincheck_parameters<FieldT>::print() const
 {
     printf("\nHolographic Multi lincheck parameters\n");
@@ -175,7 +195,7 @@ void holographic_multi_lincheck<FieldT>::set_index_oracles(
     }
     for (size_t i = 0; i < this->num_matrices_; i++)
     {
-        if (indexed_handles[i].size() != 3)
+        if (indexed_handles[i].size() != 4)
         {
             throw std::invalid_argument("Incorrect number of indexed oracles within set");
         }
@@ -184,7 +204,7 @@ void holographic_multi_lincheck<FieldT>::set_index_oracles(
     this->index_domain_handle_ = indexed_domain_handle;
     this->index_domain_ = this->IOP_.get_domain(this->index_domain_handle_);
     const size_t single_numerator_degree = this->index_domain_.num_elements();
-    const size_t single_denominator_degree = 2 * this->index_domain_.num_elements() - 1;
+    const size_t single_denominator_degree = this->index_domain_.num_elements();
     /** the combined numerator is a sum of polynomials of the form:
      *      N_i * prod_{j != i} D_j
      *  so it has the following degree */
@@ -208,6 +228,10 @@ void holographic_multi_lincheck<FieldT>::set_index_oracles(
                     this->index_domain_,
                     this->input_variable_dim_
                 ));
+            
+            const size_t position_of_row_in_indexed_handles = 0;
+            const size_t position_of_col_in_indexed_handles = 1;
+            const size_t position_of_row_times_col_in_indexed_handles = 3;
             const size_t position_of_val_in_indexed_handles = 2;
             this->matrix_numerator_handles_[repetition].emplace_back(
                 indexed_handles[i][position_of_val_in_indexed_handles]);
@@ -216,7 +240,11 @@ void holographic_multi_lincheck<FieldT>::set_index_oracles(
                     this->IOP_.register_virtual_oracle(
                         this->codeword_domain_handle_,
                         single_denominator_degree,
-                        {indexed_handles[i][0], indexed_handles[i][1]},
+                        {
+                            indexed_handles[i][position_of_row_in_indexed_handles], 
+                            indexed_handles[i][position_of_col_in_indexed_handles], 
+                            indexed_handles[i][position_of_row_times_col_in_indexed_handles]
+                        },
                         this->matrix_denominators_[repetition][i])));
         }
 
@@ -258,7 +286,7 @@ void holographic_multi_lincheck<FieldT>::register_response_alpha()
     for (size_t repetition = 0; repetition < this->params_.num_repetitions(); repetition++)
     {
         bool make_zk = false;
-        this->t_oracle_handle_[repetition] = this->IOP_.register_oracle(
+        this->t_oracle_handle_[repetition] = this->IOP_.register_oracle("lincheck_t",
             this->codeword_domain_handle_, this->summation_domain_.num_elements(), make_zk);
 
         std::vector<oracle_handle_ptr> constituent_handles(this->constituent_oracle_handles_);
@@ -434,7 +462,7 @@ void holographic_multi_lincheck<FieldT>::calculate_response_beta()
                 convert_to_shared<FieldT>(indexer.compute_oracles_over_K());
 
             numerator_oracles_over_K.emplace_back(index_evals_over_K[2]);
-            index_evals_over_K.pop_back();
+            index_evals_over_K.erase(index_evals_over_K.begin() + 2);
             denominator_oracles_over_K.emplace_back(
                 this->matrix_denominators_[repetition][i]->evaluated_contents(index_evals_over_K));
         }

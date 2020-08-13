@@ -14,7 +14,7 @@
 #include "libiop/algebra/fields/utils.hpp"
 #include "libiop/algebra/utils.hpp"
 #include "libiop/protocols/ldt/fri/fri_aux.hpp"
-#include "libiop/snark/common/bcs_common.hpp"
+#include "libiop/bcs/bcs_common.hpp"
 
 namespace libiop {
 

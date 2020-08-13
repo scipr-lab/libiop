@@ -30,16 +30,16 @@ void run_test(const field_subset<FieldT> systematic_domain,
     for (size_t i = 0; i < num_rationals; i++)
     {
         numerator_oracles[i] = std::make_shared<oracle_handle>(
-            IOP.register_oracle(codeword_domain_handle, systematic_domain.num_elements(), make_zk));
+            IOP.register_oracle("", codeword_domain_handle, systematic_domain.num_elements(), make_zk));
         denominator_oracles[i] = std::make_shared<oracle_handle>(
-            IOP.register_oracle(codeword_domain_handle, systematic_domain.num_elements(), make_zk));
+            IOP.register_oracle("", codeword_domain_handle, systematic_domain.num_elements(), make_zk));
     }
     rational_linear_combination<FieldT> combination(
         IOP, num_rationals, numerator_oracles, denominator_oracles);
 
     auto verifier_msg_handle = IOP.register_verifier_random_message(num_rationals);
     /* Dummy registration */
-    IOP.register_oracle(codeword_domain_handle, 1, make_zk);
+    IOP.register_oracle("", codeword_domain_handle, 1, make_zk);
     IOP.seal_interaction_registrations();
     IOP.seal_query_registrations();
     for (size_t i = 0; i < num_rationals; i++)

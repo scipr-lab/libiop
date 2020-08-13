@@ -21,7 +21,7 @@ void run_query_to_queries_for_entire_coset_test(
      /* Initialize IOP */
     iop_protocol<FieldT> IOP;
     const domain_handle codeword_domain_handle = IOP.register_domain(codeword_domain);
-    IOP.register_oracle(codeword_domain_handle, 0, false);
+    IOP.register_oracle("", codeword_domain_handle, 0, false);
     IOP.seal_interaction_registrations();
 
     /* TODO: move this to utilities */
