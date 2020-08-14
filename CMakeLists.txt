@@ -1,13 +1,12 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.1)
 
-project (libiop)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# cmake_minimum_required(VERSION 3.1)
-
-# set(PROJECT_VERSION 0.1.0)
-# project (libiop
-#   DESCRIPTION "Library for building IOP based SNARKs"
-#   LANGUAGES CXX C)
+set(PROJECT_VERSION 0.2.0)
+project (libiop
+  DESCRIPTION "Library for building IOP based SNARKs"
+  LANGUAGES CXX C)
 
 # Performance options
 option(PERFORMANCE "Enable link-time and aggressive optimizations" OFF)

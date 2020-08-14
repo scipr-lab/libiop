@@ -22,13 +22,13 @@ class succinct_matrix {
 public:
     explicit succinct_matrix() {};
 
-    virtual size_t num_rows() const;
-    virtual size_t num_columns() const;
-    virtual std::shared_ptr<polynomial_base<FieldT>> extend_Mz(const std::shared_ptr<polynomial_base<FieldT>> &z) const;
+    virtual size_t num_rows() const = 0;
+    virtual size_t num_columns() const = 0;
+    virtual std::shared_ptr<polynomial_base<FieldT>> extend_Mz(const std::shared_ptr<polynomial_base<FieldT>> &z) const = 0;
 
     /** If z has a degree d polynomial extension,
      *  this function returns the degree of the efficient polynomial extension of Mz. */
-    virtual size_t Mz_degree(const size_t z_degree) const;
+    virtual size_t Mz_degree(const size_t z_degree) const = 0;
 
     virtual ~succinct_matrix() = default;
 };
@@ -40,8 +40,8 @@ class semisuccinct_matrix {
 public:
     semisuccinct_matrix() = default;
 
-    virtual std::shared_ptr<succinct_matrix<FieldT>> get_succinct_matrix() const;
-    virtual std::shared_ptr<sparse_matrix<FieldT>> get_unstructured_matrix() const;
+    virtual std::shared_ptr<succinct_matrix<FieldT>> get_succinct_matrix() const = 0;
+    virtual std::shared_ptr<sparse_matrix<FieldT>> get_unstructured_matrix() const = 0;
 
     virtual ~semisuccinct_matrix() = default;
 };

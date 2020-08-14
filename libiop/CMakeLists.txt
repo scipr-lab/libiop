@@ -18,6 +18,11 @@ add_library(
   algebra/utils.cpp
 )
 
+# Cmake find modules
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+
+find_package(sodium)
+
 target_link_libraries(
   iop
 
@@ -103,7 +108,6 @@ target_link_libraries(test_exponentiation iop gtest_main)
 
 add_executable(test_fft tests/algebra/test_fft.cpp)
 target_link_libraries(test_fft iop gtest_main)
-target_link_libraries(test_fft iop gmp gmpxx)
 
 add_executable(test_gf32 tests/algebra/test_gf32.cpp)
 target_link_libraries(test_gf32 iop gtest_main)

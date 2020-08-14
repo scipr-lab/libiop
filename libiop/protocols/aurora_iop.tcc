@@ -61,6 +61,7 @@ void aurora_iop_parameters<FieldT>::set_ldt_parameters(std::vector<size_t> local
                                                        FRI_soundness_type fri_soundness_type,
                                                        LDT_reducer_soundness_type ldt_reducer_soundness_type)
 {
+    const bool holographic = false; /* This IOP is not holographic */
     /** We have to parameterize everything such that:
      *     query soundness error + interactive soundness error < 2^{-security_parameter}
      *  We allocate an equal amount of error to each subcomponent, (2^{-security parameter - 1}).
@@ -89,7 +90,7 @@ void aurora_iop_parameters<FieldT>::set_ldt_parameters(std::vector<size_t> local
             this->summation_domain_dim_,
             this->query_bound_,
             this->make_zk_,
-            false,
+            holographic,
             this->domain_type_);
         const size_t max_tested_degree_bound =
             this->encoded_aurora_params_.max_tested_degree_bound();
@@ -134,7 +135,7 @@ void aurora_iop_parameters<FieldT>::set_ldt_parameters(std::vector<size_t> local
                 this->summation_domain_dim_,
                 query_bound,
                 this->make_zk_,
-                false,
+                holographic,
                 this->domain_type_);
             const size_t max_tested_degree_bound = this->encoded_aurora_params_.max_tested_degree_bound();
             const size_t max_constraint_degree_bound = this->encoded_aurora_params_.max_constraint_degree_bound();
@@ -152,8 +153,9 @@ void aurora_iop_parameters<FieldT>::set_ldt_parameters(std::vector<size_t> local
              *  so this shouldn't cause us to go to a larger domain size than necessary. */
             if (max_LDT_tested_degree_bound > 1ull << (this->codeword_domain_dim_ - this->RS_extra_dimensions_))
             {
-                printf("Query bound is too large for codeword domain dimension %lu, \
+                printf("Query bound %lu is too large for codeword domain dimension %lu, \
 increasing codeword domain dimension\n",
+                    query_bound,
                     this->codeword_domain_dim_);
                 this->codeword_domain_dim_ += 1;
                 this->set_ldt_parameters(localization_parameters, fri_soundness_type, ldt_reducer_soundness_type);

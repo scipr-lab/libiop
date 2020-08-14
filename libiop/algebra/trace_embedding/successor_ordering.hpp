@@ -28,10 +28,10 @@ namespace libiop {
 template<typename FieldT>
 class successor_ordering_base {
 public:
-    virtual FieldT first_elem() const;
-    virtual FieldT next_elem(const FieldT &cur_elem) const;
+    virtual FieldT first_elem() const = 0;
+    virtual FieldT next_elem(const FieldT &cur_elem) const = 0;
 
-    virtual std::shared_ptr<piecewise_polynomial_base<FieldT>> piecewise_polynomial() const;
+    virtual std::shared_ptr<piecewise_polynomial_base<FieldT>> piecewise_polynomial() const = 0;
 };
 
 /** Successor polynomial for any multiplicative coset. */

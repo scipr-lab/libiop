@@ -22,10 +22,10 @@ class sparse_matrix {
 public:
     sparse_matrix() = default;
 
-    virtual linear_combination<FieldT> get_row(const std::size_t row_index) const;
-    virtual std::size_t num_rows() const;
-    virtual std::size_t num_columns() const;
-    virtual std::size_t num_nonzero_entries() const;
+    virtual linear_combination<FieldT> get_row(const std::size_t row_index) const = 0;
+    virtual std::size_t num_rows() const = 0;
+    virtual std::size_t num_columns() const = 0;
+    virtual std::size_t num_nonzero_entries() const = 0;
 
     virtual ~sparse_matrix() = default;
 };

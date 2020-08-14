@@ -2,6 +2,9 @@
 
 ## Pending
 
+* Upgrade Cmake to version 3.1
+* Bug fixes in Fractal/Aurora zero knowledge degree bound settings.
+
 ## v0.2.0
 
 This update implements Poseidon, and adds significantly algebraic hash infrastructure.

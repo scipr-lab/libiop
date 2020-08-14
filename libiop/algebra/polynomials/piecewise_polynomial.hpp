@@ -42,7 +42,7 @@ class piecewise_polynomial_base : public polynomial_base<FieldT> {
 public:
     virtual size_t piecewise_degree() const = 0;
     virtual std::shared_ptr<piecewise_polynomial_base<FieldT>> compose(
-        const std::shared_ptr<polynomial_base<FieldT>> poly) const;
+        const std::shared_ptr<polynomial_base<FieldT>> poly) const = 0;
     // TODO: Add static method for figuring out composed degree.
 };
 
