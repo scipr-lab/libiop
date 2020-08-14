@@ -2,6 +2,8 @@
 
 ## Pending
 
+## v0.2.1
+
 * Upgrade Cmake to version 3.1
 * Bug fixes in Fractal/Aurora zero knowledge degree bound settings.
 
