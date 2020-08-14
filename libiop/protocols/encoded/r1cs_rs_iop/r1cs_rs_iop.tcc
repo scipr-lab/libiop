@@ -70,7 +70,7 @@ size_t encoded_aurora_parameters<FieldT>::max_tested_degree_bound() const
     } 
     else 
     {
-        const size_t lincheck_degree_bound = 2 * (1ull << this->summation_domain_dim_) + this->query_bound_ - 1;
+        lincheck_degree_bound = 2 * (1ull << this->summation_domain_dim_) + this->query_bound_ - 1;
     }
     const size_t rowcheck_degree_bound = (1ull << this->constraint_domain_dim_) + 2 * this->query_bound_ - 1;
     return std::max<size_t>(lincheck_degree_bound, rowcheck_degree_bound);
