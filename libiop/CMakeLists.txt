@@ -19,7 +19,7 @@ add_library(
 )
 
 # Cmake find modules
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/depends")
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 find_package(sodium)
 
