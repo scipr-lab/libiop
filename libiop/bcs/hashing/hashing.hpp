@@ -28,15 +28,15 @@ template<typename FieldT, typename MT_root_type>
 class hashchain
 {
     public:
-    virtual void absorb(const MT_root_type new_input);
-    virtual void absorb(const std::vector<FieldT> &new_input);
-    virtual std::vector<FieldT> squeeze(size_t num_elements);
+    virtual void absorb(const MT_root_type new_input) = 0;
+    virtual void absorb(const std::vector<FieldT> &new_input) = 0;
+    virtual std::vector<FieldT> squeeze(size_t num_elements) = 0;
     virtual std::vector<size_t> squeeze_query_positions(
-        size_t num_positions, size_t range_of_positions);
+        size_t num_positions, size_t range_of_positions) = 0;
 
-    virtual MT_root_type squeeze_root_type();
+    virtual MT_root_type squeeze_root_type() = 0;
     /* Needed for C++ polymorphism*/
-    virtual std::shared_ptr<hashchain<FieldT, MT_root_type>> new_hashchain();
+    virtual std::shared_ptr<hashchain<FieldT, MT_root_type>> new_hashchain() = 0;
 };
 
 /* An abstract class for leaf hashes */
@@ -44,9 +44,9 @@ template<typename FieldT, typename leaf_hash_type>
 class leafhash
 {
     public:
-    virtual leaf_hash_type hash(const std::vector<FieldT> &leaf);
+    virtual leaf_hash_type hash(const std::vector<FieldT> &leaf) = 0;
     virtual leaf_hash_type zk_hash(const std::vector<FieldT> &leaf,
-        const zk_salt_type &zk_salt);
+        const zk_salt_type &zk_salt) = 0;
 };
 
 template<typename hash_type>

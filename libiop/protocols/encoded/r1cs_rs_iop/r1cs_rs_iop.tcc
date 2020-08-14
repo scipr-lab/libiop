@@ -57,7 +57,7 @@ template<typename FieldT>
 size_t encoded_aurora_parameters<FieldT>::max_tested_degree_bound() const
 {
     /** The max tested degree in the non-zk case are the low degree extensions, which have max degree |H|. */
-    if (this->make_zk_ == false)
+    if (this->make_zk_ == false && this->holographic_ == false)
     {
         return 1ull << this->summation_domain_dim_;
     }

@@ -18,6 +18,11 @@ add_library(
   algebra/utils.cpp
 )
 
+# Cmake find modules
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/depends")
+
+find_package(sodium)
+
 target_link_libraries(
   iop
 
