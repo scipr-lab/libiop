@@ -17,12 +17,12 @@ fractal_iop_parameters<FieldT>::fractal_iop_parameters(
     if (!is_power_of_2(this->constraint_system_->num_constraints()))
     {
         throw std::invalid_argument(
-            "Holographic Aurora requires the number of constraints to be a power of two");
+            "Fractal requires the number of constraints to be a power of two");
     }
     if (this->constraint_system_->num_constraints() != this->constraint_system_->num_variables() + 1)
     {
         throw std::invalid_argument(
-            "Holographic Aurora requires the matrices to be square");
+            "Fractal requires the matrices to be square");
     }
 
     const size_t max_num_nonzero_entries_per_matrix = std::max({

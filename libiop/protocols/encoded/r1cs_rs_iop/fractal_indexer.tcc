@@ -80,6 +80,7 @@ std::vector<std::vector<FieldT>> matrix_indexer<FieldT>::compute_oracles_over_K(
     val_evals.reserve(this->index_domain_.num_elements());
     row_times_col_evals.reserve(this->index_domain_.num_elements());
 
+    std::size_t num_nonzero_cnt = 0;
     for (size_t i = 0; i < this->matrix_->num_rows(); i++)
     {
         const linear_combination<FieldT> row = this->matrix_->get_row(i);
@@ -87,6 +88,7 @@ std::vector<std::vector<FieldT>> matrix_indexer<FieldT>::compute_oracles_over_K(
 
         for (auto &term : row.terms)
         {
+            num_nonzero_cnt++;
             row_evals.emplace_back(row_index_elem);
             const size_t col_index =
                 this->matrix_domain_.reindex_by_subset(this->input_variable_dim_, term.index_);
@@ -99,6 +101,13 @@ std::vector<std::vector<FieldT>> matrix_indexer<FieldT>::compute_oracles_over_K(
             const FieldT val_eval = term.coeff_ * col_derivative.inverse();
             val_evals.emplace_back(val_eval);
         }
+    }
+    const FieldT arbitrary_elem_in_H = this->matrix_domain_.element_by_index(0);
+    for (std::size_t i = num_nonzero_cnt; i < this->index_domain_.num_elements(); i++)
+    {
+        row_evals.emplace_back(arbitrary_elem_in_H);
+        col_evals.emplace_back(arbitrary_elem_in_H);
+        val_evals.emplace_back(FieldT::zero());
     }
     /* We are dealing with the transpose */
     row_evals.swap(col_evals);
