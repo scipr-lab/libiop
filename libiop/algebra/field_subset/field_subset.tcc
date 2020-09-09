@@ -289,19 +289,11 @@ FieldT field_subset<FieldT>::generator() const
 }
 
 template<typename FieldT>
-const FieldT& field_subset<FieldT>::shift() const
-{
-    assert(this->type_ == affine_subspace_type);
-
-    return this->subspace_->shift();
-}
-
-template<typename FieldT>
 const FieldT field_subset<FieldT>::shift() const
 {
-    assert(this->type_ == multiplicative_coset_type);
 
-    return this->coset_->shift();
+    return this->type_ == multiplicative_coset_type? 
+        this->coset_->shift() : this->subspace_->shift();
 }
 
 template<typename FieldT>
