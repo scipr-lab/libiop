@@ -34,7 +34,7 @@ private:
     // subspace type
     linearized_polynomial<FieldT> linearized_polynomial_;
     // multiplicative coset type
-    FieldT vp_offset_; /* offset^|H| for cosets, 1 for subgroups */
+    FieldT vp_shift_; /* shift^|H| for cosets, 1 for subgroups */
 
 public:
     explicit vanishing_polynomial() {};

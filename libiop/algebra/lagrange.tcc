@@ -83,7 +83,7 @@ std::vector<FieldT> lagrange_cache<FieldT>::subspace_coefficients_for(
      * This already has c cached, which allows the shifted V to be calculated directly in one pass. */
     const FieldT k = this->vp_.evaluation_at_point(interpolation_point) * this->c_;
     const std::vector<FieldT> V =
-        all_subset_sums<FieldT>(this->domain_.basis(), interpolation_point + this->domain_.offset());
+        all_subset_sums<FieldT>(this->domain_.basis(), interpolation_point + this->domain_.shift());
     // Handle check if interpolation point is in domain
     if (this->interpolation_domain_intersects_domain_ && k == FieldT::zero()) {
         std::vector<FieldT> result(this->domain_.num_elements(), FieldT::zero());
@@ -230,7 +230,7 @@ std::vector<FieldT> lagrange_coefficients(const affine_subspace<FieldT> &domain,
       Our computation below computes:
 
       k = (\prod_{i} \alpha - V[i]) = Zero_V(\alpha)
-      c = 1/{\prod_{j > 0} (V[j] - domain.offset()) = 1 / (Z_{V - offset} / X)(0)
+      c = 1/{\prod_{j > 0} (V[j] - domain.shift()) = 1 / (Z_{V - shift} / X)(0)
 
       and inverses of (\alpha - V[0]), ..., (\alpha - V[2^n-1])
 
@@ -238,13 +238,13 @@ std::vector<FieldT> lagrange_coefficients(const affine_subspace<FieldT> &domain,
     */
 
     vanishing_polynomial<FieldT> Z(domain);
-    /* (Z_{V - offset} / X)(0) is the formal derivative of Z_V,
+    /* (Z_{V - shift} / X)(0) is the formal derivative of Z_V,
      * as the affine shift only affects the constant coefficient. */
     const FieldT c = Z.formal_derivative_at_point(FieldT::zero()).inverse();
     const FieldT k = Z.evaluation_at_point(interpolation_point);
 
     std::vector<FieldT> V =
-        all_subset_sums<FieldT>(domain.basis(), interpolation_point + domain.offset());
+        all_subset_sums<FieldT>(domain.basis(), interpolation_point + domain.shift());
 
     const std::vector<FieldT> V_inv = batch_inverse_and_mul<FieldT>(V, c * k);
 

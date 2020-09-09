@@ -32,7 +32,7 @@ std::shared_ptr<std::vector<FieldT>> single_boundary_constraint<FieldT>::evaluat
     {
         /** Creates a subspace with the correct shift */
         field_subset<FieldT> shifted_subspace(this->codeword_domain_.num_elements(),
-            this->codeword_domain_.offset() + shift);
+            this->codeword_domain_.shift() + shift);
         all_shifted_elems = shifted_subspace.all_elements();
     } else if (this->codeword_domain_.type() == multiplicative_coset_type)
     {

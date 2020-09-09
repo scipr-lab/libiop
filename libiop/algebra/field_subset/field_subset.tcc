@@ -226,7 +226,7 @@ field_subset<FieldT> field_subset<FieldT>::get_subset_of_order(const std::size_t
             input_subspace_basis.resize(subset_dim);
             return field_subset<FieldT>(
                     affine_subspace<FieldT>(input_subspace_basis,
-                                            this->offset()));
+                                            this->shift()));
         }
         case multiplicative_coset_type:
             // Assumes this subgroup's generator is the default generator for a subgroup of that order.
@@ -289,11 +289,11 @@ FieldT field_subset<FieldT>::generator() const
 }
 
 template<typename FieldT>
-const FieldT& field_subset<FieldT>::offset() const
+const FieldT& field_subset<FieldT>::shift() const
 {
     assert(this->type_ == affine_subspace_type);
 
-    return this->subspace_->offset();
+    return this->subspace_->shift();
 }
 
 template<typename FieldT>

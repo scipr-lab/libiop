@@ -19,7 +19,7 @@ vanishing_polynomial<FieldT>::vanishing_polynomial(const field_subset<FieldT> &S
     if (this->type_ == affine_subspace_type) {
         this->linearized_polynomial_ = vanishing_polynomial_from_subspace(S.subspace());
     } else if (this->type_ == multiplicative_coset_type) {
-        this->vp_offset_ = libiop::power(S.coset().shift(), this->vp_degree_);
+        this->vp_shift_ = libiop::power(S.coset().shift(), this->vp_degree_);
     } else {
         throw std::invalid_argument("field_subset type unsupported.");
     }
@@ -38,7 +38,7 @@ vanishing_polynomial<FieldT>::vanishing_polynomial(const multiplicative_coset<Fi
     type_(multiplicative_coset_type)
 {
     this->vp_degree_ = S.num_elements();
-    this->vp_offset_ = libiop::power(S.coset().shift(), this->vp_degree_);
+    this->vp_shift_ = libiop::power(S.coset().shift(), this->vp_degree_);
 }
 
 template<typename FieldT>
@@ -46,7 +46,7 @@ FieldT vanishing_polynomial<FieldT>::evaluation_at_point(const FieldT &evalpoint
     if (this->type_ == affine_subspace_type) {
         return this->linearized_polynomial_.evaluation_at_point(evalpoint);
     } else if (this->type_ == multiplicative_coset_type) {
-        return libiop::power(evalpoint, this->vp_degree_) - this->vp_offset_;
+        return libiop::power(evalpoint, this->vp_degree_) - this->vp_shift_;
     }
     throw std::logic_error("vanishing_polynomial<FieldT>::evaluation_at_point: "
         " this shouldn't happen");
@@ -81,15 +81,15 @@ std::vector<FieldT> vanishing_polynomial<FieldT>::unique_evaluations_over_field_
     std::vector<FieldT> evals = unique_domain.all_elements();
     // In the additive case, the associated k to 1 map is the vanishing polynomial,
     // so the unique domain's evaluations is {Z_H(x) | x in S}
-    // In the multiplicative case, the associated k to 1 map is Z_H(x) + h_offset^|H|
+    // In the multiplicative case, the associated k to 1 map is Z_H(x) + h_shift^|H|
     // Hence te unique domain's evaluations are:
-    //   {Z_H(x) + h_offset^|H| | x in S}
-    // So we subtract h^|H| from all evals. h^|H| is the vp offset
+    //   {Z_H(x) + h_shift^|H| | x in S}
+    // So we subtract h^|H| from all evals. h^|H| is the vp shift
     if (S.type() == multiplicative_coset_type)
     {
         for (size_t i = 0; i < evals.size(); i++)
         {
-            evals[i] -= this->vp_offset_;
+            evals[i] -= this->vp_shift_;
         }
     }
     return evals;
@@ -118,7 +118,7 @@ std::vector<FieldT> vanishing_polynomial<FieldT>::evaluations_over_coset(const m
     if (this->type_ != multiplicative_coset_type) {
         throw std::invalid_argument("evaluations_over_coset can only be used on multiplicative_coset vanishing polynomials.");
     }
-    // P is of the form X^|G| - vp_offset
+    // P is of the form X^|G| - vp_shift
     const std::size_t order_s = S.num_elements();
     const std::size_t order_g = this->vp_degree_;
     // points in S are of the form hg^i, where h is the shift of the coset, and g is its generator.
@@ -130,8 +130,8 @@ std::vector<FieldT> vanishing_polynomial<FieldT>::evaluations_over_coset(const m
     {
         // In this case |S| <= |G|, and |G| % |S| = 0.
         // Therefore g^{i|G|} = 1, consequently
-        // P(s) = h^|G| - vp_offset, for all s \in S
-        evals.resize(order_s, shift_to_order_g - this->vp_offset_);
+        // P(s) = h^|G| - vp_shift, for all s \in S
+        evals.resize(order_s, shift_to_order_g - this->vp_shift_);
         return evals;
     }
     size_t evaluation_repetitions = 1;
@@ -151,7 +151,7 @@ std::vector<FieldT> vanishing_polynomial<FieldT>::evaluations_over_coset(const m
     FieldT cur = shift_to_order_g;
     for (std::size_t i = 0; i < number_of_distinct_evaluations; i++)
     {
-        evals.emplace_back(cur - this->vp_offset_);
+        evals.emplace_back(cur - this->vp_shift_);
         cur = cur * generator_to_order_g;
     }
     // Place these distinct evaluations in the remaining locations.
@@ -174,7 +174,7 @@ FieldT vanishing_polynomial<FieldT>::constant_coefficient() const {
         return this->linearized_polynomial_.constant_coefficient();
     }
     // subgroup / coset type
-    return -this->vp_offset_;
+    return -this->vp_shift_;
 }
 
 template<typename FieldT>
@@ -189,13 +189,13 @@ std::shared_ptr<polynomial_base<FieldT>>
     else if (this->type_ == multiplicative_coset_type)
     {
         /** This returns the polynomial x^{|H|}.
-         *  It does this by altering vp_offset, making a copy of this vanishing polynomial,
-         *  restoring the previous vp_offset, and returning the copy. */
-        const FieldT vp_offset_copy = this->vp_offset_;
-        this->vp_offset_ = FieldT::zero();
+         *  It does this by altering vp_shift, making a copy of this vanishing polynomial,
+         *  restoring the previous vp_shift, and returning the copy. */
+        const FieldT vp_shift_copy = this->vp_shift_;
+        this->vp_shift_ = FieldT::zero();
         std::shared_ptr<polynomial_base<FieldT>> copy =
             std::static_pointer_cast<polynomial_base<FieldT>>(std::make_shared<vanishing_polynomial<FieldT>>(*this));
-        this->vp_offset_ = vp_offset_copy;
+        this->vp_shift_ = vp_shift_copy;
         return copy;
     }
     throw std::logic_error("should not happen");
@@ -243,13 +243,13 @@ field_subset<FieldT> vanishing_polynomial<FieldT>::associated_k_to_1_map_at_doma
                 returned_basis.emplace_back(transformed_basis[i]);
             }
         }
-        const FieldT transformed_offset = k_to_1_map->evaluation_at_point(domain.offset());
-        return field_subset<FieldT>(affine_subspace<FieldT>(returned_basis, transformed_offset));
+        const FieldT transformed_shift = k_to_1_map->evaluation_at_point(domain.shift());
+        return field_subset<FieldT>(affine_subspace<FieldT>(returned_basis, transformed_shift));
     }
     else if (this->type_ == multiplicative_coset_type)
     {
         const FieldT new_shift = k_to_1_map->evaluation_at_point(domain.shift());
-        /** The multiplicative vanishing polynomial with no offset is a
+        /** The multiplicative vanishing polynomial with no shift is a
          *  k to 1 map over any domain of order divisible by k. */
         if (domain.num_elements() % this->vp_degree_ == 0)
         {
@@ -273,11 +273,11 @@ polynomial<FieldT> vanishing_polynomial<FieldT>::operator*(const polynomial<Fiel
     if (this->type_ == affine_subspace_type) {
         return this->linearized_polynomial_ * p;
     }
-    // in the multiplicative case just shift p, and subtract by p * this->vp_offset_
+    // in the multiplicative case just shift p, and subtract by p * this->vp_shift_
     std::vector<FieldT> result(p.degree() + this->vp_degree_ + 1, FieldT(0));
     const std::vector<FieldT> p_coeff = p.coefficients();
-    add_scalar_multiple_at_offset(result, p_coeff, FieldT(1), this->vp_degree_);
-    add_scalar_multiple_at_offset(result, p_coeff, FieldT(0) - this->vp_offset_, 0);
+    add_scalar_multiple_at_shift(result, p_coeff, FieldT(1), this->vp_degree_);
+    add_scalar_multiple_at_shift(result, p_coeff, FieldT(0) - this->vp_shift_, 0);
     return polynomial<FieldT>(std::move(result));
 }
 
@@ -313,7 +313,7 @@ template<typename FieldT>
 std::pair<polynomial<FieldT>,
           polynomial<FieldT> >
 polynomial_over_multiplicative_vanishing_polynomial(const polynomial<FieldT> &P,
-                                              const FieldT vp_offset,
+                                              const FieldT vp_shift,
                                               const size_t vp_degree)
 {
     /* inverse of the leading term */
@@ -334,7 +334,7 @@ polynomial_over_multiplicative_vanishing_polynomial(const polynomial<FieldT> &P,
     std::vector<FieldT> remainder(P.coefficients().begin(),
                           P.coefficients().begin() + vp_degree);
 
-    FieldT Z_0 = vp_offset;
+    FieldT Z_0 = vp_shift;
     for (std::size_t i = quotient.size(); i--; )
     {
         // Z only has 2 terms, the leading term and the constant term.
@@ -389,7 +389,7 @@ linearized_polynomial<FieldT> vanishing_polynomial_from_subspace(const affine_su
         poly = poly.squared() + (poly * poly_c);
     }
 
-    const FieldT poly_shift = poly.evaluation_at_point(S.offset());
+    const FieldT poly_shift = poly.evaluation_at_point(S.shift());
     poly[0] += poly_shift;
 
     return poly;

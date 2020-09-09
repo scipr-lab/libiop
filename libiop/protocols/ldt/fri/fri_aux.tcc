@@ -51,7 +51,7 @@ std::shared_ptr<std::vector<FieldT>> additive_evaluate_next_f_i_over_entire_doma
      *  As a consequence, we only need to calculate the vp_coset(x) and vp_coset[1] once.
      *  We then just adjust the vp_coset(x) by the constant term when processing each coset.
      *  TODO: Investigate if we can lower the number of inversions by taking advantage of
-     *        v[k] = unshifted v[k % coset_size] + offset
+     *        v[k] = unshifted v[k % coset_size] + shift
      */
 
     const std::vector<FieldT> coset_basis = f_i_domain.get_subset_of_order(coset_size).basis();
@@ -70,9 +70,9 @@ std::shared_ptr<std::vector<FieldT>> additive_evaluate_next_f_i_over_entire_doma
     {
         /** By definition of cosets,
          *  shifted vp = unshifted vp - unshifted_vp(shift) */
-        const FieldT coset_offset = all_elements[coset_size * j];
+        const FieldT coset_shift = all_elements[coset_size * j];
         const FieldT shifted_vp_x = unshifted_vp_x -
-            unshifted_vp.evaluation_at_point(coset_offset);
+            unshifted_vp.evaluation_at_point(coset_shift);
 
         const bool x_in_domain = shifted_vp_x == FieldT::zero();
         FieldT interpolation = FieldT::zero();
@@ -252,17 +252,17 @@ template<typename FieldT>
 FieldT evaluate_next_f_i_at_coset(
     const std::vector<FieldT> &f_i_evals_over_coset,
     const field_subset<FieldT> &unshifted_coset,
-    const FieldT offset,
+    const FieldT shift,
     const localizer_polynomial<FieldT> &unshifted_vp,
     const FieldT x_i)
 {
     if (unshifted_coset.type() == affine_subspace_type) {
         return additive_evaluate_next_f_i_at_coset(
-            f_i_evals_over_coset, unshifted_coset, offset, unshifted_vp, x_i);
+            f_i_evals_over_coset, unshifted_coset, shift, unshifted_vp, x_i);
     } else if (unshifted_coset.type() == multiplicative_coset_type) {
         const FieldT g = unshifted_coset.generator();
         return multiplicative_evaluate_next_f_i_at_coset(
-            f_i_evals_over_coset, g, offset, x_i);
+            f_i_evals_over_coset, g, shift, x_i);
     }
     throw std::invalid_argument("unshifted_coset is of unsupported domain type");
 }
@@ -271,7 +271,7 @@ template<typename FieldT>
 FieldT additive_evaluate_next_f_i_at_coset(
     const std::vector<FieldT> &f_i_evals_over_coset,
     const field_subset<FieldT> &localizer_domain,
-    const FieldT offset,
+    const FieldT shift,
     const localizer_polynomial<FieldT> &unshifted_vp,
     const FieldT x_i)
 {
@@ -279,12 +279,12 @@ FieldT additive_evaluate_next_f_i_at_coset(
      *  the subspace lagrange coefficient generation, but with the interpolation being returned. */
     /* TODO: Cache unshifted_vp(x_i) and c */
     const FieldT vp_x = unshifted_vp.evaluation_at_point(x_i) -
-        unshifted_vp.evaluation_at_point(offset);
+        unshifted_vp.evaluation_at_point(shift);
     const FieldT c = unshifted_vp.get_linearized_polynomial().coefficients()[1].inverse();
     const bool x_in_domain = vp_x == FieldT::zero();
     /* In binary fields addition and subtraction are the same operation */
     const std::vector<FieldT> coset_elems =
-        all_subset_sums<FieldT>(localizer_domain.basis(), x_i + offset);
+        all_subset_sums<FieldT>(localizer_domain.basis(), x_i + shift);
     if (x_in_domain)
     {
         for (size_t k = 0; k < f_i_evals_over_coset.size(); k++)

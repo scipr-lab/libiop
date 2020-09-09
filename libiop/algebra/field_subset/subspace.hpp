@@ -50,15 +50,15 @@ public:
 template<typename FieldT>
 class affine_subspace : public linear_subspace<FieldT> {
 protected:
-    FieldT offset_;
+    FieldT shift_;
 
 public:
     affine_subspace() = default;
-    affine_subspace(const std::vector<FieldT> &basis, const FieldT &offset = FieldT(0));
-    affine_subspace(const linear_subspace<FieldT> &base_space, const FieldT &offset = FieldT(0));
-    affine_subspace(linear_subspace<FieldT> &&base_space, const FieldT &offset = FieldT(0));
+    affine_subspace(const std::vector<FieldT> &basis, const FieldT &shift = FieldT(0));
+    affine_subspace(const linear_subspace<FieldT> &base_space, const FieldT &shift = FieldT(0));
+    affine_subspace(linear_subspace<FieldT> &&base_space, const FieldT &shift = FieldT(0));
 
-    const FieldT& offset() const;
+    const FieldT& shift() const;
 
     std::vector<FieldT> all_elements() const;
     FieldT element_by_index(const std::size_t index) const;
@@ -68,7 +68,7 @@ public:
 
     static affine_subspace<FieldT> shifted_standard_basis(
         const std::size_t dimension,
-        const FieldT& offset);
+        const FieldT& shift);
     static affine_subspace<FieldT> random_affine_subspace(const std::size_t dimension);
 
     bool operator==(const affine_subspace<FieldT> &other) const;

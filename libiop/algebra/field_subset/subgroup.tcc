@@ -165,7 +165,7 @@ std::size_t multiplicative_subgroup_base<FieldT>::reindex_by_subgroup(const std:
    /** Let x be the number of elements in G \ S, for every element in S. Then x = (|G|/|S| - 1).
     *  At index i in G \ S, the number of elements in S that appear before the index in G to which
     *  i corresponds to, is floor(i / x) + 1.
-    *  The +1 is because index 0 of G is S_0, so the position is offset by at least one.
+    *  The +1 is because index 0 of G is S_0, so the position is shift by at least one.
     *  The floor(i / x) term is because after x elements in G \ S, there is one more element from S
     *  that will have appeared in G. */
    const std::size_t x = order_g_over_s - 1;
