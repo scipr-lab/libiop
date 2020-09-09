@@ -152,7 +152,7 @@ affine_subspace<FieldT>::affine_subspace(
 }
 
 template<typename FieldT>
-const FieldT& affine_subspace<FieldT>::shift() const
+const FieldT affine_subspace<FieldT>::shift() const
 {
     return this->shift_;
 }
