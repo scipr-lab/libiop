@@ -58,7 +58,7 @@ public:
     affine_subspace(const linear_subspace<FieldT> &base_space, const FieldT &shift = FieldT(0));
     affine_subspace(linear_subspace<FieldT> &&base_space, const FieldT &shift = FieldT(0));
 
-    const FieldT& shift() const;
+    const FieldT shift() const;
 
     std::vector<FieldT> all_elements() const;
     FieldT element_by_index(const std::size_t index) const;
