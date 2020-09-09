@@ -19,7 +19,7 @@ std::vector<FieldT> constant_times_subspace_to_order_H_minus_1(
         subspace_element_powers(subspace, order_H);
     /** TODO: If we make the codeword domain non-affine in the future,
      *        then we should just remove the zero element before batch inversion. */
-    const bool codeword_domain_contains_zero = (subspace.offset() == FieldT::zero());
+    const bool codeword_domain_contains_zero = (subspace.shift() == FieldT::zero());
     const std::vector<FieldT> x_inv_times_constant = batch_inverse_and_mul(
         subspace.all_elements(), constant, codeword_domain_contains_zero);
     std::vector<FieldT> constant_times_x_to_H_minus_1(

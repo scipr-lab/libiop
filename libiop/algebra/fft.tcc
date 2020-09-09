@@ -52,7 +52,7 @@ std::vector<FieldT> additive_FFT(const std::vector<FieldT> &poly_coeffs,
     size_t recursed_betas_ptr = 0;
 
     std::vector<FieldT> betas2(domain.basis());
-    FieldT shift2 = domain.offset();
+    FieldT shift2 = domain.shift();
     for (size_t j = 0; j < m; ++j)
     {
         FieldT beta = betas2[m-1-j];
@@ -135,7 +135,7 @@ std::vector<FieldT> additive_IFFT(const std::vector<FieldT> &evals,
     std::vector<FieldT> recursed_twists(m, FieldT(0));
 
     std::vector<FieldT> betas2(domain.basis());
-    FieldT shift2 = domain.offset();
+    FieldT shift2 = domain.shift();
     for (size_t j = 0; j < m; ++j)
     {
         const FieldT beta = betas2[m-1-j];
@@ -439,7 +439,7 @@ std::vector<FieldT> IFFT_of_known_degree_over_field_subset(
     field_subset<FieldT> domain)
 {
     /** We do an IFFT over the minimal subgroup needed for this known degree.
-     *  We take the subgroup with the coset's offset as an element.
+     *  We take the subgroup with the coset's shift as an element.
      *  The evaluations in this coset are every nth element of the evaluations
      *  over the entire domain, where n = |domain| / |degree|
      */

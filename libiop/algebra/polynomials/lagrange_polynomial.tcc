@@ -71,7 +71,7 @@ std::vector<FieldT> lagrange_polynomial<FieldT>::evaluations_over_field_subset(
      *  The additive case admits a faster method to create it, hence the separation */
     if (this->S_.type() == affine_subspace_type)
     {
-        denominator = all_subset_sums<FieldT>(evaldomain.basis(), this->x_ + evaldomain.offset());
+        denominator = all_subset_sums<FieldT>(evaldomain.basis(), this->x_ + evaldomain.shift());
     }
     else if (this->S_.type() == multiplicative_coset_type)
     {
