@@ -9,7 +9,7 @@ typedef struct options{
     std::size_t security_level;
     std::size_t field_size;
     std::size_t RS_extra_dimensions;
-	std::size_t num_localization_steps;
+    std::size_t num_localization_steps;
     std::size_t num_oracles;
     std::size_t num_interactive_repetitions;
     std::size_t num_query_repetitions;
