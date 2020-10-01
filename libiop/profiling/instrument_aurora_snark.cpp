@@ -28,7 +28,7 @@
 
 #ifndef CPPDEBUG
 bool process_prover_command_line(const int argc, const char** argv,
-                                 options &options)
+                                 options &options, bool heuristic_fri_soundness, bool optimize_localization)
 {
     namespace po = boost::program_options;
 
@@ -36,9 +36,9 @@ bool process_prover_command_line(const int argc, const char** argv,
     {
 
         po::options_description desc = gen_options(options);
-        //desc.add_options()
-             //("make_zk", po::value<bool>(&make_zk)->default_value(false))
-             //("optimize_localization", po::value<bool>(&optimize_localization)->default_value(false));
+        desc.add_options()
+             ("optimize_localization", po::value<bool>(&optimize_localization)->default_value(false))
+             ("heuristic_fri_soundness", po::value<bool>(&heuristic_fri_soundness)->default_value(true));
 
         po::variables_map vm;
         po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -90,7 +90,8 @@ void print_argument_size(
 template<typename FieldT, typename hash_type>
 void instrument_aurora_snark(options &options, 
                             LDT_reducer_soundness_type ldt_reducer_soundness_type,
-                            FRI_soundness_type fri_soundness_type)
+                            FRI_soundness_type fri_soundness_type, 
+                            bool &optimize_localization)
 
 {
     // TODO: Unhard code this
@@ -124,7 +125,7 @@ void instrument_aurora_snark(options &options,
             example.constraint_system_.num_variables());
 
         std::vector<std::size_t> localization_parameter_array;
-        if (options.optimize_localization)
+        if (optimize_localization)
         {
             const size_t codeword_domain_dim = parameters.iop_params_.codeword_domain_dim();
             size_t num_query_sets = parameters.iop_params_.FRI_params_.query_repetitions();
@@ -187,8 +188,11 @@ int main(int argc, const char * argv[])
 {
     /* Set up R1CS */
 
-    options default_vals = {8, 20, 128, 181, 2, 0, 1, 1, 10, 
-            (size_t) blake2b_type, 2, 0.1, true, true, true, false, false, blake2b_type};
+    options default_vals = {8, 20, 128, 181, (size_t) libiop::blake2b_type, 
+                            true, true, false, blake2b_type};
+
+    bool optimize_localization = false;
+    bool heuristic_fri_soundness = true;
 
 #ifdef CPPDEBUG
     /* set reasonable defaults */
@@ -200,7 +204,7 @@ int main(int argc, const char * argv[])
     libiop::UNUSED(argv);
 
 #else
-    if (!process_prover_command_line(argc, argv, default_vals))
+    if (!process_prover_command_line(argc, argv, default_vals, heuristic_fri_soundness, optimize_localization))
     {
         return 1;
     }
@@ -212,7 +216,7 @@ int main(int argc, const char * argv[])
         ldt_reducer_soundness_type = LDT_reducer_soundness_type::optimistic_heuristic;
     }
     FRI_soundness_type fri_soundness_type = FRI_soundness_type::proven;
-    if (default_vals.heuristic_fri_soundness) {
+    if (heuristic_fri_soundness) {
         fri_soundness_type = FRI_soundness_type::heuristic;
     }
     start_profiling();
@@ -234,7 +238,7 @@ int main(int argc, const char * argv[])
                 edwards_pp::init_public_params();
                 instrument_aurora_snark<edwards_Fr, binary_hash_digest>(
                     default_vals, ldt_reducer_soundness_type,
-                    fri_soundness_type);
+                    fri_soundness_type, optimize_localization);
                 break;
             case 256:
                 libff::alt_bn128_pp::init_public_params();
@@ -243,13 +247,13 @@ int main(int argc, const char * argv[])
                 {
                     instrument_aurora_snark<libff::alt_bn128_Fr, binary_hash_digest>(
                         default_vals, ldt_reducer_soundness_type,
-                        fri_soundness_type);
+                        fri_soundness_type, optimize_localization);
                 }
                 else
                 {
                     instrument_aurora_snark<libff::alt_bn128_Fr, libff::alt_bn128_Fr>(
                         default_vals, ldt_reducer_soundness_type, 
-                        fri_soundness_type);
+                        fri_soundness_type, optimize_localization);
                 }
                 break;
             default:
@@ -261,19 +265,19 @@ int main(int argc, const char * argv[])
         {
             case 64:
                 instrument_aurora_snark<gf64, binary_hash_digest>(
-                    default_vals, ldt_reducer_soundness_type, fri_soundness_type);
+                    default_vals, ldt_reducer_soundness_type, fri_soundness_type, optimize_localization);
                 break;
             case 128:
                 instrument_aurora_snark<gf128, binary_hash_digest>(
-                    default_vals, ldt_reducer_soundness_type, fri_soundness_type);
+                    default_vals, ldt_reducer_soundness_type, fri_soundness_type, optimize_localization);
                 break;
             case 192:
                 instrument_aurora_snark<gf192, binary_hash_digest>(
-                    default_vals, ldt_reducer_soundness_type, fri_soundness_type);
+                    default_vals, ldt_reducer_soundness_type, fri_soundness_type, optimize_localization);
                 break;
             case 256:
                 instrument_aurora_snark<gf256, binary_hash_digest>(
-                    default_vals, ldt_reducer_soundness_type, fri_soundness_type);
+                    default_vals, ldt_reducer_soundness_type, fri_soundness_type, optimize_localization);
                 break;
             default:
                 throw std::invalid_argument("Field size not supported.");

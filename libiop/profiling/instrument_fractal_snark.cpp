@@ -27,15 +27,20 @@
 
 #ifndef CPPDEBUG
 bool process_prover_command_line(const int argc, const char** argv,
-                                 options &options)
+                                 options &options, bool heuristic_fri_soundness, bool optimize_localization)
 {
     namespace po = boost::program_options;
 
     try
     {
         po::options_description desc = gen_options(options);
+        desc.add_options()
+             ("optimize_localization", po::value<bool>(&optimize_localization)->default_value(false))
+             ("heuristic_fri_soundness", po::value<bool>(&heuristic_fri_soundness)->default_value(true));
+
         po::variables_map vm;
         po::store(po::parse_command_line(argc, argv, desc), vm);
+
 
         if (vm.count("help"))
         {
@@ -84,7 +89,8 @@ void print_argument_size(
 template<typename FieldT, typename hash_type>
 void instrument_fractal_snark(options &options,
                               LDT_reducer_soundness_type ldt_reducer_soundness_type,
-                              FRI_soundness_type fri_soundness_type)
+                              FRI_soundness_type fri_soundness_type,
+                              bool &optimize_localization)
 {
     // TODO: Unhard code this
     const size_t RS_extra_dimensions = 3;
@@ -114,13 +120,13 @@ void instrument_fractal_snark(options &options,
             fri_soundness_type,
             options.hash_enum,
             fri_localization_parameter,
-            options.RS_extra_dimensions,
+            RS_extra_dimensions,
             options.make_zk,
             domain_type,
             std::make_shared<r1cs_constraint_system<FieldT>>(example.constraint_system_));
 
         std::vector<std::size_t> localization_parameter_array;
-        if (options.optimize_localization)
+        if (optimize_localization)
         {
             const size_t codeword_dim = parameters.iop_params_.codeword_domain().dimension();
             size_t num_query_sets = parameters.iop_params_.FRI_params_.query_repetitions();
@@ -179,11 +185,11 @@ void instrument_fractal_snark(options &options,
             fri_soundness_type,
             options.hash_enum,
             fri_localization_parameter,
-            options.RS_extra_dimensions,
+            RS_extra_dimensions,
             options.make_zk,
             domain_type,
             std::make_shared<r1cs_constraint_system<FieldT>>(example.constraint_system_));
-        if (options.optimize_localization)
+        if (optimize_localization)
         {
             parameters.reset_fri_localization_parameters(localization_parameter_array);
         }
@@ -205,8 +211,11 @@ void instrument_fractal_snark(options &options,
 int main(int argc, const char * argv[])
 {
     /* Set up R1CS */
-    options default_vals = {8, 20, 128, 181, 2, 0, 1, 1, 10, 
-            (size_t) blake2b_type, 2, 0.1, true, true, true, false, false, blake2b_type};
+    options default_vals = {8, 20, 128, 181, (size_t) libiop::blake2b_type, 
+                            true, true, false, blake2b_type};
+
+    bool optimize_localization = false;
+    bool heuristic_fri_soundness = true;
 
 #ifdef CPPDEBUG
     /* set reasonable defaults */
@@ -218,7 +227,7 @@ int main(int argc, const char * argv[])
     libiop::UNUSED(argv);
 
 #else
-    if (!process_prover_command_line(argc, argv, default_vals))
+    if (!process_prover_command_line(argc, argv, default_vals, heuristic_fri_soundness, optimize_localization))
     {
         return 1;
     }
@@ -230,7 +239,7 @@ int main(int argc, const char * argv[])
         ldt_reducer_soundness_type = LDT_reducer_soundness_type::optimistic_heuristic;
     }
     FRI_soundness_type fri_soundness_type = FRI_soundness_type::proven;
-    if (default_vals.heuristic_fri_soundness) {
+    if (heuristic_fri_soundness) {
         fri_soundness_type = FRI_soundness_type::heuristic;
     }
     start_profiling();
@@ -251,19 +260,19 @@ int main(int argc, const char * argv[])
             case 181:
                 edwards_pp::init_public_params();
                 instrument_fractal_snark<edwards_Fr, binary_hash_digest>(
-                    default_vals, ldt_reducer_soundness_type, fri_soundness_type);
+                    default_vals, ldt_reducer_soundness_type, fri_soundness_type, optimize_localization);
                 break;
             case 256:
                 libff::alt_bn128_pp::init_public_params();
                 if (default_vals.hash_enum == libiop::blake2b_type)
                 {
                     instrument_fractal_snark<libff::alt_bn128_Fr, binary_hash_digest>(
-                        default_vals, ldt_reducer_soundness_type, fri_soundness_type);
+                        default_vals, ldt_reducer_soundness_type, fri_soundness_type, optimize_localization);
                 }
                 else
                 {
                     instrument_fractal_snark<libff::alt_bn128_Fr, libff::alt_bn128_Fr>(
-                        default_vals, ldt_reducer_soundness_type, fri_soundness_type);
+                        default_vals, ldt_reducer_soundness_type, fri_soundness_type, optimize_localization);
                 }
                 break;
             default:
@@ -275,19 +284,19 @@ int main(int argc, const char * argv[])
         {
             case 64:
                 instrument_fractal_snark<gf64, binary_hash_digest>(
-                    default_vals, ldt_reducer_soundness_type, fri_soundness_type);
+                    default_vals, ldt_reducer_soundness_type, fri_soundness_type, optimize_localization);
                 break;
             case 128:
                 instrument_fractal_snark<gf128, binary_hash_digest>(
-                    default_vals, ldt_reducer_soundness_type, fri_soundness_type);
+                    default_vals, ldt_reducer_soundness_type, fri_soundness_type, optimize_localization);
                 break;
             case 192:
                 instrument_fractal_snark<gf192, binary_hash_digest>(
-                    default_vals, ldt_reducer_soundness_type, fri_soundness_type);
+                    default_vals, ldt_reducer_soundness_type, fri_soundness_type, optimize_localization);
                 break;
             case 256:
                 instrument_fractal_snark<gf256, binary_hash_digest>(
-                    default_vals, ldt_reducer_soundness_type, fri_soundness_type);
+                    default_vals, ldt_reducer_soundness_type, fri_soundness_type, optimize_localization);
                 break;
             default:
                 throw std::invalid_argument("Field size not supported.");

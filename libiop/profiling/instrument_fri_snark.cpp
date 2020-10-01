@@ -28,13 +28,25 @@
 #include "libiop/snark/fri_snark.hpp"
 
 #ifndef CPPDEBUG
-bool process_prover_command_line(const int argc, const char** argv, options &options)
+bool process_prover_command_line(const int argc, const char** argv, options &options,
+                                 std::size_t localization_parameter,
+                                 std::size_t num_localization_steps,
+                                 std::size_t num_oracles,
+                                 std::size_t num_interactive_repetitions,
+                                 std::size_t num_query_repetitions)
 {
     namespace po = boost::program_options;
 
     try
     {
         po::options_description desc = gen_options(options);
+        desc.add_options()
+            ("localization_parameter", po::value<std::size_t>(&localization_parameter)->default_value(2), "Only used when num_localization_steps is 0")
+            ("num_localization_steps", po::value<std::size_t>(&num_localization_steps)->default_value(0))
+            ("num_oracles", po::value<std::size_t>(&num_oracles)->default_value(1))
+            ("num_interactive_repetitions", po::value<std::size_t>(&num_interactive_repetitions)->default_value(1))
+            ("num_query_repetitions", po::value<std::size_t>(&num_query_repetitions)->default_value(64));
+
         po::variables_map vm;
         po::store(po::parse_command_line(argc, argv, desc), vm);
 
@@ -59,7 +71,12 @@ bool process_prover_command_line(const int argc, const char** argv, options &opt
 using namespace libiop;
 
 template<typename FieldT, typename hash_type>
-void instrument_FRI(options &options)
+void instrument_FRI(options &options,
+                    std::size_t localization_parameter,
+                    std::size_t num_localization_steps,
+                    std::size_t num_oracles,
+                    std::size_t num_interactive_repetitions,
+                    std::size_t num_query_repetitions)
 {
     for (std::size_t log_n = options.log_n_min; log_n <= options.log_n_max; ++log_n)
     {
@@ -70,11 +87,11 @@ void instrument_FRI(options &options)
 
 
         std::vector<std::size_t> localization_parameter_array;
-        if (options.num_localization_steps != 0)
+        if (num_localization_steps != 0)
         {
             std::size_t remaining = codeword_domain_dim - RS_extra_dimensions - 1;
-            std::size_t vals = remaining / options.num_localization_steps;
-            localization_parameter_array = std::vector<std::size_t>(options.num_localization_steps, vals);
+            std::size_t vals = remaining / num_localization_steps;
+            localization_parameter_array = std::vector<std::size_t>(num_localization_steps, vals);
             localization_parameter_array.insert(localization_parameter_array.begin(), 1);
         }
 
@@ -94,13 +111,13 @@ void instrument_FRI(options &options)
         params.codeword_domain_dim_ = codeword_domain_dim;
         params.security_level_ = options.security_level;
         params.hash_enum_ = options.hash_enum;
-        params.RS_extra_dimensions_ = options.RS_extra_dimensions;
+        params.RS_extra_dimensions_ = RS_extra_dimensions;
         params.localization_parameter_array_ = localization_parameter_array;
-        params.localization_parameter_ = options.localization_parameter;
-        params.num_interactive_repetitions_ = options.num_interactive_repetitions;
-        params.num_query_repetitions_ = options.num_query_repetitions;
+        params.localization_parameter_ = localization_parameter;
+        params.num_interactive_repetitions_ = num_interactive_repetitions;
+        params.num_query_repetitions_ = num_query_repetitions;
         params.field_type_ = get_field_type<FieldT>(FieldT::zero());
-        params.num_oracles_ = options.num_oracles;
+        params.num_oracles_ = num_oracles;
 
         const FRI_snark_proof<FieldT, hash_type> proof = FRI_snark_prover<FieldT, hash_type>(params);
         printf("\n");
@@ -122,8 +139,14 @@ void instrument_FRI(options &options)
 
 int main(int argc, const char * argv[])
 {
-    options default_vals = {8, 20, 128, 181, 2, 0, 1, 1, 10, 
-            (size_t) blake2b_type, 2, 0.1, true, true, true, false, false, blake2b_type};
+    options default_vals = {8, 20, 128, 181, (size_t) libiop::blake2b_type, 
+                            true, true, false, blake2b_type};
+
+    std::size_t localization_parameter = 2;
+    std::size_t num_localization_steps = 0;
+    std::size_t num_oracles = 1;
+    std::size_t num_interactive_repetitions = 1;
+    std::size_t num_query_repetitions = 10;
 
 #ifdef CPPDEBUG
     /* set reasonable defaults */
@@ -135,10 +158,13 @@ int main(int argc, const char * argv[])
     libiop::UNUSED(argv);
 
 #else
-    if (!process_prover_command_line(argc, argv, default_vals))
+    if (!process_prover_command_line(argc, argv, default_vals, localization_parameter,
+                                     num_interactive_repetitions, num_query_repetitions,
+                                     num_localization_steps, num_oracles))
     {
         return 1;
     }
+
 #endif
 
     start_profiling();
@@ -152,11 +178,15 @@ int main(int argc, const char * argv[])
         switch (default_vals.field_size) {
             case 181:
                 edwards_pp::init_public_params();
-                instrument_FRI<edwards_Fr, binary_hash_digest>(default_vals);
+                instrument_FRI<edwards_Fr, binary_hash_digest>(default_vals, localization_parameter,
+                                     num_interactive_repetitions, num_query_repetitions,
+                                     num_localization_steps, num_oracles);
                 break;
             case 256:
                 libff::alt_bn128_pp::init_public_params();
-                instrument_FRI<alt_bn128_Fr, binary_hash_digest>(default_vals);
+                instrument_FRI<alt_bn128_Fr, binary_hash_digest>(default_vals, localization_parameter,
+                                     num_interactive_repetitions, num_query_repetitions,
+                                     num_localization_steps, num_oracles);
                 break;
             default:
                 throw std::invalid_argument("Field size not supported.");
@@ -165,16 +195,24 @@ int main(int argc, const char * argv[])
         switch (default_vals.field_size)
         {
             case 64:
-                instrument_FRI<gf64, binary_hash_digest>(default_vals);
+                instrument_FRI<gf64, binary_hash_digest>(default_vals, localization_parameter,
+                                     num_interactive_repetitions, num_query_repetitions,
+                                     num_localization_steps, num_oracles);
                 break;
             case 128:
-                instrument_FRI<gf128, binary_hash_digest>(default_vals);
+                instrument_FRI<gf128, binary_hash_digest>(default_vals, localization_parameter,
+                                     num_interactive_repetitions, num_query_repetitions,
+                                     num_localization_steps, num_oracles);
                 break;
             case 192:
-                instrument_FRI<gf192, binary_hash_digest>(default_vals);
+                instrument_FRI<gf192, binary_hash_digest>(default_vals, localization_parameter,
+                                     num_interactive_repetitions, num_query_repetitions,
+                                     num_localization_steps, num_oracles);
                 break;
             case 256:
-                instrument_FRI<gf256, binary_hash_digest>(default_vals);
+                instrument_FRI<gf256, binary_hash_digest>(default_vals, localization_parameter,
+                                     num_interactive_repetitions, num_query_repetitions,
+                                     num_localization_steps, num_oracles);
                 break;
             default:
                 throw std::invalid_argument("Field size not supported.");

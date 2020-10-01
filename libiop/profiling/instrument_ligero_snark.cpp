@@ -25,13 +25,19 @@
 
 #ifndef CPPDEBUG
 bool process_prover_command_line(const int argc, const char** argv,
-                                 options &options)
+                                 options &options, 
+                                 float &height_width_ratio,
+                                 std::size_t &RS_extra_dimensions)
 {
     namespace po = boost::program_options;
 
     try
     {
         po::options_description desc = gen_options(options);
+        desc.add_options()
+             ("height_width_ratio", po::value<float>(&height_width_ratio)->default_value(0.1))
+             ("RS_extra_dimensions", po::value<std::size_t>(&RS_extra_dimensions)->default_value(2));
+
         po::variables_map vm;
         po::store(po::parse_command_line(argc, argv, desc), vm);
 
@@ -59,13 +65,15 @@ using namespace libiop;
 template<typename FieldT, typename hash_type>
 void instrument_ligero_snark(options &options,
                              LDT_reducer_soundness_type ldt_reducer_soundness_type,
-                             const field_subset_type domain_type)
+                             const field_subset_type domain_type,
+                             float height_width_ratio, 
+                             std::size_t RS_extra_dimensions)
 {
     ligero_snark_parameters<FieldT, hash_type> parameters;
     parameters.security_level_ = options.security_level;
     parameters.LDT_reducer_soundness_type_ = ldt_reducer_soundness_type;
-    parameters.height_width_ratio_ = options.height_width_ratio;
-    parameters.RS_extra_dimensions_ = options.RS_extra_dimensions;
+    parameters.height_width_ratio_ = height_width_ratio;
+    parameters.RS_extra_dimensions_ = RS_extra_dimensions;
     parameters.make_zk_ = options.make_zk;
     parameters.domain_type_ = domain_type;
     parameters.bcs_params_ = default_bcs_params<FieldT, hash_type>(options.hash_enum, options.security_level, options.log_n_min);
@@ -129,14 +137,17 @@ void instrument_ligero_snark(options &options,
 int main(int argc, const char * argv[])
 {
 
-    options default_vals = {8, 20, 128, 181, 2, 0, 1, 1, 10, 
-            (size_t) blake2b_type, 2, 0.1, true, true, true, false, false, blake2b_type};
+    options default_vals = {8, 20, 128, 181, (size_t) libiop::blake2b_type, 
+                            true, true, false, blake2b_type};
+
+    float height_width_ratio = 0.1;
+    std::size_t RS_extra_dimensions = 2;
 
 #ifdef CPPDEBUG
     /* set reasonable defaults */
 
 #else
-    if (!process_prover_command_line(argc, argv, default_vals))
+    if (!process_prover_command_line(argc, argv, default_vals, height_width_ratio, RS_extra_dimensions))
     {
         return 1;
     }
@@ -153,8 +164,8 @@ int main(int argc, const char * argv[])
     printf("Selected parameters:\n");
     printf("- log_n_min = %zu\n", default_vals.log_n_min);
     printf("- log_n_max = %zu\n", default_vals.log_n_max);
-    printf("- height_width_ratio = %f\n", default_vals.height_width_ratio);
-    printf("- RS_extra_dimensions = %zu\n", default_vals.RS_extra_dimensions);
+    printf("- height_width_ratio = %f\n", height_width_ratio);
+    printf("- RS_extra_dimensions = %zu\n", RS_extra_dimensions);
     printf("- security_level = %zu\n", default_vals.security_level);
     printf("- LDT_reducer_soundness_type = %s\n", LDT_reducer_soundness_type_to_string(ldt_reducer_soundness_type));
     printf("- field_size = %zu\n", default_vals.field_size);
@@ -167,19 +178,22 @@ int main(int argc, const char * argv[])
             case 181:
                 edwards_pp::init_public_params();
                 instrument_ligero_snark<edwards_Fr, binary_hash_digest>(
-                                        default_vals, ldt_reducer_soundness_type, multiplicative_coset_type);
+                                        default_vals, ldt_reducer_soundness_type, multiplicative_coset_type,
+                                        height_width_ratio, RS_extra_dimensions);
                 break;
             case 256:
                 libff::alt_bn128_pp::init_public_params();
                 if (default_vals.hash_enum == blake2b_type)
                 {
                     instrument_ligero_snark<libff::alt_bn128_Fr, binary_hash_digest>(
-                                            default_vals, ldt_reducer_soundness_type, multiplicative_coset_type);
+                                            default_vals, ldt_reducer_soundness_type, multiplicative_coset_type,
+                                            height_width_ratio, RS_extra_dimensions);
                 } 
                 else
                 {
                     instrument_ligero_snark<libff::alt_bn128_Fr, libff::alt_bn128_Fr>(
-                                            default_vals, ldt_reducer_soundness_type, multiplicative_coset_type);
+                                            default_vals, ldt_reducer_soundness_type, multiplicative_coset_type,
+                                            height_width_ratio, RS_extra_dimensions);
                 }
                 break;
             default:
@@ -192,19 +206,23 @@ int main(int argc, const char * argv[])
         {
             case 64:
                 instrument_ligero_snark<gf64, binary_hash_digest>(
-                                        default_vals, ldt_reducer_soundness_type, affine_subspace_type);
+                                        default_vals, ldt_reducer_soundness_type, affine_subspace_type,
+                                        height_width_ratio, RS_extra_dimensions);
                 break;
             case 128:
                 instrument_ligero_snark<gf128, binary_hash_digest>(
-                                        default_vals, ldt_reducer_soundness_type, affine_subspace_type);
+                                        default_vals, ldt_reducer_soundness_type, affine_subspace_type,
+                                        height_width_ratio, RS_extra_dimensions);
                 break;
             case 192:
                 instrument_ligero_snark<gf192, binary_hash_digest>(
-                                        default_vals, ldt_reducer_soundness_type, affine_subspace_type);
+                                        default_vals, ldt_reducer_soundness_type, affine_subspace_type,
+                                        height_width_ratio, RS_extra_dimensions);
                 break;
             case 256:
                 instrument_ligero_snark<gf256, binary_hash_digest>(
-                                        default_vals, ldt_reducer_soundness_type, affine_subspace_type);
+                                        default_vals, ldt_reducer_soundness_type, affine_subspace_type,
+                                        height_width_ratio, RS_extra_dimensions);
                 break;
             default:
                 throw std::invalid_argument("Field size not supported.");
