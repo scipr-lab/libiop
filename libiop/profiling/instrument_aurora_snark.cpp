@@ -17,7 +17,6 @@
 
 
 #include "boost_profile.cpp"
-#include "snark_types.hpp"
 #include "libiop/snark/aurora_snark.hpp"
 #include "libiop/bcs/bcs_common.hpp"
 #include "libiop/protocols/aurora_iop.hpp"
@@ -188,8 +187,7 @@ int main(int argc, const char * argv[])
 {
     /* Set up R1CS */
 
-    options default_vals = {8, 20, 128, 181, (size_t) libiop::blake2b_type, 
-                            true, true, false, blake2b_type};
+    options default_vals;
 
     bool optimize_localization = false;
     bool heuristic_fri_soundness = true;

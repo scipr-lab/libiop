@@ -4,11 +4,11 @@
 #include <stdexcept>
 #include <string>
 
+
 #ifndef CPPDEBUG /* Ubuntu's Boost does not provide binaries compatible with libstdc++'s debug mode so we just reduce functionality here */
 #include <boost/program_options.hpp>
 #endif
 
-#include "snark_types.hpp"
 #include "boost_profile.cpp"
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
@@ -137,8 +137,7 @@ void instrument_ligero_snark(options &options,
 int main(int argc, const char * argv[])
 {
 
-    options default_vals = {8, 20, 128, 181, (size_t) libiop::blake2b_type, 
-                            true, true, false, blake2b_type};
+    options default_vals;
 
     float height_width_ratio = 0.1;
     std::size_t RS_extra_dimensions = 2;

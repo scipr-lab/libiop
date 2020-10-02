@@ -9,7 +9,6 @@
 #include <boost/program_options.hpp>
 #endif
 
-#include "snark_types.hpp"
 #include "boost_profile.cpp"
 #include "libiop/algebra/fields/gf64.hpp"
 #include "libiop/algebra/fields/gf128.hpp"
@@ -211,8 +210,7 @@ void instrument_fractal_snark(options &options,
 int main(int argc, const char * argv[])
 {
     /* Set up R1CS */
-    options default_vals = {8, 20, 128, 181, (size_t) libiop::blake2b_type, 
-                            true, true, false, blake2b_type};
+    options default_vals;
 
     bool optimize_localization = false;
     bool heuristic_fri_soundness = true;

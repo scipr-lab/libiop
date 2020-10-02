@@ -2,10 +2,23 @@
 #include <boost/program_options.hpp>
 #endif
 
+#include "libiop/bcs/bcs_common.hpp"
 
-#include "snark_types.hpp"
 namespace po = boost::program_options;
 using namespace libiop;
+
+typedef struct options{
+    std::size_t log_n_min = 8;
+    std::size_t log_n_max = 20;
+    std::size_t security_level = 128;
+    std::size_t field_size = 181;
+    std::size_t hash_enum_val = (size_t) libiop::blake2b_type;
+    bool heuristic_ldt_reducer_soundness = true;
+    bool is_multiplicative = true;
+    bool make_zk = false;
+    libiop::bcs_hash_type hash_enum = blake2b_type;
+} options;
+
 
 po::options_description gen_options(options &options)
 {
