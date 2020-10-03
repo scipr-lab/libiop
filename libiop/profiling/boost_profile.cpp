@@ -7,7 +7,8 @@
 namespace po = boost::program_options;
 using namespace libiop;
 
-typedef struct options{
+// The hash_enum field must be initialized from the hash_enum_val field, as opposed to via the command line.
+struct options{
     std::size_t log_n_min = 8;
     std::size_t log_n_max = 20;
     std::size_t security_level = 128;
@@ -17,7 +18,7 @@ typedef struct options{
     bool is_multiplicative = true;
     bool make_zk = false;
     libiop::bcs_hash_type hash_enum = blake2b_type;
-} options;
+};
 
 
 po::options_description gen_options(options &options)
