@@ -15,6 +15,8 @@
 #include "libiop/algebra/fields/gf256.hpp"
 #include "libiop/algebra/fields/utils.hpp"
 
+
+#include "boost_profile.cpp"
 #include "libiop/snark/aurora_snark.hpp"
 #include "libiop/bcs/bcs_common.hpp"
 #include "libiop/protocols/aurora_iop.hpp"
@@ -25,35 +27,17 @@
 
 #ifndef CPPDEBUG
 bool process_prover_command_line(const int argc, const char** argv,
-                                 std::size_t &log_n_min,
-                                 std::size_t &log_n_max,
-                                 std::size_t &security_level,
-                                 std::size_t &field_size,
-                                 bool &heuristic_ldt_reducer_soundness,
-                                 bool &heuristic_fri_soundness,
-                                 bool &make_zk,
-                                 libiop::bcs_hash_type &hash_enum,
-                                 bool &is_multiplicative,
-                                 bool &optimize_localization)
+                                 options &options, bool heuristic_fri_soundness, bool optimize_localization)
 {
     namespace po = boost::program_options;
 
     try
     {
-        size_t hash_enum_val;
-        po::options_description desc("Usage");
+
+        po::options_description desc = gen_options(options);
         desc.add_options()
-            ("help", "print this help message")
-            ("log_n_min", po::value<std::size_t>(&log_n_min)->default_value(8))
-            ("log_n_max", po::value<std::size_t>(&log_n_max)->default_value(20))
-            ("security_level", po::value<std::size_t>(&security_level)->default_value(128))
-            ("field_size", po::value<std::size_t>(&field_size)->default_value(192))
-            ("heuristic_ldt_reducer_soundness", po::value<bool>(&heuristic_ldt_reducer_soundness)->default_value(true))
-            ("heuristic_fri_soundness", po::value<bool>(&heuristic_fri_soundness)->default_value(true))
-            ("make_zk", po::value<bool>(&make_zk)->default_value(false))
-            ("hash_enum", po::value<std::size_t>(&hash_enum_val)->default_value((size_t) libiop::blake2b_type))             /* Find a better solution for this in the future */
-            ("is_multiplicative", po::value<bool>(&is_multiplicative)->default_value(false))
-            ("optimize_localization", po::value<bool>(&optimize_localization)->default_value(false));
+             ("optimize_localization", po::value<bool>(&optimize_localization)->default_value(false))
+             ("heuristic_fri_soundness", po::value<bool>(&heuristic_fri_soundness)->default_value(true));
 
         po::variables_map vm;
         po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -65,7 +49,7 @@ bool process_prover_command_line(const int argc, const char** argv,
         }
 
         po::notify(vm);
-        hash_enum = static_cast<libiop::bcs_hash_type>(hash_enum_val);
+        options.hash_enum = static_cast<libiop::bcs_hash_type>(options.hash_enum_val);
     }
     catch(std::exception& e)
     {
@@ -103,25 +87,21 @@ void print_argument_size(
 }
 
 template<typename FieldT, typename hash_type>
-void instrument_aurora_snark(const std::size_t log_n_min,
-                             const std::size_t log_n_max,
-                             std::size_t security_level,
-                             LDT_reducer_soundness_type ldt_reducer_soundness_type,
-                             FRI_soundness_type fri_soundness_type,
-                             const bcs_hash_type hash_enum,
-                             const bool make_zk,
-                             const bool is_multiplicative,
-                             bool optimize_localization)
+void instrument_aurora_snark(options &options, 
+                            LDT_reducer_soundness_type ldt_reducer_soundness_type,
+                            FRI_soundness_type fri_soundness_type, 
+                            bool &optimize_localization)
+
 {
     // TODO: Unhard code this
-    const size_t RS_extra_dimensions = 3 + (make_zk ? 0 : 2);
+    const size_t RS_extra_dimensions = 3 + (options.make_zk ? 0 : 2);
     const size_t fri_localization_parameter = 2;
     field_subset_type domain_type = affine_subspace_type;
-    if (is_multiplicative) {
+    if (options.is_multiplicative) {
         domain_type = multiplicative_coset_type;
     }
 
-    for (std::size_t log_n = log_n_min; log_n <= log_n_max; ++log_n)
+    for (std::size_t log_n = options.log_n_min; log_n <= options.log_n_max; ++log_n)
     {
         print_separator();
 
@@ -132,13 +112,13 @@ void instrument_aurora_snark(const std::size_t log_n_min,
         r1cs_example<FieldT> example = generate_r1cs_example<FieldT>(n, k, m);
 
         aurora_snark_parameters<FieldT, hash_type> parameters(
-            security_level,
+            options.security_level,
             ldt_reducer_soundness_type,
             fri_soundness_type,
-            hash_enum,
+            options.hash_enum,
             fri_localization_parameter,
             RS_extra_dimensions,
-            make_zk,
+            options.make_zk,
             domain_type,
             example.constraint_system_.num_constraints(),
             example.constraint_system_.num_variables());
@@ -206,16 +186,11 @@ void instrument_aurora_snark(const std::size_t log_n_min,
 int main(int argc, const char * argv[])
 {
     /* Set up R1CS */
-    std::size_t log_n_min;
-    std::size_t log_n_max;
-    std::size_t security_level;
-    std::size_t field_size;
-    bool heuristic_ldt_reducer_soundness;
-    bool heuristic_fri_soundness;
-    bcs_hash_type hash_enum;
-    bool make_zk;
-    bool is_multiplicative;
-    bool optimize_localization;
+
+    options default_vals;
+
+    bool optimize_localization = false;
+    bool heuristic_fri_soundness = true;
 
 #ifdef CPPDEBUG
     /* set reasonable defaults */
@@ -226,25 +201,15 @@ int main(int argc, const char * argv[])
     }
     libiop::UNUSED(argv);
 
-    log_n_min = 8;
-    log_n_max = 20;
-    security_level = 128;
-    field_size = 64;
-    heuristic_ldt_reducer_soundness = true;
-    heuristic_fri_soundness = true;
-    make_zk = false;
-    is_multiplicative = false;
-    optimize_localization = false;
 #else
-    if (!process_prover_command_line(argc, argv, log_n_min, log_n_max, security_level, field_size,
-        heuristic_ldt_reducer_soundness, heuristic_fri_soundness, make_zk, hash_enum, is_multiplicative, optimize_localization))
+    if (!process_prover_command_line(argc, argv, default_vals, heuristic_fri_soundness, optimize_localization))
     {
         return 1;
     }
 #endif
     /** TODO: eventually get a string from program options, and then have a from string methods in protocols */
     LDT_reducer_soundness_type ldt_reducer_soundness_type = LDT_reducer_soundness_type::proven;
-    if (heuristic_ldt_reducer_soundness)
+    if (default_vals.heuristic_ldt_reducer_soundness)
     {
         ldt_reducer_soundness_type = LDT_reducer_soundness_type::optimistic_heuristic;
     }
@@ -255,40 +220,38 @@ int main(int argc, const char * argv[])
     start_profiling();
 
     printf("Selected parameters:\n");
-    printf("- log_n_min = %zu\n", log_n_min);
-    printf("- log_n_max = %zu\n", log_n_max);
-    printf("- security_level = %zu\n", security_level);
+    printf("- log_n_min = %zu\n", default_vals.log_n_min);
+    printf("- log_n_max = %zu\n", default_vals.log_n_max);
+    printf("- security_level = %zu\n", default_vals.security_level);
     printf("- LDT_reducer_soundness_type = %s\n", LDT_reducer_soundness_type_to_string(ldt_reducer_soundness_type));
     printf("- FRI_soundness_type = %s\n", FRI_soundness_type_to_string(fri_soundness_type));
-    printf("- is_multiplicative = %s\n", is_multiplicative ? "true" : "false");
-    printf("- field_size = %zu\n", field_size);
-    printf("- make_zk = %s\n", make_zk ? "true" : "false");
-    printf("- hash_enum = %s\n", bcs_hash_type_names[hash_enum]);
+    printf("- is_multiplicative = %s\n", default_vals.is_multiplicative ? "true" : "false");
+    printf("- field_size = %zu\n", default_vals.field_size);
+    printf("- make_zk = %s\n", default_vals.make_zk ? "true" : "false");
+    printf("- hash_enum = %s\n", bcs_hash_type_names[default_vals.hash_enum]);
 
-    if (is_multiplicative) {
-        switch (field_size) {
+    if (default_vals.is_multiplicative) {
+        switch (default_vals.field_size) {
             case 181:
                 edwards_pp::init_public_params();
-                instrument_aurora_snark<edwards_Fr, binary_hash_digest>(log_n_min, log_n_max, security_level,
-                    ldt_reducer_soundness_type, fri_soundness_type, hash_enum,
-                    make_zk, is_multiplicative, optimize_localization);
+                instrument_aurora_snark<edwards_Fr, binary_hash_digest>(
+                    default_vals, ldt_reducer_soundness_type,
+                    fri_soundness_type, optimize_localization);
                 break;
             case 256:
                 libff::alt_bn128_pp::init_public_params();
                 
-                if (hash_enum == libiop::blake2b_type)
+                if (default_vals.hash_enum == libiop::blake2b_type)
                 {
                     instrument_aurora_snark<libff::alt_bn128_Fr, binary_hash_digest>(
-                        log_n_min, log_n_max, security_level,
-                        ldt_reducer_soundness_type, fri_soundness_type, hash_enum,
-                        make_zk, is_multiplicative, optimize_localization);
+                        default_vals, ldt_reducer_soundness_type,
+                        fri_soundness_type, optimize_localization);
                 }
                 else
                 {
                     instrument_aurora_snark<libff::alt_bn128_Fr, libff::alt_bn128_Fr>(
-                        log_n_min, log_n_max, security_level,
-                        ldt_reducer_soundness_type, fri_soundness_type, hash_enum,
-                        make_zk, is_multiplicative, optimize_localization);
+                        default_vals, ldt_reducer_soundness_type, 
+                        fri_soundness_type, optimize_localization);
                 }
                 break;
             default:
@@ -296,27 +259,23 @@ int main(int argc, const char * argv[])
         }
 
     } else {
-        switch (field_size)
+        switch (default_vals.field_size)
         {
             case 64:
-                instrument_aurora_snark<gf64, binary_hash_digest>(log_n_min, log_n_max, security_level,
-                    ldt_reducer_soundness_type, fri_soundness_type, hash_enum,
-                    make_zk, is_multiplicative, optimize_localization);
+                instrument_aurora_snark<gf64, binary_hash_digest>(
+                    default_vals, ldt_reducer_soundness_type, fri_soundness_type, optimize_localization);
                 break;
             case 128:
-                instrument_aurora_snark<gf128, binary_hash_digest>(log_n_min, log_n_max, security_level,
-                    ldt_reducer_soundness_type, fri_soundness_type, hash_enum,
-                    make_zk, is_multiplicative, optimize_localization);
+                instrument_aurora_snark<gf128, binary_hash_digest>(
+                    default_vals, ldt_reducer_soundness_type, fri_soundness_type, optimize_localization);
                 break;
             case 192:
-                instrument_aurora_snark<gf192, binary_hash_digest>(log_n_min, log_n_max, security_level,
-                    ldt_reducer_soundness_type, fri_soundness_type, hash_enum,
-                    make_zk, is_multiplicative, optimize_localization);
+                instrument_aurora_snark<gf192, binary_hash_digest>(
+                    default_vals, ldt_reducer_soundness_type, fri_soundness_type, optimize_localization);
                 break;
             case 256:
-                instrument_aurora_snark<gf256, binary_hash_digest>(log_n_min, log_n_max, security_level,
-                    ldt_reducer_soundness_type, fri_soundness_type, hash_enum,
-                    make_zk, is_multiplicative, optimize_localization);
+                instrument_aurora_snark<gf256, binary_hash_digest>(
+                    default_vals, ldt_reducer_soundness_type, fri_soundness_type, optimize_localization);
                 break;
             default:
                 throw std::invalid_argument("Field size not supported.");

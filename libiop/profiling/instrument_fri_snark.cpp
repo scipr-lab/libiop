@@ -9,6 +9,7 @@
 #include <boost/program_options.hpp>
 #endif
 
+#include "boost_profile.cpp"
 #include "libff/algebra/curves/edwards/edwards_pp.hpp"
 #include "libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp"
 
@@ -26,35 +27,24 @@
 #include "libiop/snark/fri_snark.hpp"
 
 #ifndef CPPDEBUG
-bool process_prover_command_line(const int argc, const char** argv,
-                                 std::size_t &log_n_min,
-                                 std::size_t &log_n_max,
-                                 std::size_t &security_level,
-                                 std::size_t &field_size,
-                                 bool &is_multiplicative,
-                                 std::size_t &localization_parameter,
-                                 std::size_t &num_localization_steps,
-                                 std::size_t &num_oracles,
-                                 std::size_t &num_interactive_repetitions,
-                                 std::size_t &num_query_repetitions)
+bool process_prover_command_line(const int argc, const char** argv, options &options,
+                                 std::size_t localization_parameter,
+                                 std::size_t num_localization_steps,
+                                 std::size_t num_oracles,
+                                 std::size_t num_interactive_repetitions,
+                                 std::size_t num_query_repetitions)
 {
     namespace po = boost::program_options;
 
     try
     {
-        po::options_description desc("Usage");
+        po::options_description desc = gen_options(options);
         desc.add_options()
-        ("help", "print this help message")
-        ("log_n_min", po::value<std::size_t>(&log_n_min)->default_value(8))
-        ("log_n_max", po::value<std::size_t>(&log_n_max)->default_value(20))
-        ("security_level", po::value<std::size_t>(&security_level)->default_value(128))
-        ("field_size", po::value<std::size_t>(&field_size)->default_value(64))
-        ("is_multiplicative", po::value<bool>(&is_multiplicative)->default_value(false))
-        ("localization_parameter", po::value<std::size_t>(&localization_parameter)->default_value(2), "Only used when num_localization_steps is 0")
-        ("num_localization_steps", po::value<std::size_t>(&num_localization_steps)->default_value(0))
-        ("num_oracles", po::value<std::size_t>(&num_oracles)->default_value(1))
-        ("num_interactive_repetitions", po::value<std::size_t>(&num_interactive_repetitions)->default_value(1))
-        ("num_query_repetitions", po::value<std::size_t>(&num_query_repetitions)->default_value(64));
+            ("localization_parameter", po::value<std::size_t>(&localization_parameter)->default_value(2), "Only used when num_localization_steps is 0")
+            ("num_localization_steps", po::value<std::size_t>(&num_localization_steps)->default_value(0))
+            ("num_oracles", po::value<std::size_t>(&num_oracles)->default_value(1))
+            ("num_interactive_repetitions", po::value<std::size_t>(&num_interactive_repetitions)->default_value(1))
+            ("num_query_repetitions", po::value<std::size_t>(&num_query_repetitions)->default_value(64));
 
         po::variables_map vm;
         po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -80,17 +70,14 @@ bool process_prover_command_line(const int argc, const char** argv,
 using namespace libiop;
 
 template<typename FieldT, typename hash_type>
-void instrument_FRI(std::size_t log_n_min,
-                    std::size_t log_n_max,
-                    std::size_t security_level,
-                    bool is_multiplicative,
+void instrument_FRI(options &options,
                     std::size_t localization_parameter,
                     std::size_t num_localization_steps,
                     std::size_t num_oracles,
                     std::size_t num_interactive_repetitions,
                     std::size_t num_query_repetitions)
 {
-    for (std::size_t log_n = log_n_min; log_n <= log_n_max; ++log_n)
+    for (std::size_t log_n = options.log_n_min; log_n <= options.log_n_max; ++log_n)
     {
         print_separator();
         const std::size_t poly_degree_bound = 1ull << log_n;
@@ -121,8 +108,8 @@ void instrument_FRI(std::size_t log_n_min,
 
         FRI_snark_parameters<FieldT> params;
         params.codeword_domain_dim_ = codeword_domain_dim;
-        params.security_level_ = security_level;
-        params.hash_enum_ = blake2b_type;
+        params.security_level_ = options.security_level;
+        params.hash_enum_ = options.hash_enum;
         params.RS_extra_dimensions_ = RS_extra_dimensions;
         params.localization_parameter_array_ = localization_parameter_array;
         params.localization_parameter_ = localization_parameter;
@@ -151,16 +138,13 @@ void instrument_FRI(std::size_t log_n_min,
 
 int main(int argc, const char * argv[])
 {
-    std::size_t log_n_min;
-    std::size_t log_n_max;
-    std::size_t security_level;
-    std::size_t field_size;
-    bool is_multiplicative;
-    std::size_t localization_parameter;
-    std::size_t num_localization_steps;
-    std::size_t num_oracles;
-    std::size_t num_interactive_repetitions;
-    std::size_t num_query_repetitions;
+    options default_vals;
+
+    std::size_t localization_parameter = 2;
+    std::size_t num_localization_steps = 0;
+    std::size_t num_oracles = 1;
+    std::size_t num_interactive_repetitions = 1;
+    std::size_t num_query_repetitions = 10;
 
 #ifdef CPPDEBUG
     /* set reasonable defaults */
@@ -171,71 +155,62 @@ int main(int argc, const char * argv[])
     }
     libiop::UNUSED(argv);
 
-    log_n_min = 8;
-    log_n_max = 20;
-    security_level = 128;
-    field_size = 64;
-    is_multiplicative = false;
-    localization_parameter = 2;
-    num_localization_steps = 0;
-    num_oracles = 1;
-    num_interactive_repetitions = 1;
-    num_query_repetitions = 10;
 #else
-    if (!process_prover_command_line(argc, argv, log_n_min, log_n_max, security_level,
-                                     field_size, is_multiplicative, localization_parameter, num_localization_steps,
-                                     num_oracles, num_interactive_repetitions, num_query_repetitions))
+    if (!process_prover_command_line(argc, argv, default_vals, localization_parameter,
+                                     num_interactive_repetitions, num_query_repetitions,
+                                     num_localization_steps, num_oracles))
     {
         return 1;
     }
+
 #endif
 
     start_profiling();
 
     printf("Selected parameters:\n");
-    printf("* log_n_min = %zu\n", log_n_min);
-    printf("* log_n_max = %zu\n", log_n_max);
-    printf("* security_level = %zu\n", security_level);
+    printf("* log_n_min = %zu\n", default_vals.log_n_min);
+    printf("* log_n_max = %zu\n", default_vals.log_n_max);
+    printf("* security_level = %zu\n", default_vals.security_level);
 
-    if (is_multiplicative) {
-        switch (field_size) {
+    if (default_vals.is_multiplicative) {
+        switch (default_vals.field_size) {
             case 181:
                 edwards_pp::init_public_params();
-                instrument_FRI<edwards_Fr, binary_hash_digest>(log_n_min, log_n_max, security_level, true,
-                                   localization_parameter, num_localization_steps, num_oracles,
-                                   num_interactive_repetitions, num_query_repetitions);
+                instrument_FRI<edwards_Fr, binary_hash_digest>(default_vals, localization_parameter,
+                                     num_interactive_repetitions, num_query_repetitions,
+                                     num_localization_steps, num_oracles);
                 break;
             case 256:
                 libff::alt_bn128_pp::init_public_params();
-                instrument_FRI<alt_bn128_Fr, binary_hash_digest>(log_n_min, log_n_max, security_level, true,
-                                   localization_parameter, num_localization_steps, num_oracles,
-                                   num_interactive_repetitions, num_query_repetitions);
+                instrument_FRI<alt_bn128_Fr, binary_hash_digest>(default_vals, localization_parameter,
+                                     num_interactive_repetitions, num_query_repetitions,
+                                     num_localization_steps, num_oracles);
                 break;
             default:
                 throw std::invalid_argument("Field size not supported.");
         }
     } else {
-        switch (field_size)
+        switch (default_vals.field_size)
         {
             case 64:
-                instrument_FRI<gf64, binary_hash_digest>(log_n_min, log_n_max, security_level, false,
-                                   localization_parameter, num_localization_steps, num_oracles,
-                                   num_interactive_repetitions, num_query_repetitions);
+                instrument_FRI<gf64, binary_hash_digest>(default_vals, localization_parameter,
+                                     num_interactive_repetitions, num_query_repetitions,
+                                     num_localization_steps, num_oracles);
                 break;
             case 128:
-                instrument_FRI<gf128, binary_hash_digest>(log_n_min, log_n_max, security_level, false,
-                                   localization_parameter, num_localization_steps, num_oracles,
-                                   num_interactive_repetitions, num_query_repetitions);
+                instrument_FRI<gf128, binary_hash_digest>(default_vals, localization_parameter,
+                                     num_interactive_repetitions, num_query_repetitions,
+                                     num_localization_steps, num_oracles);
                 break;
             case 192:
-                instrument_FRI<gf192, binary_hash_digest>(log_n_min, log_n_max, security_level, false,
-                                   localization_parameter, num_localization_steps, num_oracles,
-                                   num_interactive_repetitions, num_query_repetitions);
+                instrument_FRI<gf192, binary_hash_digest>(default_vals, localization_parameter,
+                                     num_interactive_repetitions, num_query_repetitions,
+                                     num_localization_steps, num_oracles);
                 break;
             case 256:
-                instrument_FRI<gf256, binary_hash_digest>(log_n_min, log_n_max, security_level, false,
-                                   localization_parameter, num_localization_steps, num_oracles,
-                                   num_interactive_repetitions, num_query_repetitions);
+                instrument_FRI<gf256, binary_hash_digest>(default_vals, localization_parameter,
+                                     num_interactive_repetitions, num_query_repetitions,
+                                     num_localization_steps, num_oracles);
                 break;
             default:
                 throw std::invalid_argument("Field size not supported.");
