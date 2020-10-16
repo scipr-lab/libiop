@@ -16,8 +16,8 @@ Basic R1CS multi lincheck virtual oracle
 
 #include "libiop/relations/sparse_matrix.hpp"
 #include "libiop/algebra/lagrange.hpp"
+#include "libiop/algebra/polynomials/lagrange_polynomial.hpp"
 #include "libiop/iop/iop.hpp"
-
 
 namespace libiop {
 
@@ -53,7 +53,8 @@ protected:
      *  in the lagrange case, however some of them require minor refactors to the interface.
     */
     const bool use_lagrange_ = false;
-    std::vector<FieldT> alpha_powers_;
+    lagrange_polynomial<FieldT> p_alpha_;
+    std::vector<FieldT> p_alpha_evals_;
     std::vector<FieldT> p_alpha_ABC_evals_;
     std::shared_ptr<lagrange_cache<FieldT> > lagrange_coefficients_cache_;
 public:
