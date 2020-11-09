@@ -68,7 +68,7 @@ std::vector<FieldT> linearized_polynomial<FieldT>::evaluations_over_subspace(con
 
     Therefore, evaluating over subspace below, we subtract constant
     term from evaluations over the basis, but include the constant
-    term in the offset calculation. */
+    term in the shift calculation. */
 
     std::vector<FieldT> eval_at_basis(S.basis());
     std::for_each(eval_at_basis.begin(), eval_at_basis.end(),
@@ -76,9 +76,9 @@ std::vector<FieldT> linearized_polynomial<FieldT>::evaluations_over_subspace(con
                       el = (this->evaluation_at_point(el) -
                             this->constant_coefficient());
                   });
-    const FieldT offset = this->evaluation_at_point(S.offset());
+    const FieldT shift = this->evaluation_at_point(S.shift());
 
-    return all_subset_sums<FieldT>(eval_at_basis, offset);
+    return all_subset_sums<FieldT>(eval_at_basis, shift);
 }
 
 template<typename FieldT>
@@ -191,17 +191,17 @@ bool linearized_polynomial<FieldT>::operator!=(const linearized_polynomial<Field
 }
 
 template<typename FieldT>
-void add_scalar_multiple_at_offset(std::vector<FieldT> &result,
+void add_scalar_multiple_at_shift(std::vector<FieldT> &result,
                                    const std::vector<FieldT> &p,
                                    const FieldT &factor,
-                                   const size_t offset) {
+                                   const size_t shift) {
     // This is a helper method for linearized polynomial * polynomial
-    // It adds factor * p to result, starting at offset
+    // It adds factor * p to result, starting at shift
     if (factor == FieldT::zero()) {
         return;
     }
     for (std::size_t i = 0; i < p.size(); i++) {
-        result[i + offset] += p[i] * factor;
+        result[i + shift] += p[i] * factor;
     }
 }
 
@@ -212,16 +212,16 @@ polynomial<FieldT> linearized_polynomial<FieldT>::operator*(const polynomial<Fie
     //   which is  L[0] * p + L[1] * p * x + L[2] * p * x^2 + L[3] * p * x^4 + ...
     // The polynomial coefficient representation has the constant term on the left,
     // and higher degrees growing towards the right.
-    // This adds each term progressively, using add_scalar_multiple_at_offset
+    // This adds each term progressively, using add_scalar_multiple_at_shift
 
     // Set num elements in result correctly
     std::vector<FieldT> result(p.degree() + 1 + this->degree(), FieldT::zero());
     const std::vector<FieldT> p_coeff = p.coefficients();
     // set result to be L[0] * p
-    add_scalar_multiple_at_offset(result, p_coeff, this->coefficients_[0], 0);
+    add_scalar_multiple_at_shift(result, p_coeff, this->coefficients_[0], 0);
     for (std::size_t i = 1; i < this->coefficients_.size(); i++) {
-        std::size_t offset = 1 << (i - 1);
-        add_scalar_multiple_at_offset(result, p_coeff, this->coefficients_[i], offset);
+        std::size_t shift = 1 << (i - 1);
+        add_scalar_multiple_at_shift(result, p_coeff, this->coefficients_[i], shift);
     }
     return polynomial<FieldT>(std::move(result));
 }
