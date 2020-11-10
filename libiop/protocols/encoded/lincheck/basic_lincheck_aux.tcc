@@ -96,6 +96,9 @@ std::shared_ptr<std::vector<FieldT>> multi_lincheck_virtual_oracle<FieldT>::eval
     std::vector<FieldT> p_alpha_prime_over_codeword_domain;
     std::vector<FieldT> vd_vp_evaluations;
     std::vector<FieldT> cd_vp_evaluations;
+
+    /* If |variable_domain| > |constraint_domain|, we multiply the Lagrange sampled 
+       polynomial by Z_{variable_domain}*Z_{constraint_domain}^-1 */
     if (this->variable_domain_.num_elements() > this->constraint_domain_.num_elements()){
         p_alpha_prime_over_codeword_domain = 
         this->p_alpha_.evaluations_over_field_subset(this->codeword_domain_);
