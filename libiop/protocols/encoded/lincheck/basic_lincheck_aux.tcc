@@ -91,13 +91,13 @@ std::shared_ptr<std::vector<FieldT>> multi_lincheck_virtual_oracle<FieldT>::eval
         throw std::invalid_argument("multi_lincheck uses more constituent oracles than what was provided.");
     }
 
-    /* p_{alpha}^1 in [BCRSVW18], but now using the lagrange polynomial from 
+    /* p_{alpha}^1 in [BCGGRS19], but now using the lagrange polynomial from 
      * [TODO: cite Succinct Aurora] instead of powers of alpha. */
     /* Compute p_alpha_prime. */
     std::vector<FieldT> p_alpha_prime_over_codeword_domain;
 
     /* If |variable_domain| > |constraint_domain|, we multiply the Lagrange sampled 
-       polynomial by Z_{variable_domain}*Z_{constraint_domain}^-1 */
+       polynomial (p_alpha_prime) by Z_{variable_domain}*Z_{constraint_domain}^-1*/
     if (this->variable_domain_.num_elements() < this->constraint_domain_.num_elements()){
         p_alpha_prime_over_codeword_domain = 
         this->p_alpha_.evaluations_over_field_subset(this->codeword_domain_);
@@ -112,9 +112,10 @@ std::shared_ptr<std::vector<FieldT>> multi_lincheck_virtual_oracle<FieldT>::eval
         constraint_domain_vanishing_polynomial_inverses = batch_inverse(this->constraint_domain_vanishing_polynomial_
                                                         .evaluations_over_field_subset(this->codeword_domain_));
 
-        for (int i = 0; i < variable_domain_vanishing_polynomial_evaluations.size(); i++)
+        for (int i = 0; i < variable_domain_vanishing_polynomial_evaluations.size(); i++){
             p_alpha_prime_over_codeword_domain[i] *= variable_domain_vanishing_polynomial_evaluations[i] 
                                                     * constraint_domain_vanishing_polynomial_inverses[i];
+        }
 
     }
 
@@ -162,10 +163,9 @@ FieldT multi_lincheck_virtual_oracle<FieldT>::evaluation_at_point(
         throw std::invalid_argument("multi_lincheck uses more constituent oracles than what was provided.");
     }
 
-    // Depending on the cardinalities of the constraint / variable domain 
-    // multiplies the constraint domain vanishing polynomial Z_C = (Z_C(a) - Z_C(X)) / (a - X) with Z_V / Z_C, where
-    // Z_V is the variable domain vanishing polynomial.  Since polynomials typically don't have inverses,
-    // We instead consider the inverse via pointwise multiplication.
+    /* If |variable_domain| > |constraint_domain|, we multiply the Lagrange sampled 
+       polynomial by Z_{variable_domain}*Z_{constraint_domain}^-1.
+       This is done for a single point rather than across a domain.*/
 
     if (this->variable_domain_.num_elements() > this->constraint_domain_.num_elements())
         FieldT p_alpha_prime_X = this->p_alpha_.evaluation_at_point(evaluation_point) * 
