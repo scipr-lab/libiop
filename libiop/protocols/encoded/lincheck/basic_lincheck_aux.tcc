@@ -101,8 +101,6 @@ std::shared_ptr<std::vector<FieldT>> multi_lincheck_virtual_oracle<FieldT>::eval
     if (this->variable_domain_.num_elements() < this->constraint_domain_.num_elements()){
         p_alpha_prime_over_codeword_domain = 
         this->p_alpha_.evaluations_over_field_subset(this->codeword_domain_);
-
-
     }else{
         /* inverses of the evaluations of constraint domain polynomial */
         std::vector<FieldT> constraint_domain_vanishing_polynomial_inverses;
