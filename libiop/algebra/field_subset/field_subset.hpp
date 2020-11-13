@@ -64,7 +64,6 @@ public:
 
     FieldT generator() const;
 
-    const FieldT& offset() const;
     const FieldT shift() const;
     const std::vector<FieldT>& basis() const;
 

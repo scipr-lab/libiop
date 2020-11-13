@@ -313,7 +313,7 @@ void FRI_protocol<FieldT>::compute_domains()
         {
             const std::size_t current_localization_parameter = this->params_.get_localization_parameters()[i];
 
-            const FieldT last_subspace_offset = this->domains_[i].offset();
+            const FieldT last_subspace_shift = this->domains_[i].shift();
             const std::vector<FieldT>& last_subspace_basis = this->domains_[i].basis();
 
             const std::vector<FieldT> localizer_subspace_basis(last_subspace_basis.begin(),
@@ -321,7 +321,7 @@ void FRI_protocol<FieldT>::compute_domains()
             const affine_subspace<FieldT> localizer_subspace(localizer_subspace_basis, FieldT::zero());
             const localizer_polynomial<FieldT> localizer_poly(localizer_subspace);
 
-            const FieldT next_subspace_offset = localizer_poly.evaluation_at_point(last_subspace_offset);
+            const FieldT next_subspace_shift = localizer_poly.evaluation_at_point(last_subspace_shift);
             std::vector<FieldT> next_subspace_basis(last_subspace_basis.begin() + current_localization_parameter,
                                                     last_subspace_basis.end());
             for (size_t i = 0; i < next_subspace_basis.size(); i++)
@@ -330,7 +330,7 @@ void FRI_protocol<FieldT>::compute_domains()
                 next_subspace_basis[i] = localizer_poly.evaluation_at_point(el);
             }
 
-            const affine_subspace<FieldT> next_subspace(next_subspace_basis, next_subspace_offset);
+            const affine_subspace<FieldT> next_subspace(next_subspace_basis, next_subspace_shift);
 
             this->domains_.emplace_back(field_subset<FieldT>(next_subspace));
             this->localizer_domains_.emplace_back(field_subset<FieldT>(localizer_subspace));
@@ -614,13 +614,13 @@ bool FRI_protocol<FieldT>::predicate_for_query_set(const FRI_query_set &Q)
 
         /* Now compute interpolant of f_i|S_i evaluated at x_i
            (for use in next round). */
-        const size_t offset_position =
+        const size_t shift_position =
             this->domains_[i].position_by_coset_indices(si_j, 0, current_coset_size);
-        const FieldT offset = this->domains_[i].element_by_index(offset_position);
+        const FieldT shift = this->domains_[i].element_by_index(shift_position);
         FieldT interpolation = evaluate_next_f_i_at_coset(
             fi_on_si_coset,
             this->localizer_domains_[i],
-            offset,
+            shift,
             this->localizer_polynomials_[i],
             x_i);
         last_interpolation = interpolation;

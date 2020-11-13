@@ -32,7 +32,7 @@ template<typename FieldT>
 FieldT evaluate_next_f_i_at_coset(
     const std::vector<FieldT> &f_i_evals_over_coset,
     const field_subset<FieldT> &unshifted_coset,
-    const FieldT offset,
+    const FieldT shift,
     const localizer_polynomial<FieldT> &unshifted_vp,
     const FieldT x_i);
 
@@ -40,7 +40,7 @@ template<typename FieldT>
 FieldT additive_evaluate_next_f_i_at_coset(
     const std::vector<FieldT> &f_i_evals_over_coset,
     const field_subset<FieldT> &unshifted_coset,
-    const FieldT offset,
+    const FieldT shift,
     const localizer_polynomial<FieldT> &unshifted_vp,
     const FieldT x_i);
 

@@ -100,13 +100,13 @@ additive_successor_polynomial<FieldT>::additive_successor_polynomial(const affin
      *  and the successor of x in (S' + g^(i - 1)) will be g*x + primitive_polynomial(g)
      *
      *  The following code is calculating constituent terms for each partition polynomial.
-     *  For the affine case, the partitions will account for the offset, but otherwise remain the same.
+     *  For the affine case, the partitions will account for the shift, but otherwise remain the same.
      *  In the below computations, the vanishing polynomials will be over the affine subspaces.
      */
 
-    /** For partition {0}, the successor of {0} is 1 + affine_offset, and the indicator polynomial is
+    /** For partition {0}, the successor of {0} is 1 + affine_shift, and the indicator polynomial is
      *  L_{S, 0}, which is the normalized lagrange basis polynomial for the 0th element of S. */
-    const FieldT zeroth_element_of_S = this->subspace_.offset();
+    const FieldT zeroth_element_of_S = this->subspace_.shift();
     const bool is_normalized = true;
     this->lagrange_indicator_polynomial_ =
         lagrange_polynomial<FieldT>(zeroth_element_of_S, field_subset<FieldT>(this->subspace_), is_normalized);
@@ -114,13 +114,13 @@ additive_successor_polynomial<FieldT>::additive_successor_polynomial(const affin
     /** S_truncated is the subspace of S with its final basis vector removed.
      *  This is needed for the final two partitions. It is also denoted as S' in comments */
     affine_subspace<FieldT> S_truncated =
-        affine_subspace<FieldT>::shifted_standard_basis(domain.dimension() - 1, domain.offset());
+        affine_subspace<FieldT>::shifted_standard_basis(domain.dimension() - 1, domain.shift());
     this->Z_S_truncated_ = vanishing_polynomial<FieldT>(S_truncated);
     /** For partitions S' / {0} and S' + x^(i - 1),
-     *      we need polynomials L_c, for c \in [0,1] such that L_c(cZ_{S'}(g^{i - 1} + affine_offset)) = 1,
-     *      and L_c((1 - c)Z_{S'}(g^{i - 1} + affine_offset)) = 0. */
+     *      we need polynomials L_c, for c \in [0,1] such that L_c(cZ_{S'}(g^{i - 1} + affine_shift)) = 1,
+     *      and L_c((1 - c)Z_{S'}(g^{i - 1} + affine_shift)) = 0. */
     const FieldT multiplicative_generator_to_i_minus_one =
-        libiop::power(this->multiplicative_generator_, domain.dimension() - 1) + this->subspace_.offset();
+        libiop::power(this->multiplicative_generator_, domain.dimension() - 1) + this->subspace_.shift();
     this->Z_S_truncated_at_multiplicative_generator_to_i_minus_one_ =
         this->Z_S_truncated_.evaluation_at_point(multiplicative_generator_to_i_minus_one);
     /** L_0 is the degree 1 polynomial that is 1 when the argument is 0,
@@ -137,14 +137,14 @@ template<typename FieldT>
 FieldT additive_successor_polynomial<FieldT>::evaluation_at_point(const FieldT &evalpoint) const
 {
     /** Affine shift of the subspace. */
-    const FieldT offset = this->subspace_.offset();
+    const FieldT shift = this->subspace_.shift();
     FieldT result = FieldT::zero();
     FieldT Z_S_truncated_at_x = this->Z_S_truncated_.evaluation_at_point(evalpoint);
 
     /** Partition 0 at x is the lagrange_indicator_polynomial at x */
     const FieldT partition_0_eval = this->lagrange_indicator_polynomial_.evaluation_at_point(evalpoint);
-    /** The value at this partition is (1 + offset) */
-    result += partition_0_eval * (FieldT::one() + offset);
+    /** The value at this partition is (1 + shift) */
+    result += partition_0_eval * (FieldT::one() + shift);
 
     /** L_0 is the polynomial that is the degree 1 polynomial that is 1 when the argument is 0,
      *  and 0 when the argument is Z_S_at_multiplicative_generator_to_i_minus_one.
@@ -153,18 +153,18 @@ FieldT additive_successor_polynomial<FieldT>::evaluation_at_point(const FieldT &
     const FieldT L_0_eval = this->L_0_coefficient_ *
         (Z_S_truncated_at_x - this->Z_S_truncated_at_multiplicative_generator_to_i_minus_one_);
     /** This partition is L_0 - partition 0,
-     *  and has value: multiplicative_generator * (X - offset) + offset */
+     *  and has value: multiplicative_generator * (X - shift) + shift */
     result += (L_0_eval - partition_0_eval) *
-        (this->multiplicative_generator_ * (evalpoint - offset) + offset);
+        (this->multiplicative_generator_ * (evalpoint - shift) + shift);
     /** L_1 is the polynomial that is the degree 1 polynomial that is 0 when the argument is 0,
      *  and 1 when the argument is Z_S_at_multiplicative_generator_to_i_minus_one.
      *  So L_1 = k * X
      *  L_1 is evaluated at Z_S'(X) */
     const FieldT L_1_eval = this->L_1_coefficient_ * Z_S_truncated_at_x;
-    /** This partition is L_1, and has value (g * (X - offset) + offset + (primitive polynomial at g)) */
+    /** This partition is L_1, and has value (g * (X - shift) + shift + (primitive polynomial at g)) */
     result += L_1_eval *
-        (this->multiplicative_generator_ * (evalpoint - offset) +
-         offset + this->primitive_polynomial_at_multiplicative_generator_);
+        (this->multiplicative_generator_ * (evalpoint - shift) +
+         shift + this->primitive_polynomial_at_multiplicative_generator_);
 
     return result;
 }
@@ -173,12 +173,12 @@ template<typename FieldT>
 std::vector<FieldT> additive_successor_polynomial<FieldT>::evaluations_over_field_subset(
     const field_subset<FieldT> &U) const
 {
-    const FieldT S_offset = this->subspace_.offset();
+    const FieldT S_shift = this->subspace_.shift();
     std::vector<FieldT> Z_S_truncated_over_U = this->Z_S_truncated_.evaluations_over_field_subset(U);
-    /** We only need (x + S_offset) in the evaluation procedure, for x in U.
-     *  Note that we are in a binary field, so (x + S_offset) = (x - S_offset) */
+    /** We only need (x + S_shift) in the evaluation procedure, for x in U.
+     *  Note that we are in a binary field, so (x + S_shift) = (x - S_shift) */
     std::vector<FieldT> shifted_U_elements =
-        all_subset_sums<FieldT>(U.basis(), S_offset + U.offset());
+        all_subset_sums<FieldT>(U.basis(), S_shift + U.shift());
 
     // If we need to squeeze performance out of this method,
     // then the lagrange polynomial's evaluation over domain can be opened up here,
@@ -189,27 +189,27 @@ std::vector<FieldT> additive_successor_polynomial<FieldT>::evaluations_over_fiel
         this->lagrange_indicator_polynomial_.evaluations_over_field_subset(U);
 
     std::vector<FieldT> result(U.num_elements(), FieldT::zero());
-    const FieldT one_plus_S_offset = FieldT::one() + S_offset;
+    const FieldT one_plus_S_shift = FieldT::one() + S_shift;
     for (size_t i = 0; i < result.size(); i++)
     {
         // The partition 0 polynomial is the lagrange indicator polynomial
-        // Value at partition 0 is (1 + offset)
-        result[i] += lagrange_indicator_evaluations[i] * one_plus_S_offset;
+        // Value at partition 0 is (1 + shift)
+        result[i] += lagrange_indicator_evaluations[i] * one_plus_S_shift;
 
         // The partition 1 polynomial is: L_0(Z_S_truncated(X)) - partition_0(X)
         const FieldT L_0_eval = this->L_0_coefficient_ *
             (Z_S_truncated_over_U[i] - this->Z_S_truncated_at_multiplicative_generator_to_i_minus_one_);
         const FieldT partition_1_eval = L_0_eval - lagrange_indicator_evaluations[i];
-        // Value at partition 1 is multiplicative_generator * (X - S_offset) + S_offset
+        // Value at partition 1 is multiplicative_generator * (X - S_shift) + S_shift
         result[i] += partition_1_eval *
-            (this->multiplicative_generator_ * shifted_U_elements[i] + S_offset);
+            (this->multiplicative_generator_ * shifted_U_elements[i] + S_shift);
 
         // The partition 2 polynomial is: L_1(Z_S_truncated(X))
         const FieldT partition_2_eval = this->L_1_coefficient_ * Z_S_truncated_over_U[i];
-        // Value at partition 2 is (multiplicative_generator * (X - S_offset) + S_offset +
+        // Value at partition 2 is (multiplicative_generator * (X - S_shift) + S_shift +
         //                          primitive_polynomial at multiplicative_generator)
         result[i] += partition_2_eval *
-            (this->multiplicative_generator_ * shifted_U_elements[i] + S_offset +
+            (this->multiplicative_generator_ * shifted_U_elements[i] + S_shift +
              this->primitive_polynomial_at_multiplicative_generator_);
     }
     return result;
@@ -252,7 +252,7 @@ additive_successor_ordering<FieldT>::additive_successor_ordering(const field_sub
 template<typename FieldT>
 FieldT additive_successor_ordering<FieldT>::first_elem() const
 {
-    return this->subspace_.offset();
+    return this->subspace_.shift();
 }
 
 template<typename FieldT>
