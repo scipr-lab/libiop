@@ -36,11 +36,12 @@ void multi_lincheck_virtual_oracle<FieldT>::set_challenge(const FieldT &alpha, c
 
     enter_block("multi_lincheck compute random polynomial evaluations");
 
-    /* Set alpha polynomial, and its evaluations */
+    /* Set alpha polynomial, variable and constraint domain polynomials, and their evaluations */
     this->p_alpha_ = lagrange_polynomial<FieldT>(alpha, this->constraint_domain_);
     this->p_alpha_evals_ = this->p_alpha_.evaluations_over_field_subset(this->constraint_domain_);
-    this->vd_vp_ = vanishing_polynomial<FieldT>(this->variable_domain_);
-    this->cd_vp_ = vanishing_polynomial<FieldT>(this->constraint_domain_);
+    this->variable_domain_vanishing_polynomial_ = vanishing_polynomial<FieldT>(this->variable_domain_);
+    this->constraint_domain_vanishing_polynomial_ = vanishing_polynomial<FieldT>(this->constraint_domain_);
+
     leave_block("multi_lincheck compute random polynomial evaluations");
 
     /* Set p_alpha_ABC_evals */
@@ -94,24 +95,29 @@ std::shared_ptr<std::vector<FieldT>> multi_lincheck_virtual_oracle<FieldT>::eval
      * [TODO: cite Succinct Aurora] instead of powers of alpha. */
     /* Compute p_alpha_prime. */
     std::vector<FieldT> p_alpha_prime_over_codeword_domain;
-    std::vector<FieldT> vd_vp_evaluations;
-    std::vector<FieldT> cd_vp_evaluations;
 
     /* If |variable_domain| > |constraint_domain|, we multiply the Lagrange sampled 
        polynomial by Z_{variable_domain}*Z_{constraint_domain}^-1 */
-    if (this->variable_domain_.num_elements() > this->constraint_domain_.num_elements()){
+    if (this->variable_domain_.num_elements() < this->constraint_domain_.num_elements()){
         p_alpha_prime_over_codeword_domain = 
         this->p_alpha_.evaluations_over_field_subset(this->codeword_domain_);
 
-        vd_vp_evaluations = this->vd_vp_.evaluations_over_field_subset(this->codeword_domain_);
-        cd_vp_evaluations = this->cd_vp_.evaluations_over_field_subset(this->codeword_domain_);
-
-        for (int i = 0; i < vd_vp_evaluations.size(); i++)
-            p_alpha_prime_over_codeword_domain[i] *= vd_vp_evaluations[i] * cd_vp_evaluations[i].inverse();
 
     }else{
-        p_alpha_prime_over_codeword_domain = 
-        this->p_alpha_.evaluations_over_field_subset(this->codeword_domain_);
+        /* inverses of the evaluations of constraint domain polynomial */
+        std::vector<FieldT> constraint_domain_vanishing_polynomial_inverses;
+        std::vector<FieldT> variable_domain_vanishing_polynomial_evaluations;
+        p_alpha_prime_over_codeword_domain = this->p_alpha_.evaluations_over_field_subset(this->codeword_domain_);
+
+        variable_domain_vanishing_polynomial_evaluations = this->variable_domain_vanishing_polynomial_
+                                                        .evaluations_over_field_subset(this->codeword_domain_);
+        constraint_domain_vanishing_polynomial_inverses = batch_inverse(this->constraint_domain_vanishing_polynomial_
+                                                        .evaluations_over_field_subset(this->codeword_domain_));
+
+        for (int i = 0; i < variable_domain_vanishing_polynomial_evaluations.size(); i++)
+            p_alpha_prime_over_codeword_domain[i] *= variable_domain_vanishing_polynomial_evaluations[i] 
+                                                    * constraint_domain_vanishing_polynomial_inverses[i];
+
     }
 
     /* p_{alpha}^2 in [BCRSVW18] */
@@ -165,8 +171,8 @@ FieldT multi_lincheck_virtual_oracle<FieldT>::evaluation_at_point(
 
     if (this->variable_domain_.num_elements() > this->constraint_domain_.num_elements())
         FieldT p_alpha_prime_X = this->p_alpha_.evaluation_at_point(evaluation_point) * 
-            this->vd_vp_.evaluation_at_point(evaluation_point) * 
-            this->cd_vp_.evaluation_at_point(evaluation_point).inverse();
+            this->variable_domain_vanishing_polynomial_.evaluation_at_point(evaluation_point) * 
+            this->constraint_domain_vanishing_polynomial_.evaluation_at_point(evaluation_point).inverse();
     else
         FieldT p_alpha_prime_X = this->p_alpha_.evaluation_at_point(evaluation_point);
     
