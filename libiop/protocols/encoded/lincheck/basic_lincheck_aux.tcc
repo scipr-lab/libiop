@@ -91,8 +91,8 @@ std::shared_ptr<std::vector<FieldT>> multi_lincheck_virtual_oracle<FieldT>::eval
         throw std::invalid_argument("multi_lincheck uses more constituent oracles than what was provided.");
     }
 
-    /* p_{alpha}^1 in [BCGGRS19], but now using the lagrange polynomial from 
-     * [TODO: cite Succinct Aurora] instead of powers of alpha. */
+    /* p_{alpha}^1 in [BCRSVW18], but now using the lagrange polynomial from 
+     * [BCGGRS19] instead of powers of alpha. */
     /* Compute p_alpha_prime. */
     std::vector<FieldT> p_alpha_prime_over_codeword_domain;
 
