@@ -164,7 +164,7 @@ FieldT multi_lincheck_virtual_oracle<FieldT>::evaluation_at_point(
     }
 
     /* If |variable_domain| > |constraint_domain|, we multiply the Lagrange sampled 
-       polynomial by Z_{variable_domain}*Z_{constraint_domain}^-1.
+       polynomial (p_alpha_prime) by Z_{variable_domain}*Z_{constraint_domain}^-1.
        This is done for a single point rather than across a domain.*/
 
     if (this->variable_domain_.num_elements() > this->constraint_domain_.num_elements())
