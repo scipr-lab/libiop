@@ -10,6 +10,7 @@
 #include <boost/program_options.hpp>
 #endif
 
+#include "boost_profile.cpp"
 #include "libiop/algebra/fft.hpp"
 #include "libiop/algebra/fields/gf64.hpp"
 #include "libiop/algebra/fields/gf128.hpp"

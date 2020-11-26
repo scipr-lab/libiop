@@ -66,8 +66,8 @@ std::vector<FieldT> subspace_to_power_of_two(const affine_subspace<FieldT> &S,
         el = libiop::power(el, power_of_two);
     }
 
-    const FieldT offset_power = libiop::power(S.offset(), power_of_two);
-    return all_subset_sums<FieldT>(basis_powers, offset_power);
+    const FieldT shift_power = libiop::power(S.shift(), power_of_two);
+    return all_subset_sums<FieldT>(basis_powers, shift_power);
 }
 
 template<typename FieldT>

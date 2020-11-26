@@ -56,6 +56,9 @@ protected:
     lagrange_polynomial<FieldT> p_alpha_;
     std::vector<FieldT> p_alpha_evals_;
     std::vector<FieldT> p_alpha_ABC_evals_;
+    vanishing_polynomial<FieldT> variable_domain_vanishing_polynomial_;
+    vanishing_polynomial<FieldT> constraint_domain_vanishing_polynomial_;
+
     std::shared_ptr<lagrange_cache<FieldT> > lagrange_coefficients_cache_;
 public:
     multi_lincheck_virtual_oracle(

@@ -128,58 +128,58 @@ bool linear_subspace<FieldT>::operator!=(const linear_subspace<FieldT> &other) c
 
 template<typename FieldT>
 affine_subspace<FieldT>::affine_subspace(const std::vector<FieldT> &basis,
-                                         const FieldT &offset) :
-    linear_subspace<FieldT>(basis), offset_(offset)
+                                         const FieldT &shift) :
+    linear_subspace<FieldT>(basis), shift_(shift)
 {
 }
 
 template<typename FieldT>
 affine_subspace<FieldT>::affine_subspace(
     const linear_subspace<FieldT> &base_space,
-    const FieldT &offset) :
+    const FieldT &shift) :
     linear_subspace<FieldT>(base_space),
-    offset_(offset)
+    shift_(shift)
 {
 }
 
 template<typename FieldT>
 affine_subspace<FieldT>::affine_subspace(
     linear_subspace<FieldT> &&base_space,
-    const FieldT &offset) :
+    const FieldT &shift) :
     linear_subspace<FieldT>(std::move(base_space)),
-    offset_(offset)
+    shift_(shift)
 {
 }
 
 template<typename FieldT>
-const FieldT& affine_subspace<FieldT>::offset() const
+const FieldT affine_subspace<FieldT>::shift() const
 {
-    return this->offset_;
+    return this->shift_;
 }
 
 template<typename FieldT>
 std::vector<FieldT> affine_subspace<FieldT>::all_elements() const
 {
-    return all_subset_sums<FieldT>(this->basis_, this->offset_);
+    return all_subset_sums<FieldT>(this->basis_, this->shift_);
 }
 
 template<typename FieldT>
 FieldT affine_subspace<FieldT>::element_by_index(const std::size_t index) const
 {
-    return (this->offset_ + (linear_subspace<FieldT>::element_by_index(index)));
+    return (this->shift_ + (linear_subspace<FieldT>::element_by_index(index)));
 }
 
 
 template<typename FieldT>
 bool internal_element_in_subset(const typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type x,
-    FieldT offset, size_t dimension)
+    FieldT shift, size_t dimension)
 {
     throw std::invalid_argument("subspace.element_in_subset() is only supported for binary fields");
 }
 
 template<typename FieldT>
 bool internal_element_in_subset(const typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type x,
-    FieldT offset, size_t dimension)
+    FieldT shift, size_t dimension)
 {
     /** TODO: Implement this case */
     if (dimension > 64)
@@ -187,13 +187,13 @@ bool internal_element_in_subset(const typename libiop::enable_if<is_additive<Fie
         throw std::invalid_argument(
             "subspace.element_in_subset() is currently unimplimented for basis of dimension greater than 64");
     }
-    /** We first remove the offset, and then test if an element is in the standard basis.
+    /** We first remove the shift, and then test if an element is in the standard basis.
      *  It is in the standard basis if for all i >= basis.dimension(), the coefficient of x^i is 0.
      *  Due to the representation of field elements,
      *  this corresponds to all but the first basis.dimension() bits being 0.
      *  (using little endian ordering)
     */
-    const std::vector<uint64_t> words = (x + offset).as_words();
+    const std::vector<uint64_t> words = (x + shift).as_words();
     /* Check that all but the least significant 64 bits are 0 */
     for (size_t i = 1; i < words.size(); i++)
     {
@@ -211,7 +211,7 @@ bool affine_subspace<FieldT>::element_in_subset(const FieldT x) const
 {
     if (this->is_standard_basis_)
     {
-        return internal_element_in_subset(x, this->offset_, this->dimension());
+        return internal_element_in_subset(x, this->shift_, this->dimension());
     }
     throw std::invalid_argument("subspace.element_in_subset() is only supported for standard basis");
 }
@@ -221,7 +221,7 @@ FieldT affine_subspace<FieldT>::element_outside_of_subset() const
 {
     if (this->is_standard_basis_)
     {
-        return this->offset() + FieldT(1ull << this->dimension());
+        return this->shift() + FieldT(1ull << this->dimension());
     }
     throw std::invalid_argument("subspace.element_outside_of_subset() is only supported for standard basis");
 }
@@ -255,11 +255,11 @@ linear_subspace<FieldT> standard_basis(const std::size_t dimension)
 template<typename FieldT>
 affine_subspace<FieldT> affine_subspace<FieldT>::shifted_standard_basis(
     const std::size_t dimension,
-    const FieldT& offset)
+    const FieldT& shift)
 {
     const linear_subspace<FieldT> basis =
         linear_subspace<FieldT>::standard_basis(dimension);
-    return affine_subspace<FieldT>(std::move(basis), offset);
+    return affine_subspace<FieldT>(std::move(basis), shift);
 }
 
 template<typename FieldT>
@@ -267,14 +267,14 @@ affine_subspace<FieldT> affine_subspace<FieldT>::random_affine_subspace(const st
 {
     const linear_subspace<FieldT> basis =
         linear_subspace<FieldT>::standard_basis(dimension);
-    const FieldT offset = FieldT::random_element();
-    return affine_subspace<FieldT>(std::move(basis), offset);
+    const FieldT shift = FieldT::random_element();
+    return affine_subspace<FieldT>(std::move(basis), shift);
 }
 
 template<typename FieldT>
 bool affine_subspace<FieldT>::operator==(const affine_subspace<FieldT> &other) const
 {
-    return linear_subspace<FieldT>::operator==(other) && this->offset_ == other->offset_;
+    return linear_subspace<FieldT>::operator==(other) && this->shift_ == other->shift_;
 }
 
 } // namespace libiop
