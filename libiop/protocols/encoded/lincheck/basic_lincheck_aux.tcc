@@ -77,8 +77,6 @@ void multi_lincheck_virtual_oracle<FieldT>::set_challenge(const FieldT &alpha, c
         // this->p_alpha_ABC_evals_ = p_alpha_ABC_evals;
     }
     enter_block("multi_lincheck IFFT p_alphas");
-    std::cout << "Cardinality of variable domain: " << this->variable_domain_.num_elements() << "\n";
-    std::cout << "Cardinality of constraint domain: " << this->constraint_domain_.num_elements() << "\n";
 
     this->p_alpha_ABC_ = polynomial<FieldT>(
         IFFT_over_field_subset<FieldT>(p_alpha_ABC_evals, this->summation_domain_));
