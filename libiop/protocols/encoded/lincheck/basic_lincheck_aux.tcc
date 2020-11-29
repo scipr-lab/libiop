@@ -37,6 +37,7 @@ void multi_lincheck_virtual_oracle<FieldT>::set_challenge(const FieldT &alpha, c
     enter_block("multi_lincheck compute random polynomial evaluations");
 
     /* Set alpha polynomial, variable and constraint domain polynomials, and their evaluations */
+
     this->p_alpha_ = lagrange_polynomial<FieldT>(alpha, this->constraint_domain_);
     this->p_alpha_evals_ = this->p_alpha_.evaluations_over_field_subset(this->constraint_domain_);
     this->variable_domain_vanishing_polynomial_ = vanishing_polynomial<FieldT>(this->variable_domain_);
@@ -76,6 +77,9 @@ void multi_lincheck_virtual_oracle<FieldT>::set_challenge(const FieldT &alpha, c
         // this->p_alpha_ABC_evals_ = p_alpha_ABC_evals;
     }
     enter_block("multi_lincheck IFFT p_alphas");
+    std::cout << "Cardinality of variable domain: " << this->variable_domain_.num_elements() << "\n";
+    std::cout << "Cardinality of constraint domain: " << this->constraint_domain_.num_elements() << "\n";
+
     this->p_alpha_ABC_ = polynomial<FieldT>(
         IFFT_over_field_subset<FieldT>(p_alpha_ABC_evals, this->summation_domain_));
     leave_block("multi_lincheck IFFT p_alphas");
@@ -98,7 +102,7 @@ std::shared_ptr<std::vector<FieldT>> multi_lincheck_virtual_oracle<FieldT>::eval
 
     /* If |variable_domain| > |constraint_domain|, we multiply the Lagrange sampled 
        polynomial (p_alpha_prime) by Z_{variable_domain}*Z_{constraint_domain}^-1*/
-    if (this->variable_domain_.num_elements() < this->constraint_domain_.num_elements()){
+    if (this->variable_domain_.num_elements() <= this->constraint_domain_.num_elements()){
         p_alpha_prime_over_codeword_domain = 
         this->p_alpha_.evaluations_over_field_subset(this->codeword_domain_);
     }else{
@@ -167,12 +171,14 @@ FieldT multi_lincheck_virtual_oracle<FieldT>::evaluation_at_point(
        polynomial (p_alpha_prime) by Z_{variable_domain}*Z_{constraint_domain}^-1.
        This is done for a single point rather than across a domain.*/
 
-    if (this->variable_domain_.num_elements() > this->constraint_domain_.num_elements())
-        FieldT p_alpha_prime_X = this->p_alpha_.evaluation_at_point(evaluation_point) * 
+    if (this->variable_domain_.num_elements() < this->constraint_domain_.num_elements()){
+        p_alpha_prime_X = this->p_alpha_.evaluation_at_point(evaluation_point);
+    }
+    else{
+        p_alpha_prime_X = this->p_alpha_.evaluation_at_point(evaluation_point) * 
             this->variable_domain_vanishing_polynomial_.evaluation_at_point(evaluation_point) * 
-            this->constraint_domain_vanishing_polynomial_.evaluation_at_point(evaluation_point).inverse();
-    else
-        FieldT p_alpha_prime_X = this->p_alpha_.evaluation_at_point(evaluation_point);
+            this->constraint_domain_vanishing_polynomial_.evaluation_at_point(evaluation_point).inverse() ;
+    }
     
     FieldT p_alpha_ABC_X = this->p_alpha_ABC_.evaluation_at_point(evaluation_point);
 

@@ -350,6 +350,46 @@ void run_random_multi_lincheck_instance(std::size_t constraint_domain_dim,
         domain_type, make_zk, query_bound, true, FieldT::random_element(), r_Mz);
 }
 
+TEST(TestConstraintGreaterThanVariable, LincheckTest){
+    typedef gf64 FieldT;
+    std::size_t constraint_domain_dim = 8;
+    std::size_t variable_domain_dim = 5;
+    std::size_t input_variable_domain_dim = variable_domain_dim - 2;
+    for (std::size_t make_zk_param = 0; make_zk_param < 2; make_zk_param++)
+    {
+        for (size_t num_matrices = 1; num_matrices < 4; num_matrices++)
+        {
+            run_random_multi_lincheck_instance<FieldT>(
+                constraint_domain_dim,
+                variable_domain_dim,
+                input_variable_domain_dim,
+                (make_zk_param == 1),
+                num_matrices,
+                affine_subspace_type);
+        }
+    }
+}
+
+TEST(TestConstraintLessThanVariable, LincheckTest){
+    typedef gf64 FieldT;
+    std::size_t constraint_domain_dim = 5;
+    std::size_t variable_domain_dim = 8;
+    std::size_t input_variable_domain_dim = variable_domain_dim - 2;
+    for (std::size_t make_zk_param = 0; make_zk_param < 2; make_zk_param++)
+    {
+        for (size_t num_matrices = 1; num_matrices < 4; num_matrices++)
+        {
+            run_random_multi_lincheck_instance<FieldT>(
+                constraint_domain_dim,
+                variable_domain_dim,
+                input_variable_domain_dim,
+                (make_zk_param == 1),
+                num_matrices,
+                affine_subspace_type);
+        }
+    }
+}
+/*
 TEST(AdditiveSucceedingTests, LincheckTest) {
     typedef gf64 FieldT;
     for (std::size_t constraint_domain_dim = 5; constraint_domain_dim < 8; constraint_domain_dim++) {
@@ -394,7 +434,7 @@ TEST(MultiplicativeSucceedingTests, LincheckTest) {
             }
         }
     }
-}
+}*/
 
 // This tests the following failing scenarios:
 // one element is wrong in fz
