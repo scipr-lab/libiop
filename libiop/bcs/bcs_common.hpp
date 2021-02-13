@@ -176,9 +176,7 @@ void print_detailed_transcript_data(
     const bool holographic,
     const bcs_transformation_transcript<FieldT, MT_hash_type> &transcript,
     const bcs_transformation_parameters<FieldT, MT_hash_type> &params,
-    const std::vector<size_t> MT_depths,
-    const std::vector<bool> make_zk,
-    const std::vector<round_parameters<FieldT>> round_params);
+    const bcs_protocol<FieldT, MT_hash_type> bcs);
 
 } // namespace libiop
 

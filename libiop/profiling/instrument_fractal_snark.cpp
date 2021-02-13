@@ -80,9 +80,7 @@ void print_argument_size(
         holographic,
         argument,
         params.bcs_params_,
-        verifier.get_MT_depths(),
-        verifier.get_MT_zk_flags(),
-        verifier.get_all_round_params());
+        verifier);
 }
 
 template<typename FieldT, typename hash_type>

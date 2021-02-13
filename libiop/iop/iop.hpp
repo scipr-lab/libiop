@@ -173,6 +173,7 @@ public:
     {
     }
 
+    std::string name() const { return this->name_; }
     domain_handle domain() const { return this->domain_; }
     std::size_t degree() const { return this->degree_; }
     bool make_zk() const { return this->make_zk_; }
@@ -424,6 +425,7 @@ public:
         const oracle_handle_ptr &handle,
         const std::size_t evaluation_position,
         const bool record=false);
+    std::vector<oracle_registration> get_oracle_registrations_by_round(int round) const;
 
     std::size_t num_symbols_across_all_oracles() const;
     std::size_t num_bytes_across_all_oracles() const;
