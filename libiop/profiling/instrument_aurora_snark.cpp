@@ -252,7 +252,7 @@ int main(int argc, const char * argv[])
                     instrument_aurora_snark<libff::alt_bn128_Fr, libff::alt_bn128_Fr>(
                         default_vals, ldt_reducer_soundness_type, 
                         fri_soundness_type, optimize_localization);
-                }
+                } 
                 break;
             default:
                 throw std::invalid_argument("Field size not supported.");
