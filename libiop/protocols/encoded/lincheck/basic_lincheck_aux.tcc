@@ -34,30 +34,16 @@ void multi_lincheck_virtual_oracle<FieldT>::set_challenge(const FieldT &alpha, c
     }
     this->r_Mz_ = r_Mz;
 
-    enter_block("multi_lincheck compute alpha powers");
-    /** Set alpha powers */
-    std::vector<FieldT> alpha_powers;
-    alpha_powers.reserve(this->constraint_domain_.num_elements());
-    // TODO: Make a method for this in algebra, that lowers the data dependency
-    FieldT cur = FieldT::one();
-    for (std::size_t i = 0; i < this->constraint_domain_.num_elements(); i++) {
-        alpha_powers.emplace_back(cur);
-        cur *= alpha;
-    }
-    leave_block("multi_lincheck compute alpha powers");
+    enter_block("multi_lincheck compute random polynomial evaluations");
 
-    enter_block("multi_lincheck compute p_alpha_prime");
-    /** This essentially places alpha powers into the correct spots,
-     *  such that the zeroes when the |constraint domain| < summation domain
-     *  are placed correctly. */
-    std::vector<FieldT> p_alpha_prime_over_summation_domain(
-        this->summation_domain_.num_elements(), FieldT::zero());
-    for (std::size_t i = 0; i < this->constraint_domain_.num_elements(); i++) {
-        const std::size_t element_index = this->summation_domain_.reindex_by_subset(
-            this->constraint_domain_.dimension(), i);
-        p_alpha_prime_over_summation_domain[element_index] = alpha_powers[i];
-    }
-    leave_block("multi_lincheck compute p_alpha_prime");
+    /* Set alpha polynomial, variable and constraint domain polynomials, and their evaluations */
+
+    this->p_alpha_ = lagrange_polynomial<FieldT>(alpha, this->constraint_domain_);
+    this->p_alpha_evals_ = this->p_alpha_.evaluations_over_field_subset(this->constraint_domain_);
+    this->variable_domain_vanishing_polynomial_ = vanishing_polynomial<FieldT>(this->variable_domain_);
+    this->constraint_domain_vanishing_polynomial_ = vanishing_polynomial<FieldT>(this->constraint_domain_);
+
+    leave_block("multi_lincheck compute random polynomial evaluations");
 
     /* Set p_alpha_ABC_evals */
     enter_block("multi_lincheck compute p_alpha_ABC");
@@ -79,7 +65,7 @@ void multi_lincheck_virtual_oracle<FieldT>::set_challenge(const FieldT &alpha, c
                 const std::size_t summation_index = this->summation_domain_.reindex_by_subset(
                     this->variable_domain_.dimension(), variable_index);
                 p_alpha_ABC_evals[summation_index] +=
-                    this->r_Mz_[m_index] * term.coeff_ * alpha_powers[i];
+                    this->r_Mz_[m_index] * term.coeff_ * this->p_alpha_evals_[i];
             }
         }
     }
@@ -87,14 +73,13 @@ void multi_lincheck_virtual_oracle<FieldT>::set_challenge(const FieldT &alpha, c
     // To use lagrange, the following IFFTs must also be moved to evaluated contents
     if (this->use_lagrange_)
     {
-        this->alpha_powers_ = alpha_powers;
-        this->p_alpha_ABC_evals_ = p_alpha_ABC_evals;
+        // this->alpha_powers_ = alpha_powers;
+        // this->p_alpha_ABC_evals_ = p_alpha_ABC_evals;
     }
     enter_block("multi_lincheck IFFT p_alphas");
+
     this->p_alpha_ABC_ = polynomial<FieldT>(
         IFFT_over_field_subset<FieldT>(p_alpha_ABC_evals, this->summation_domain_));
-    this->p_alpha_prime_ = polynomial<FieldT>(
-        IFFT_over_field_subset<FieldT>(p_alpha_prime_over_summation_domain, this->summation_domain_));
     leave_block("multi_lincheck IFFT p_alphas");
 }
 
@@ -108,9 +93,33 @@ std::shared_ptr<std::vector<FieldT>> multi_lincheck_virtual_oracle<FieldT>::eval
         throw std::invalid_argument("multi_lincheck uses more constituent oracles than what was provided.");
     }
 
-    /* p_{alpha}^1 in [BCRSVW18] */
-    std::vector<FieldT> p_alpha_prime_over_codeword_domain =
-        FFT_over_field_subset<FieldT>(this->p_alpha_prime_.coefficients(), this->codeword_domain_);
+    /* p_{alpha}^1 in [BCRSVW18], but now using the lagrange polynomial from 
+     * [BCGGRS19] instead of powers of alpha. */
+    /* Compute p_alpha_prime. */
+    std::vector<FieldT> p_alpha_prime_over_codeword_domain;
+
+    /* If |variable_domain| > |constraint_domain|, we multiply the Lagrange sampled 
+       polynomial (p_alpha_prime) by Z_{variable_domain}*Z_{constraint_domain}^-1*/
+    if (this->variable_domain_.num_elements() <= this->constraint_domain_.num_elements()){
+        p_alpha_prime_over_codeword_domain = 
+        this->p_alpha_.evaluations_over_field_subset(this->codeword_domain_);
+    }else{
+        /* inverses of the evaluations of constraint domain polynomial */
+        std::vector<FieldT> constraint_domain_vanishing_polynomial_inverses;
+        std::vector<FieldT> variable_domain_vanishing_polynomial_evaluations;
+        p_alpha_prime_over_codeword_domain = this->p_alpha_.evaluations_over_field_subset(this->codeword_domain_);
+
+        variable_domain_vanishing_polynomial_evaluations = this->variable_domain_vanishing_polynomial_
+                                                        .evaluations_over_field_subset(this->codeword_domain_);
+        constraint_domain_vanishing_polynomial_inverses = batch_inverse(this->constraint_domain_vanishing_polynomial_
+                                                        .evaluations_over_field_subset(this->codeword_domain_));
+
+        for (int i = 0; i < variable_domain_vanishing_polynomial_evaluations.size(); i++){
+            p_alpha_prime_over_codeword_domain[i] *= variable_domain_vanishing_polynomial_evaluations[i] 
+                                                    * constraint_domain_vanishing_polynomial_inverses[i];
+        }
+
+    }
 
     /* p_{alpha}^2 in [BCRSVW18] */
     const std::vector<FieldT> p_alpha_ABC_over_codeword_domain =
@@ -150,23 +159,31 @@ FieldT multi_lincheck_virtual_oracle<FieldT>::evaluation_at_point(
     const std::vector<FieldT> &constituent_oracle_evaluations) const
 {
     UNUSED(evaluation_position);
+    FieldT p_alpha_prime_X;
     if (constituent_oracle_evaluations.size() != this->matrices_.size() + 1)
     {
         throw std::invalid_argument("multi_lincheck uses more constituent oracles than what was provided.");
     }
 
-    FieldT p_alpha_prime_X = this->p_alpha_prime_.evaluation_at_point(evaluation_point);
+    /* If |variable_domain| > |constraint_domain|, we multiply the Lagrange sampled 
+       polynomial (p_alpha_prime) by Z_{variable_domain}*Z_{constraint_domain}^-1.
+       This is done for a single point rather than across a domain.*/
+
+    if (this->variable_domain_.num_elements() < this->constraint_domain_.num_elements()){
+        p_alpha_prime_X = this->p_alpha_.evaluation_at_point(evaluation_point);
+    }
+    else{
+        p_alpha_prime_X = this->p_alpha_.evaluation_at_point(evaluation_point) * 
+            this->variable_domain_vanishing_polynomial_.evaluation_at_point(evaluation_point) * 
+            this->constraint_domain_vanishing_polynomial_.evaluation_at_point(evaluation_point).inverse() ;
+    }
+    
     FieldT p_alpha_ABC_X = this->p_alpha_ABC_.evaluation_at_point(evaluation_point);
+
     if (this->use_lagrange_)
     {
         const std::vector<FieldT> lagrange_coefficients =
             this->lagrange_coefficients_cache_->coefficients_for(evaluation_point);
-        for (size_t i = 0; i < this->constraint_domain_.num_elements(); ++i)
-        {
-            const std::size_t summation_index = this->summation_domain_.reindex_by_subset(
-                this->constraint_domain_.dimension(), i);
-            p_alpha_prime_X += lagrange_coefficients[summation_index] * this->alpha_powers_[i];
-        }
         for (std::size_t i = 0; i < this->summation_domain_.num_elements(); ++i)
         {
             p_alpha_ABC_X += lagrange_coefficients[i] * this->p_alpha_ABC_evals_[i];
