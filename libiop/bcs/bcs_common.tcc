@@ -683,11 +683,13 @@ void print_detailed_transcript_data(
     const bool holographic,
     const bcs_transformation_transcript<FieldT, MT_root_hash> &transcript,
     const bcs_transformation_parameters<FieldT, MT_root_hash> &params,
-    const std::vector<size_t> MT_depths,
-    const std::vector<bool> make_zk,
-    const std::vector<round_parameters<FieldT>> round_params)
+    const bcs_protocol<FieldT, MT_root_hash> bcs)
 {
     /* Calculate round by round details */
+
+    const std::vector<size_t> MT_depths = bcs.get_MT_depths();
+    const std::vector<bool> make_zk = bcs.get_MT_zk_flags();
+    const std::vector<round_parameters<FieldT>> round_params = bcs.get_all_round_params();
 
     const size_t digest_len_bytes = 2 * (params.security_parameter / 8);
     const size_t field_size = (log_of_field_size_helper<FieldT>(FieldT::zero()) + 7) / 8;
@@ -795,6 +797,14 @@ void print_detailed_transcript_data(
         {
             printf("number of zk hashes: %lu\n", zk_hashes_by_round[round]);
         }
+
+        std::vector<oracle_registration> oracles = bcs.get_oracle_registrations_by_round(round);
+        printf("oracles in round: ");
+        for (auto &oracle_itr : oracles)
+        {
+            printf("%s, ", oracle_itr.name().c_str());
+        }
+        printf("\n");
     }
     printf("\n\n");
 }

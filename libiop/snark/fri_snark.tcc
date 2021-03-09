@@ -137,9 +137,7 @@ void FRI_snark_print_detailed_argument_size(
         holographic,
         argument,
         bcs_and_FRI_parameters.first,
-        verifier.get_MT_depths(),
-        verifier.get_MT_zk_flags(),
-        verifier.get_all_round_params());
+        verifier);
 }
 
 } // namespace libiop

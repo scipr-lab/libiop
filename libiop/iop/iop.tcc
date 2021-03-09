@@ -714,6 +714,19 @@ FieldT iop_protocol<FieldT>::get_oracle_evaluation_at_point(const oracle_handle_
 }
 
 template<typename FieldT>
+std::vector<oracle_registration> iop_protocol<FieldT>::get_oracle_registrations_by_round(
+        int round) const
+{
+    int start_i = round == 0 ? 0 : num_oracles_at_end_of_round_[round - 1];
+    int end_i = num_oracles_at_end_of_round_[round];
+    std::vector<oracle_registration> oracle_reg_in_round;
+    for (int i = start_i; i < end_i; i++) {
+        oracle_reg_in_round.push_back(oracle_registrations_[i]);
+    }
+    return oracle_reg_in_round;
+}
+
+template<typename FieldT>
 std::size_t iop_protocol<FieldT>::num_symbols_across_all_oracles() const
 {
     std::size_t oracle_length = 0;
