@@ -8,7 +8,7 @@
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/iop/iop.hpp"
-#include "libiop/tests/snark/dummy_bcs_protocol.hpp"
+#include "libiop/tests/bcs/dummy_bcs_protocol.hpp"
 #include "libiop/bcs/bcs_prover.hpp"
 #include "libiop/bcs/bcs_indexer.hpp"
 #include "libiop/bcs/bcs_verifier.hpp"

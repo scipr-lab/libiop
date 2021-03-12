@@ -64,6 +64,6 @@ public:
 
 } // namespace libiop
 
-#include "libiop/tests/snark/dummy_bcs_protocol.tcc"
+#include "libiop/tests/bcs/dummy_bcs_protocol.tcc"
 
 #endif // LIBIOP_PROTOCOLS_ENCODED_DUMMY_PROTOCOL_HPP_
