@@ -127,7 +127,7 @@ target_link_libraries(test_gf256 iop gtest_main)
 add_executable(test_lagrange tests/algebra/test_lagrange.cpp)
 target_link_libraries(test_lagrange iop gtest_main)
 
-add_executable(test_merkle_tree tests/algebra/test_merkle_tree.cpp)
+add_executable(test_merkle_tree tests/bcs/test_merkle_tree.cpp)
 target_link_libraries(test_merkle_tree iop gtest_main)
 
 add_executable(test_linearized_polynomial tests/algebra/test_linearized_polynomial.cpp)
@@ -232,7 +232,7 @@ target_link_libraries(test_poseidon iop gtest_main)
 add_executable(test_pow tests/snark/test_pow.cpp)
 target_link_libraries(test_pow iop gtest_main)
 
-add_executable(test_bcs_transformation tests/snark/test_bcs_transformation.cpp)
+add_executable(test_bcs_transformation tests/bcs/test_bcs_transformation.cpp)
 target_link_libraries(test_bcs_transformation iop gtest_main)
 
 add_executable(test_serialization tests/snark/test_serialization.cpp)
