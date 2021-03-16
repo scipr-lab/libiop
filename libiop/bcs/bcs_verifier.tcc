@@ -38,8 +38,9 @@ void bcs_verifier<FieldT, hash_digest_type>::seal_interaction_registrations()
     enter_block("verifier_seal_interaction_registrations");
     bcs_protocol<FieldT, hash_digest_type>::seal_interaction_registrations();
 
+    this->transcript_is_valid_ = true;
+
     std::size_t processed_MTs = 0;
-    std::vector<size_t> MT_index_to_round;
     for (std::size_t round = 0; round < this->num_interaction_rounds_; ++round)
     {
         /* Update the pseudorandom state for the oracle messages. */
@@ -57,19 +58,35 @@ void bcs_verifier<FieldT, hash_digest_type>::seal_interaction_registrations()
             }
         }
 
-        /* Absorb MT roots */
-        for (int i = 0; i < num_oracles; i++)
-        {
-            /* We aren't using the oracles at this point, but we know that
-               one MT root corresponds to each oracle in this round. */
-            MT_index_to_round.emplace_back(round);
-        }
-
+        /* Absorb MT roots into hashchain. */
         const std::vector<hash_digest_type> MT_roots_for_round(
             this->transcript_.MT_roots_.cbegin() + processed_MTs,
             this->transcript_.MT_roots_.cbegin() + processed_MTs + num_oracles);
         this->run_hashchain_for_round(round, MT_roots_for_round, this->transcript_.prover_messages_);
-        processed_MTs += num_oracles;
+
+        /* Validate all MT queries relative to the transcript. */
+        for (std::size_t i = 0; i < num_oracles; i++)
+        {
+            const auto &root = this->transcript_.MT_roots_[processed_MTs];
+            std::vector<std::size_t> &query_positions = this->transcript_.query_positions_[processed_MTs];
+            std::vector<std::size_t> &MT_leaf_positions = this->transcript_.MT_leaf_positions_[processed_MTs];
+            std::vector<std::vector<FieldT> > &query_responses = this->transcript_.query_responses_[processed_MTs];
+            const auto &proof = this->transcript_.MT_set_membership_proofs_[processed_MTs];
+
+            // Step 1) serialize query responses into leafs
+            std::vector<std::vector< FieldT> > MT_leaf_columns =
+                this->query_responses_to_MT_leaf_responses(query_positions, query_responses, round);
+
+            // Step 2) validate proof
+            const bool proof_is_valid = this->Merkle_trees_[processed_MTs]
+                .validate_set_membership_proof(root, MT_leaf_positions, MT_leaf_columns, proof);
+
+            if (!proof_is_valid)
+            {
+                this->transcript_is_valid_ = false;
+            }
+            processed_MTs++;
+        }
     }
 
     /* Check proof of work */
@@ -80,36 +97,6 @@ void bcs_verifier<FieldT, hash_digest_type>::seal_interaction_registrations()
     {
         printf("Invalid pow\n");
         this->transcript_is_valid_ = false;
-    }
-
-    /* Validate all MT queries relative to the transcript. */
-    this->transcript_is_valid_ = true;
-
-    for (std::size_t MT_idx = 0; MT_idx < this->transcript_.MT_roots_.size(); ++MT_idx)
-    {
-        auto &root = this->transcript_.MT_roots_[MT_idx];
-        std::vector<std::size_t> &query_positions = this->transcript_.query_positions_[MT_idx];
-        std::vector<std::size_t> &MT_leaf_positions = this->transcript_.MT_leaf_positions_[MT_idx];
-        std::vector<std::vector<FieldT> > &query_responses = this->transcript_.query_responses_[MT_idx];
-        auto &proof = this->transcript_.MT_set_membership_proofs_[MT_idx];
-
-        // Step 1) serialize query responses into leafs
-        std::vector<std::vector< FieldT> > MT_leaf_columns =
-            this->query_responses_to_MT_leaf_responses(query_positions,
-                                                       query_responses,
-                                                       MT_index_to_round[MT_idx]);
-
-        // Step 2) validate proof
-        const bool proof_is_valid = this->Merkle_trees_[MT_idx].validate_set_membership_proof(
-            root,
-            MT_leaf_positions,
-            MT_leaf_columns,
-            proof);
-
-        if (!proof_is_valid)
-        {
-            this->transcript_is_valid_ = false;
-        }
     }
 
     /* Finally populate things for obtaining query responses */

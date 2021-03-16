@@ -85,7 +85,7 @@ void bcs_prover<FieldT, MT_hash_type>::run_hashchain_for_round()
     const std::size_t num_oracles = this->num_oracles_in_round(ended_round);
 
     std::vector<MT_hash_type> MT_roots;
-    for (int i = 0; i < num_oracles; i++)
+    for (std::size_t i = 0; i < num_oracles; i++)
     {
         /* MT is already created for the prover. */
         MT_roots.push_back(MT_hash_type(this->Merkle_trees_[this->processed_MTs_].get_root()));
