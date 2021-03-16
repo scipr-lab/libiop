@@ -436,6 +436,7 @@ protected:
     std::size_t min_oracle_id(const std::size_t round) const;
     std::size_t max_oracle_id(const std::size_t round) const;
     domain_to_oracles_map oracles_in_round(const std::size_t round) const;
+    std::size_t num_oracles_in_round(const std::size_t round) const;
 
     std::map<std::size_t, std::set<std::size_t> > oracle_id_to_query_positions_; /* HACK */
 };

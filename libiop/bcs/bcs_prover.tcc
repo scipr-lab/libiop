@@ -35,23 +35,18 @@ void bcs_prover<FieldT, MT_hash_type>::signal_prover_round_done()
      */
     for (auto &kv : mapping)
     {
-        std::vector<std::shared_ptr<std::vector<FieldT>>> all_evaluated_contents;
-        for (auto &v : kv.second)
+        std::vector<std::shared_ptr<std::vector<FieldT>>> all_oracle_evaluated_contents;
+        for (auto &v : kv.second) // kv.second is the oracle handlex.
         {
-            all_evaluated_contents.emplace_back(this->oracles_[v.id()].evaluated_contents());
+            all_oracle_evaluated_contents.emplace_back(this->oracles_[v.id()].evaluated_contents());
         }
         enter_block("Construct Merkle tree");
         this->Merkle_trees_[this->processed_MTs_].construct_with_leaves_serialized_by_cosets(
-            all_evaluated_contents, round_params.quotient_map_size_);
+            all_oracle_evaluated_contents, round_params.quotient_map_size_);
         leave_block("Construct Merkle tree");
-        this->hashchain_->absorb(
-            MT_hash_type(this->Merkle_trees_[this->processed_MTs_].get_root()));
-
-        ++this->processed_MTs_;
     }
 
-    this->absorb_prover_messages(ended_round, this->prover_messages_);
-    this->squeeze_verifier_random_messages(ended_round);
+    this->run_hashchain_for_round();
 
     leave_block("Finish prover round");
     enter_block("pow");
@@ -78,21 +73,27 @@ void bcs_prover<FieldT, MT_hash_type>::signal_index_submissions_done()
         throw std::invalid_argument("Didn't provide prover index to BCS prover");
     }
     iop_protocol<FieldT>::signal_prover_round_done();
-    std::size_t ended_round = this->num_prover_rounds_done_-1;
-    const domain_to_oracles_map mapping = this->oracles_in_round(ended_round);
 
-    /* First, go through all the oracle messages in this round and
-       fill in the merkle tree from the index. */
-    for (auto &kv : mapping)
+    /* The Merkle trees are already filled in by the preprocessor. */
+    this->run_hashchain_for_round();
+}
+
+template<typename FieldT, typename MT_hash_type>
+void bcs_prover<FieldT, MT_hash_type>::run_hashchain_for_round()
+{
+    const std::size_t ended_round = this->num_prover_rounds_done_ - 1;
+    const std::size_t num_oracles = this->num_oracles_in_round(ended_round);
+
+    std::vector<MT_hash_type> MT_roots;
+    for (int i = 0; i < num_oracles; i++)
     {
-        /* MT is already created for the prover */
-        this->hashchain_->absorb(
-            MT_hash_type(this->Merkle_trees_[this->processed_MTs_].get_root()));
-        ++this->processed_MTs_;
+        /* MT is already created for the prover. */
+        MT_roots.push_back(MT_hash_type(this->Merkle_trees_[this->processed_MTs_].get_root()));
+        this->processed_MTs_++;
     }
 
-    this->absorb_prover_messages(ended_round, this->prover_messages_);
-    this->squeeze_verifier_random_messages(ended_round);
+    bcs_protocol<FieldT, MT_hash_type>::run_hashchain_for_round(
+        ended_round, MT_roots, this->prover_messages_);
 }
 
 /* Each "random" verifier message is deterministically constructed from the previous

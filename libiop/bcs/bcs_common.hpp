@@ -157,6 +157,11 @@ protected:
     virtual std::size_t obtain_random_query_position(const random_query_position_handle &position);
 
     void register_proof_of_work();
+    /** Updates the hashchain for one round in place at this->hashchain_. Takes in the round number,
+     *  a vector of Merkle tree roots for this round ONLY, and a vector of ALL prover messages. */
+    void run_hashchain_for_round(const std::size_t round,
+                                 const std::vector<MT_hash_type> round_MT_roots,
+                                 const std::vector<std::vector<FieldT> > prover_messages);
     void absorb_prover_messages(const size_t round,
                                 const std::vector<std::vector<FieldT>> &all_prover_messages);
     void squeeze_verifier_random_messages(const size_t ended_round);

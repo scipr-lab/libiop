@@ -43,10 +43,10 @@ void bcs_verifier<FieldT, hash_digest_type>::seal_interaction_registrations()
     for (std::size_t round = 0; round < this->num_interaction_rounds_; ++round)
     {
         /* Update the pseudorandom state for the oracle messages. */
-        const domain_to_oracles_map mapping = this->oracles_in_round(round);
+        const std::size_t num_oracles = this->num_oracles_in_round(round);
         if (this->is_preprocessing_ && round == 0)
         {
-            if (mapping.size() != this->index_.index_MT_roots_.size())
+            if (num_oracles != this->index_.index_MT_roots_.size())
             {
                 throw std::invalid_argument("Index had an incorrect number of MT roots");
             }
@@ -58,18 +58,18 @@ void bcs_verifier<FieldT, hash_digest_type>::seal_interaction_registrations()
         }
 
         /* Absorb MT roots */
-        for (auto &kv : mapping)
+        for (int i = 0; i < num_oracles; i++)
         {
-            MT_index_to_round.emplace_back(round);
             /* We aren't using the oracles at this point, but we know that
                one MT root corresponds to each oracle in this round. */
-            UNUSED(kv);
-            this->hashchain_->absorb(this->transcript_.MT_roots_[processed_MTs++]);
+            MT_index_to_round.emplace_back(round);
         }
 
-        /* Add the prover message hash as a "root" and update the pseudorandom state */
-        this->absorb_prover_messages(round, this->transcript_.prover_messages_);
-        this->squeeze_verifier_random_messages(round);
+        const std::vector<hash_digest_type> MT_roots_for_round(
+            this->transcript_.MT_roots_.cbegin() + processed_MTs,
+            this->transcript_.MT_roots_.cbegin() + processed_MTs + num_oracles);
+        this->run_hashchain_for_round(round, MT_roots_for_round, this->transcript_.prover_messages_);
+        processed_MTs += num_oracles;
     }
 
     /* Check proof of work */

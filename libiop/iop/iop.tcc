@@ -819,4 +819,10 @@ domain_to_oracles_map iop_protocol<FieldT>::oracles_in_round(const std::size_t r
     return mapping;
 }
 
+template<typename FieldT>
+std::size_t iop_protocol<FieldT>::num_oracles_in_round(const std::size_t round) const
+{
+    return this->oracles_in_round(round).size();
+}
+
 } // namespace libiop
