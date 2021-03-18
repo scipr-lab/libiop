@@ -36,7 +36,7 @@ void bcs_prover<FieldT, MT_hash_type>::signal_prover_round_done()
     for (auto &kv : mapping)
     {
         std::vector<std::shared_ptr<std::vector<FieldT>>> all_oracle_evaluated_contents;
-        for (auto &v : kv.second) // kv.second is the oracle handlex.
+        for (auto &v : kv.second) // kv.second is a vector of all oracle handles over this domain from this round.
         {
             all_oracle_evaluated_contents.emplace_back(this->oracles_[v.id()].evaluated_contents());
         }
