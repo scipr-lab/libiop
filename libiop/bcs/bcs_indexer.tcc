@@ -24,7 +24,7 @@ void bcs_indexer<FieldT, MT_hash_type>::signal_index_submissions_done()
     {
         throw std::invalid_argument("Index submissions should be round 0");
     }
-    const domain_to_oracles_map mapping = this->oracles_in_round(ended_round);
+    const domain_to_oracles_map mapping = this->oracles_in_round_by_domain(ended_round);
     const round_parameters<FieldT> round_params = this->get_round_parameters(ended_round);
 
     /* First, go through all the oracle messages in this round and

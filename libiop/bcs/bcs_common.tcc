@@ -437,7 +437,7 @@ void bcs_protocol<FieldT, MT_root_hash>::seal_interaction_registrations()
        many messages there are, so we can prepare the Merkle trees. */
     for (std::size_t round = 0; round < this->num_interaction_rounds_; ++round)
     {
-        const domain_to_oracles_map mapping = this->oracles_in_round(round);
+        const domain_to_oracles_map mapping = this->oracles_in_round_by_domain(round);
         const round_parameters<FieldT> round_params = this->get_round_parameters(round);
 
         /* Don't double instantiate holographic MTs in the prover */

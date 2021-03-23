@@ -158,7 +158,9 @@ protected:
 
     void register_proof_of_work();
     /** Updates the hashchain for one round in place at this->hashchain_. Takes in the round number,
-     *  a vector of Merkle tree roots for this round ONLY, and a vector of ALL prover messages. */
+     *  a vector of Merkle tree roots for this round ONLY, and a vector of ALL prover messages.
+     *  Note that each domain per round contains one Merkle tree containing all the oracles in this
+     *  domain. */
     void run_hashchain_for_round(const std::size_t round,
                                  const std::vector<MT_hash_type> round_MT_roots,
                                  const std::vector<std::vector<FieldT> > prover_messages);

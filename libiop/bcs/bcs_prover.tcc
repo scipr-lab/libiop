@@ -26,7 +26,7 @@ void bcs_prover<FieldT, MT_hash_type>::signal_prover_round_done()
     enter_block("Finish prover round");
     iop_protocol<FieldT>::signal_prover_round_done();
     std::size_t ended_round = this->num_prover_rounds_done_-1;
-    const domain_to_oracles_map mapping = this->oracles_in_round(ended_round);
+    const domain_to_oracles_map mapping = this->oracles_in_round_by_domain(ended_round);
     const round_parameters<FieldT> round_params = this->get_round_parameters(ended_round);
 
     /* First, go through all the oracle messages in this round and
@@ -82,12 +82,13 @@ template<typename FieldT, typename MT_hash_type>
 void bcs_prover<FieldT, MT_hash_type>::run_hashchain_for_round()
 {
     const std::size_t ended_round = this->num_prover_rounds_done_ - 1;
-    const std::size_t num_oracles = this->num_oracles_in_round(ended_round);
+    const std::size_t num_domains = this->num_domains_in_round(ended_round);
 
     std::vector<MT_hash_type> MT_roots;
-    for (std::size_t i = 0; i < num_oracles; i++)
+    for (std::size_t i = 0; i < num_domains; i++)
     {
-        /* MT is already created for the prover. */
+        /* MT is already created for the prover.
+           Each domain has one Merkle tree containing all the oracles. */
         MT_roots.push_back(MT_hash_type(this->Merkle_trees_[this->processed_MTs_].get_root()));
         this->processed_MTs_++;
     }
@@ -167,7 +168,7 @@ bcs_transformation_transcript<FieldT, MT_hash_type>
     std::size_t MT_idx = 0;
     for (std::size_t round = 0; round < this->num_interaction_rounds_; ++round)
     {
-        const domain_to_oracles_map mapping = this->oracles_in_round(round);
+        const domain_to_oracles_map mapping = this->oracles_in_round_by_domain(round);
         const round_parameters<FieldT> round_params = this->get_round_parameters(round);
 
         /* Go over each oracle message in this round. */

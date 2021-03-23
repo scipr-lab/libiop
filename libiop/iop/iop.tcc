@@ -799,7 +799,7 @@ std::size_t iop_protocol<FieldT>::max_oracle_id(const std::size_t round) const
 }
 
 template<typename FieldT>
-domain_to_oracles_map iop_protocol<FieldT>::oracles_in_round(const std::size_t round) const
+domain_to_oracles_map iop_protocol<FieldT>::oracles_in_round_by_domain(const std::size_t round) const
 {
     if (round >= this->num_interaction_rounds_)
     {
@@ -820,9 +820,9 @@ domain_to_oracles_map iop_protocol<FieldT>::oracles_in_round(const std::size_t r
 }
 
 template<typename FieldT>
-std::size_t iop_protocol<FieldT>::num_oracles_in_round(const std::size_t round) const
+std::size_t iop_protocol<FieldT>::num_domains_in_round(const std::size_t round) const
 {
-    return this->oracles_in_round(round).size();
+    return this->oracles_in_round_by_domain(round).size();
 }
 
 } // namespace libiop

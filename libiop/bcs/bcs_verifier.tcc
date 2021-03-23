@@ -40,14 +40,14 @@ void bcs_verifier<FieldT, hash_digest_type>::seal_interaction_registrations()
 
     this->transcript_is_valid_ = true;
 
-    std::size_t processed_MTs = 0;
+    std::size_t processed_MTs = 0; // Updated at end of loop.
     for (std::size_t round = 0; round < this->num_interaction_rounds_; ++round)
     {
         /* Update the pseudorandom state for the oracle messages. */
-        const std::size_t num_oracles = this->num_oracles_in_round(round);
+        const std::size_t num_domains = this->num_domains_in_round(round);
         if (this->is_preprocessing_ && round == 0)
         {
-            if (num_oracles != this->index_.index_MT_roots_.size())
+            if (num_domains != this->index_.index_MT_roots_.size())
             {
                 throw std::invalid_argument("Index had an incorrect number of MT roots");
             }
@@ -59,13 +59,14 @@ void bcs_verifier<FieldT, hash_digest_type>::seal_interaction_registrations()
         }
 
         /* Absorb MT roots into hashchain. */
+        // Each domain has one Merkle tree containing all the oracles.
         const std::vector<hash_digest_type> MT_roots_for_round(
             this->transcript_.MT_roots_.cbegin() + processed_MTs,
-            this->transcript_.MT_roots_.cbegin() + processed_MTs + num_oracles);
+            this->transcript_.MT_roots_.cbegin() + processed_MTs + num_domains);
         this->run_hashchain_for_round(round, MT_roots_for_round, this->transcript_.prover_messages_);
 
         /* Validate all MT queries relative to the transcript. */
-        for (std::size_t i = 0; i < num_oracles; i++)
+        for (std::size_t i = 0; i < num_domains; i++)
         {
             const auto &root = this->transcript_.MT_roots_[processed_MTs];
             std::vector<std::size_t> &query_positions = this->transcript_.query_positions_[processed_MTs];
@@ -110,7 +111,7 @@ void bcs_verifier<FieldT, MT_hash_type>::parse_query_responses_from_transcript()
     std::size_t processed_MTs = 0;
     for (std::size_t round = 0; round < this->num_interaction_rounds_; ++round)
     {
-        const domain_to_oracles_map mapping = this->oracles_in_round(round);
+        const domain_to_oracles_map mapping = this->oracles_in_round_by_domain(round);
         const round_parameters<FieldT> round_params = this->get_round_parameters(round);
 
         /* For each oracle, pick out positions and values from the transcript
