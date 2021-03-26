@@ -35,3 +35,5 @@ gmock_main.pc
 gtest.pcz
 gtest_main.pc
 gtest.pc
+DartConfiguration.tcl
+.DartConfiguration.tcl.swp

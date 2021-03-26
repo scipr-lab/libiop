@@ -99,6 +99,8 @@ target_link_libraries(instrument_algebra iop ${Boost_LIBRARIES})
 
 # TESTS
 
+include(CTest)
+
 # algebra
 add_executable(test_common tests/algebra/test_common.cpp)
 target_link_libraries(test_common iop gtest_main)
@@ -148,12 +150,86 @@ target_link_libraries(test_successor_ordering iop gtest_main)
 add_executable(test_algebra_utils tests/algebra/test_algebra_utils.cpp)
 target_link_libraries(test_algebra_utils iop gtest_main)
 
+add_test(
+  NAME test_common
+  COMMAND test_common
+)
+add_test(
+  NAME test_exponentiation
+  COMMAND test_exponentiation
+)
+add_test(
+  NAME test_fft
+  COMMAND test_fft
+)
+add_test(
+  NAME test_gf32
+  COMMAND test_gf32
+)
+add_test(
+  NAME test_gf64
+  COMMAND test_gf64
+)
+add_test(
+  NAME test_gf128
+  COMMAND test_gf128
+)
+add_test(
+  NAME test_gf192
+  COMMAND test_gf192
+)
+add_test(
+  NAME test_gf256
+  COMMAND test_gf256
+)
+add_test(
+  NAME test_lagrange
+  COMMAND test_lagrange
+)
+add_test(
+  NAME test_merkle_tree
+  COMMAND test_merkle_tree
+)
+add_test(
+  NAME test_linearized_polynomial
+  COMMAND test_linearized_polynomial
+)
+add_test(
+  NAME test_vanishing_polynomial
+  COMMAND test_vanishing_polynomial
+)
+add_test(
+  NAME test_lagrange_polynomial
+  COMMAND test_lagrange_polynomial
+)
+add_test(
+  NAME test_bivariate_embedding
+  COMMAND test_bivariate_embedding
+)
+add_test(
+  NAME test_successor_ordering
+  COMMAND test_successor_ordering
+)
+add_test(
+  NAME test_algebra_utils
+  COMMAND test_algebra_utils
+)
+
 # iop
 add_executable(test_iop tests/iop/test_iop.cpp)
 target_link_libraries(test_iop iop gtest_main)
 
 add_executable(test_iop_query_position tests/iop/test_iop_query_position.cpp)
 target_link_libraries(test_iop_query_position iop gtest_main)
+
+add_test(
+  NAME test_iop
+  COMMAND test_iop
+)
+add_test(
+  NAME test_iop_query_position
+  COMMAND test_iop_query_position
+)
 
 # protocols
 add_executable(test_aurora_protocol tests/protocols/test_aurora_protocol.cpp)
@@ -216,6 +292,87 @@ target_link_libraries(test_rational_sumcheck iop gtest_main)
 add_executable(test_rowcheck tests/protocols/test_rowcheck.cpp)
 target_link_libraries(test_rowcheck iop gtest_main)
 
+add_test(
+  NAME test_aurora_protocol
+  COMMAND test_aurora_protocol
+)
+add_test(
+  NAME test_r1cs_to_lincheck_reduction
+  COMMAND test_r1cs_to_lincheck_reduction
+)
+add_test(
+  NAME test_basic_lincheck
+  COMMAND test_basic_lincheck
+)
+add_test(
+  NAME test_boundary_constraint
+  COMMAND test_boundary_constraint
+)
+add_test(
+  NAME test_holographic_lincheck
+  COMMAND test_holographic_lincheck
+)
+add_test(
+  NAME test_sumcheck
+  COMMAND test_sumcheck
+)
+add_test(
+  NAME test_direct_ldt
+  COMMAND test_direct_ldt
+)
+add_test(
+  NAME test_fri
+  COMMAND test_fri
+)
+add_test(
+  NAME test_fri_aux
+  COMMAND test_fri_aux
+)
+add_test(
+  NAME test_fri_optimizer
+  COMMAND test_fri_optimizer
+)
+add_test(
+  NAME test_fractal_protocol
+  COMMAND test_fractal_protocol
+)
+add_test(
+  NAME test_ligero_interleaved_lincheck_et
+  COMMAND test_ligero_interleaved_lincheck_et
+)
+add_test(
+  NAME test_ligero_interleaved_lincheck_ot
+  COMMAND test_ligero_interleaved_lincheck_ot
+)
+add_test(
+  NAME test_ligero_protocol
+  COMMAND test_ligero_protocol
+)
+add_test(
+  NAME test_ligero_interleaved_rowcheck
+  COMMAND test_ligero_interleaved_rowcheck
+)
+add_test(
+  NAME test_ldt_reducer
+  COMMAND test_ldt_reducer
+)
+add_test(
+  NAME test_fractal_indexer
+  COMMAND test_fractal_indexer
+)
+add_test(
+  NAME test_rational_linear_combination
+  COMMAND test_rational_linear_combination
+)
+add_test(
+  NAME test_rational_sumcheck
+  COMMAND test_rational_sumcheck
+)
+add_test(
+  NAME test_rowcheck
+  COMMAND test_rowcheck
+)
+
 # relations
 
 add_executable(test_r1cs tests/relations/test_r1cs.cpp)
@@ -223,6 +380,15 @@ target_link_libraries(test_r1cs iop gtest_main)
 
 add_executable(test_identity_matrices tests/relations/test_identity_matrices.cpp)
 target_link_libraries(test_identity_matrices iop gtest_main)
+
+add_test(
+  NAME test_r1cs
+  COMMAND test_r1cs
+)
+add_test(
+  NAME test_identity_matrices
+  COMMAND test_identity_matrices
+)
 
 # snark
 
@@ -249,3 +415,36 @@ target_link_libraries(test_ligero_snark iop gtest_main)
 
 add_executable(test_linking tests/snark/test_linking.cpp)
 target_link_libraries(test_linking iop gtest_main)
+
+add_test(
+  NAME test_poseidon
+  COMMAND test_poseidon
+)
+add_test(
+  NAME test_pow
+  COMMAND test_pow
+)
+add_test(
+  NAME test_bcs_transformation
+  COMMAND test_bcs_transformation
+)
+add_test(
+  NAME test_serialization
+  COMMAND test_serialization
+)
+add_test(
+  NAME test_aurora_snark
+  COMMAND test_aurora_snark
+)
+add_test(
+  NAME test_fractal_snark
+  COMMAND test_fractal_snark
+)
+add_test(
+  NAME test_ligero_snark
+  COMMAND test_ligero_snark
+)
+add_test(
+  NAME test_linking
+  COMMAND test_linking
+)
