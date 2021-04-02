@@ -150,6 +150,8 @@ For example, to run all of the tests for the Aurora protocol, do the following:
 	$ ./test_aurora_protocol
 ```
 
+To run all tests at once, run `make check`.
+
 ## Profiling
 
 The folder [`libiop/profiling`](libiop/profiling) contains tooling to produce protocol execution traces with timing and argument size information. These traces are all for a single threaded environment.
