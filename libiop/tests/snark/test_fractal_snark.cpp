@@ -2,7 +2,7 @@
 
 #include <gtest/gtest.h>
 
-#include "libiop/algebra/fields/gf64.hpp"
+#include "libff/algebra/fields/binary/gf64.hpp"
 #include "libiop/snark/fractal_snark.hpp"
 #include "libiop/relations/examples/r1cs_examples.hpp"
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>

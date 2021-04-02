@@ -110,9 +110,9 @@ std::shared_ptr<std::vector<FieldT>> combined_LDT_virtual_oracle<FieldT>::evalua
             /* cur_bump_factor = r_{shifted index} * elem^shift */
             const size_t shift = this->max_degree_ - this->input_oracle_degrees_[submaximal_oracle_index];
             FieldT cur_bump_factor = this->coefficients_[this->num_input_oracles_ + i] *
-                libiop::power(this->codeword_domain_.shift(), shift);
+                libff::power(this->codeword_domain_.shift(), shift);
             const FieldT bump_factor_inc =
-                libiop::power(this->codeword_domain_.generator(), shift);
+                libff::power(this->codeword_domain_.generator(), shift);
 
             for (std::size_t j = 0; j < result->size(); ++j)
             {
@@ -157,7 +157,7 @@ FieldT combined_LDT_virtual_oracle<FieldT>::evaluation_at_point(
 
         /* Raise each element in the codeword domain to the power of the degree difference. */
         const FieldT bump_factor =
-            libiop::power(evaluation_point,
+            libff::power(evaluation_point,
                             this->max_degree_ - this->input_oracle_degrees_[submaximal_oracle_index]);
 
         result += this->coefficients_[this->num_input_oracles_ + i] *

@@ -144,7 +144,7 @@ public:
              */
 
             return (f_at_x
-                - this->eps_inv_times_claimed_sum_ * libiop::power(evaluation_point, this->summation_domain_.num_elements() - 1)
+                - this->eps_inv_times_claimed_sum_ * libff::power(evaluation_point, this->summation_domain_.num_elements() - 1)
                 - Z_at_x * h_at_x);
         } else if (this->field_subset_type_ == multiplicative_coset_type) {
             /** In the multiplicative case this is computing p'(x), where

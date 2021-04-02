@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 
-#include "libiop/algebra/fields/gf64.hpp"
+#include "libff/algebra/fields/binary/gf64.hpp"
 #include "libiop/common/common.hpp"
 #include "libiop/relations/r1cs.hpp"
 #include "libiop/relations/variable.hpp"

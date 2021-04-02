@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-#include "libiop/algebra/fields/gf64.hpp"
+#include "libff/algebra/fields/binary/gf64.hpp"
 #include "libiop/algebra/exponentiation.hpp"
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
 
@@ -29,7 +29,7 @@ std::vector<FieldT> domain_element_powers_naive(const field_subset<FieldT> &S,
 
     for (auto &el : S.all_elements())
     {
-        result.emplace_back(libiop::power(el, exponent));
+        result.emplace_back(libff::power(el, exponent));
     }
 
     return result;

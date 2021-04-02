@@ -40,11 +40,11 @@ class dummy_algebraic_hashchain : public hashchain<FieldT, MT_root_type>
         /* Needed for C++ polymorphism */
         std::shared_ptr<hashchain<FieldT, MT_root_type>> new_hashchain();
     protected:
-        void absorb_internal(const typename libiop::enable_if<std::is_same<MT_root_type, binary_hash_digest>::value, MT_root_type>::type new_input);
-        void absorb_internal(const typename libiop::enable_if<std::is_same<MT_root_type, FieldT>::value, MT_root_type>::type new_input);
+        void absorb_internal(const typename enable_if<std::is_same<MT_root_type, binary_hash_digest>::value, MT_root_type>::type new_input);
+        void absorb_internal(const typename enable_if<std::is_same<MT_root_type, FieldT>::value, MT_root_type>::type new_input);
 
-        MT_root_type squeeze_root_type_internal(const typename libiop::enable_if<std::is_same<MT_root_type, binary_hash_digest>::value, MT_root_type>::type dummy);
-        MT_root_type squeeze_root_type_internal(const typename libiop::enable_if<std::is_same<MT_root_type, FieldT>::value, MT_root_type>::type dummy);
+        MT_root_type squeeze_root_type_internal(const typename enable_if<std::is_same<MT_root_type, binary_hash_digest>::value, MT_root_type>::type dummy);
+        MT_root_type squeeze_root_type_internal(const typename enable_if<std::is_same<MT_root_type, FieldT>::value, MT_root_type>::type dummy);
 };
 
 template<typename FieldT>

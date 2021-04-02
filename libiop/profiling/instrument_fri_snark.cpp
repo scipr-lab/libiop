@@ -13,13 +13,14 @@
 #include "libff/algebra/curves/edwards/edwards_pp.hpp"
 #include "libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp"
 
-#include "libiop/algebra/fields/utils.hpp"
-#include "libiop/algebra/fft.hpp"
-#include "libiop/algebra/fields/gf64.hpp"
-#include "libiop/algebra/fields/gf128.hpp"
-#include "libiop/algebra/fields/gf192.hpp"
-#include "libiop/algebra/fields/gf256.hpp"
+#include "libiop/algebra/field_utils.hpp"
+#include "libff/algebra/fields/binary/gf64.hpp"
+#include "libff/algebra/fields/binary/gf128.hpp"
+#include "libff/algebra/fields/binary/gf192.hpp"
+#include "libff/algebra/fields/binary/gf256.hpp"
+
 #include "libiop/algebra/field_subset/subgroup.hpp"
+#include "libiop/algebra/fft.hpp"
 
 #include "libiop/common/common.hpp"
 #include "libiop/iop/iop.hpp"

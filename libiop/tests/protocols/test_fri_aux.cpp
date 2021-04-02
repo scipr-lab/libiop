@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-#include "libiop/algebra/fields/gf64.hpp"
+#include "libff/algebra/fields/binary/gf64.hpp"
 #include "libiop/protocols/ldt/fri/fri_aux.hpp"
 #include "libiop/algebra/field_subset/field_subset.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"

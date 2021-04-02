@@ -9,11 +9,11 @@
 #include <boost/program_options.hpp>
 #endif
 
-#include "libiop/algebra/fields/gf64.hpp"
-#include "libiop/algebra/fields/gf128.hpp"
-#include "libiop/algebra/fields/gf192.hpp"
-#include "libiop/algebra/fields/gf256.hpp"
-#include "libiop/algebra/fields/utils.hpp"
+#include "libff/algebra/fields/binary/gf64.hpp"
+#include "libff/algebra/fields/binary/gf128.hpp"
+#include "libff/algebra/fields/binary/gf192.hpp"
+#include "libff/algebra/fields/binary/gf256.hpp"
+#include "libiop/algebra/field_utils.hpp"
 
 
 #include "boost_profile.cpp"

@@ -21,7 +21,7 @@ void lagrange_cache<FieldT>::construct_internal(const multiplicative_coset<Field
     // cache inverted evaluations of v
     const size_t m = domain.num_elements();
     const FieldT g_inv = domain.generator().inverse();
-    FieldT v_inv_i = FieldT(m) * libiop::power(domain.shift(), m - 1);
+    FieldT v_inv_i = FieldT(m) * libff::power(domain.shift(), m - 1);
     this->v_inv_.reserve(m);
     for (std::size_t i = 0; i < m; i++) {
         this->v_inv_.emplace_back(v_inv_i);
@@ -109,7 +109,7 @@ std::vector<FieldT> lagrange_cache<FieldT>::coset_coefficients_for(
     const size_t m = this->domain_.num_elements();
     std::vector<FieldT> result;
     result.reserve(m);
-    const FieldT x_to_m = libiop::power(interpolation_point, m);
+    const FieldT x_to_m = libff::power(interpolation_point, m);
     const FieldT Z_x = x_to_m + this->vp_.constant_coefficient();
     // Check the easy case
     if (this->interpolation_domain_intersects_domain_ && Z_x == FieldT::zero()) {
@@ -197,8 +197,8 @@ std::vector<FieldT> lagrange_coefficients(const multiplicative_coset<FieldT> &do
      TODO: explain deriviation more step by step
      */
 
-    const FieldT Z_x = libiop::power(interpolation_point, m) - libiop::power(h, m);
-    FieldT l = Z_x.inverse() * FieldT(m) * libiop::power(h, m - 1);
+    const FieldT Z_x = libff::power(interpolation_point, m) - libff::power(h, m);
+    FieldT l = Z_x.inverse() * FieldT(m) * libff::power(h, m - 1);
     FieldT r = h;
     for (size_t i = 0; i < m; ++i)
     {

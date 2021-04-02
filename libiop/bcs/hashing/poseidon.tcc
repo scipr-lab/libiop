@@ -1,4 +1,4 @@
-#include "libiop/algebra/fields/utils.hpp"
+#include "libiop/algebra/field_utils.hpp"
 #include "libiop/algebra/exponentiation.hpp"
 #include "libiop/bcs/hashing/algebraic_sponge.hpp"
 #include "libiop/common/profiling.hpp"
@@ -186,7 +186,7 @@ FieldT poseidon<FieldT>::raise_to_alpha(const FieldT x) const
     }
     else
     {
-        return libiop::power(x, this->params_.alpha_);
+        return libff::power(x, this->params_.alpha_);
     }
     
 }

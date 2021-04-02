@@ -11,7 +11,7 @@ FRI interfaces.
 #include <algorithm>
 #include <functional>
 
-#include "libiop/algebra/fields/utils.hpp"
+#include "libiop/algebra/field_utils.hpp"
 #include "libiop/algebra/field_subset/subgroup.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
 #include "libiop/algebra/polynomials/vanishing_polynomial.hpp"

@@ -60,30 +60,30 @@ std::vector<FieldT> multiplicative_IFFT_wrapper(const std::vector<FieldT> &v,
                                                 const multiplicative_coset<FieldT> &H);
 
 template<typename FieldT>
-std::vector<FieldT> FFT_over_field_subset(const std::vector<typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type> coeffs,
+std::vector<FieldT> FFT_over_field_subset(const std::vector<typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type> coeffs,
                                             field_subset<FieldT> domain);
 
 template<typename FieldT>
-std::vector<FieldT> FFT_over_field_subset(const std::vector<typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type> coeffs,
+std::vector<FieldT> FFT_over_field_subset(const std::vector<typename enable_if<is_additive<FieldT>::value, FieldT>::type> coeffs,
                                             field_subset<FieldT> domain);
 
 template<typename FieldT>
-std::vector<FieldT> IFFT_over_field_subset(const std::vector<typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type> evals,
+std::vector<FieldT> IFFT_over_field_subset(const std::vector<typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type> evals,
                                              field_subset<FieldT> domain);
 
 template<typename FieldT>
-std::vector<FieldT> IFFT_over_field_subset(const std::vector<typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type> evals,
+std::vector<FieldT> IFFT_over_field_subset(const std::vector<typename enable_if<is_additive<FieldT>::value, FieldT>::type> evals,
                                              field_subset<FieldT> domain);
 
 template<typename FieldT>
 std::vector<FieldT> IFFT_of_known_degree_over_field_subset(
-    const std::vector<typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type> evals,
+    const std::vector<typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type> evals,
     size_t degree_bound,
     field_subset<FieldT> domain);
 
 template<typename FieldT>
 std::vector<FieldT> IFFT_of_known_degree_over_field_subset(
-    const std::vector<typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type> evals,
+    const std::vector<typename enable_if<is_additive<FieldT>::value, FieldT>::type> evals,
     size_t degree_bound,
     field_subset<FieldT> domain);
 

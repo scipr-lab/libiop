@@ -3,7 +3,7 @@
 #include <vector>
 #include <benchmark/benchmark.h>
 
-#include "libiop/algebra/fields/gf128.hpp"
+#include "libff/algebra/fields/binary/gf128.hpp"
 #include "libiop/algebra/utils.hpp"
 
 namespace libiop {

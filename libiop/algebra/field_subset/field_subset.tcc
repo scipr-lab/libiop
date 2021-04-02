@@ -31,7 +31,7 @@ field_subset<FieldT>::field_subset(const multiplicative_coset<FieldT> coset) :
 
 template<typename FieldT>
 void field_subset<FieldT>::construct_internal(const std::size_t num_elements,
-                                              const typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type coset_shift)
+                                              const typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type coset_shift)
 {
     if (coset_shift == FieldT::zero()) {
         throw std::invalid_argument("coset_shift was supplied as 0, it was likely intended to be 1");
@@ -43,7 +43,7 @@ void field_subset<FieldT>::construct_internal(const std::size_t num_elements,
 
 template<typename FieldT>
 void field_subset<FieldT>::construct_internal(const std::size_t num_elements,
-                                              const typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type coset_shift)
+                                              const typename enable_if<is_additive<FieldT>::value, FieldT>::type coset_shift)
 {
     assert(is_power_of_2(num_elements));
     const std::size_t dimension = log2(num_elements);

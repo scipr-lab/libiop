@@ -6,7 +6,7 @@
 #include "libiop/common/profiling.hpp"
 
 #include <sodium/randombytes.h>
-#include "libiop/algebra/fields/utils.hpp"
+#include "libiop/algebra/field_utils.hpp"
 
 namespace libiop {
 
@@ -73,7 +73,7 @@ hash_digest_type pow<FieldT, hash_digest_type>::solve_pow(
 template<typename FieldT, typename hash_digest_type>
 hash_digest_type pow<FieldT, hash_digest_type>::solve_pow_internal(
     const two_to_one_hash_function<hash_digest_type> &node_hasher, 
-    const typename libiop::enable_if<std::is_same<hash_digest_type, FieldT>::value, hash_digest_type>::type challenge) const
+    const typename enable_if<std::is_same<hash_digest_type, FieldT>::value, hash_digest_type>::type challenge) const
 {
     FieldT pow = FieldT::zero();
     while (this->verify_pow(node_hasher, challenge, pow) == false)
@@ -86,7 +86,7 @@ hash_digest_type pow<FieldT, hash_digest_type>::solve_pow_internal(
 template<typename FieldT, typename hash_digest_type>
 hash_digest_type pow<FieldT, hash_digest_type>::solve_pow_internal(
     const two_to_one_hash_function<hash_digest_type> &node_hasher, 
-    const typename libiop::enable_if<std::is_same<hash_digest_type, binary_hash_digest>::value, hash_digest_type>::type challenge) const
+    const typename enable_if<std::is_same<hash_digest_type, binary_hash_digest>::value, hash_digest_type>::type challenge) const
 {
     binary_hash_digest pow;
     pow.assign(challenge);
@@ -128,7 +128,7 @@ void print_string_in_hex(const std::string& input)
 
 template<typename FieldT, typename hash_digest_type>
 bool pow<FieldT, hash_digest_type>::verify_pow_internal(
-    const typename libiop::enable_if<std::is_same<hash_digest_type, FieldT>::value, hash_digest_type>::type &hash) const
+    const typename enable_if<std::is_same<hash_digest_type, FieldT>::value, hash_digest_type>::type &hash) const
 {
     size_t least_significant_word = get_word_of_field_elem<FieldT>(hash, 0);
     size_t relevant_bits = least_significant_word & ((1 << this->parameters_.pow_bitlen()) - 1);
@@ -141,7 +141,7 @@ bool pow<FieldT, hash_digest_type>::verify_pow_internal(
 
 template<typename FieldT, typename hash_digest_type>
 bool pow<FieldT, hash_digest_type>::verify_pow_internal(
-    const typename libiop::enable_if<std::is_same<hash_digest_type, binary_hash_digest>::value, hash_digest_type>::type &hash) const
+    const typename enable_if<std::is_same<hash_digest_type, binary_hash_digest>::value, hash_digest_type>::type &hash) const
 {
     size_t num_words = hash.length() / sizeof(size_t);
     size_t least_significant_word;

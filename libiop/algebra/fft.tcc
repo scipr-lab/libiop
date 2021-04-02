@@ -3,7 +3,7 @@
 #include <libfqfft/evaluation_domain/domains/basic_radix2_domain.hpp>
 #include <libfqfft/evaluation_domain/domains/basic_radix2_domain_aux.hpp>
 
-#include "libiop/algebra/fields/utils.hpp"
+#include "libiop/algebra/field_utils.hpp"
 #include "libiop/algebra/utils.hpp"
 #include "libiop/common/profiling.hpp"
 
@@ -318,7 +318,7 @@ std::vector<FieldT> multiplicative_FFT_degree_aware(const std::vector<FieldT> &p
 
 template<typename FieldT>
 std::vector<FieldT> multiplicative_FFT_internal(
-    const std::vector<typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type> &poly_coeffs,
+    const std::vector<typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type> &poly_coeffs,
     const multiplicative_subgroup_base<FieldT> &domain, const FieldT shift)
 {
     assert(poly_coeffs.size() <= domain.num_elements());
@@ -327,7 +327,7 @@ std::vector<FieldT> multiplicative_FFT_internal(
 
 template<typename FieldT>
 std::vector<FieldT> multiplicative_FFT_internal(
-    const std::vector<typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type> &poly_coeffs,
+    const std::vector<typename enable_if<is_additive<FieldT>::value, FieldT>::type> &poly_coeffs,
     const multiplicative_subgroup_base<FieldT> &domain, const FieldT shift)
 {
     throw std::invalid_argument("attempting to perform multiplicative IFFT with non-multiplicative field type");
@@ -342,7 +342,7 @@ std::vector<FieldT> multiplicative_FFT(const std::vector<FieldT> &poly_coeffs,
 
 template<typename FieldT>
 std::vector<FieldT> multiplicative_IFFT_internal(
-    const std::vector<typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type> &evals,
+    const std::vector<typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type> &evals,
     const multiplicative_subgroup_base<FieldT> &domain, const FieldT shift)
 {
     assert(domain.num_elements() == evals.size());
@@ -362,7 +362,7 @@ std::vector<FieldT> multiplicative_IFFT_internal(
 
 template<typename FieldT>
 std::vector<FieldT> multiplicative_IFFT_internal(
-    const std::vector<typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type> &evals,
+    const std::vector<typename enable_if<is_additive<FieldT>::value, FieldT>::type> &evals,
     const multiplicative_subgroup_base<FieldT> &domain, const FieldT shift)
 {
     throw std::invalid_argument("attempting to perform multiplicative IFFT with non-multiplicative field type");
@@ -405,28 +405,28 @@ std::vector<FieldT> multiplicative_IFFT_wrapper(const std::vector<FieldT> &v,
 }
 
 template<typename FieldT>
-std::vector<FieldT> FFT_over_field_subset(const std::vector<typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type> coeffs,
+std::vector<FieldT> FFT_over_field_subset(const std::vector<typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type> coeffs,
                                           field_subset<FieldT> domain)
 {
     return multiplicative_FFT_wrapper<FieldT>(coeffs, domain.coset());
 }
 
 template<typename FieldT>
-std::vector<FieldT> FFT_over_field_subset(const std::vector<typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type> coeffs,
+std::vector<FieldT> FFT_over_field_subset(const std::vector<typename enable_if<is_additive<FieldT>::value, FieldT>::type> coeffs,
                                           field_subset<FieldT> domain)
 {
     return additive_FFT_wrapper<FieldT>(coeffs, domain.subspace());
 }
 
 template<typename FieldT>
-std::vector<FieldT> IFFT_over_field_subset(const std::vector<typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type> evals,
+std::vector<FieldT> IFFT_over_field_subset(const std::vector<typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type> evals,
                                            field_subset<FieldT> domain)
 {
     return multiplicative_IFFT_wrapper<FieldT>(evals, domain.coset());
 }
 
 template<typename FieldT>
-std::vector<FieldT> IFFT_over_field_subset(const std::vector<typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type> evals,
+std::vector<FieldT> IFFT_over_field_subset(const std::vector<typename enable_if<is_additive<FieldT>::value, FieldT>::type> evals,
                                            field_subset<FieldT> domain)
 {
     return additive_IFFT_wrapper<FieldT>(evals, domain.subspace());
@@ -434,7 +434,7 @@ std::vector<FieldT> IFFT_over_field_subset(const std::vector<typename libiop::en
 
 template<typename FieldT>
 std::vector<FieldT> IFFT_of_known_degree_over_field_subset(
-    const std::vector<typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type> evals,
+    const std::vector<typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type> evals,
     size_t degree,
     field_subset<FieldT> domain)
 {
@@ -457,7 +457,7 @@ std::vector<FieldT> IFFT_of_known_degree_over_field_subset(
 
 template<typename FieldT>
 std::vector<FieldT> IFFT_of_known_degree_over_field_subset(
-    const std::vector<typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type> evals,
+    const std::vector<typename enable_if<is_additive<FieldT>::value, FieldT>::type> evals,
     size_t degree,
     field_subset<FieldT> domain)
 {

@@ -4,7 +4,7 @@
 
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
-#include "libiop/algebra/fields/gf64.hpp"
+#include "libff/algebra/fields/binary/gf64.hpp"
 #include "libiop/relations/examples/r1cs_examples.hpp"
 #include "libiop/snark/ligero_snark.hpp"
 #include "libiop/bcs/common_bcs_parameters.hpp"

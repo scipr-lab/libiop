@@ -13,7 +13,7 @@
 #include <string>
 #include <type_traits>
 #include <vector>
-#include "libiop/algebra/fields/utils.hpp"
+#include "libiop/algebra/field_utils.hpp"
 #include "libiop/bcs/hashing/hashing.hpp"
 
 namespace libiop {
@@ -42,8 +42,8 @@ class blake2b_hashchain : public hashchain<FieldT, MT_root_type>
         std::shared_ptr<hashchain<FieldT, MT_root_type>> new_hashchain();
     protected:
         void absorb_hash_digest(const binary_hash_digest new_input);
-        void absorb_internal(const typename libiop::enable_if<std::is_same<MT_root_type, binary_hash_digest>::value, MT_root_type>::type new_input);
-        void absorb_internal(const typename libiop::enable_if<std::is_same<MT_root_type, FieldT>::value, MT_root_type>::type new_input);
+        void absorb_internal(const typename enable_if<std::is_same<MT_root_type, binary_hash_digest>::value, MT_root_type>::type new_input);
+        void absorb_internal(const typename enable_if<std::is_same<MT_root_type, FieldT>::value, MT_root_type>::type new_input);
 };
 
 template<typename FieldT>

@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <numeric>
 #include <set>
-#include <libff/algebra/fields/bigint.hpp>
+#include <libff/algebra/field_utils/bigint.hpp>
 
 #include "libiop/algebra/fft.hpp"
 #include "libiop/common/profiling.hpp"
@@ -308,8 +308,8 @@ std::istream& deserialize_size_t_vec_of_vec(
 
 template<typename FieldT, typename MT_hash_type>
 std::ostream& serialize_transcript_internal(
-    typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type,
-    typename libiop::enable_if<std::is_same<MT_hash_type, FieldT>::value, FieldT>::type,
+    typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type,
+    typename enable_if<std::is_same<MT_hash_type, FieldT>::value, FieldT>::type,
     std::ostream &out, const bcs_transformation_transcript<FieldT, MT_hash_type> &t)
 {
     // algebraic hash on multiplicative field
@@ -330,8 +330,8 @@ std::ostream& serialize_transcript_internal(
 
 template<typename FieldT, typename MT_hash_type>
 std::istream& deserialize_transcript_internal(
-    typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type,
-    typename libiop::enable_if<std::is_same<MT_hash_type, FieldT>::value, FieldT>::type,
+    typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type,
+    typename enable_if<std::is_same<MT_hash_type, FieldT>::value, FieldT>::type,
     std::istream &in, bcs_transformation_transcript<FieldT, MT_hash_type> &t)
 {
     // algebraic hash on multiplicative field
@@ -359,8 +359,8 @@ std::istream& deserialize_transcript_internal(
 
 template<typename FieldT, typename MT_hash_type>
 std::ostream& serialize_transcript_internal(
-    typename libiop::enable_if<!is_multiplicative<FieldT>::value, FieldT>::type,
-    typename libiop::enable_if<!std::is_same<MT_hash_type, FieldT>::value, FieldT>::type,
+    typename enable_if<!is_multiplicative<FieldT>::value, FieldT>::type,
+    typename enable_if<!std::is_same<MT_hash_type, FieldT>::value, FieldT>::type,
     std::ostream &out, const bcs_transformation_transcript<FieldT, MT_hash_type> &t)
 {
     printf("Serializing on binary fields or non-algebraic hashes is not implemented\n");
@@ -369,8 +369,8 @@ std::ostream& serialize_transcript_internal(
 
 template<typename FieldT, typename MT_hash_type>
 std::istream& deserialize_transcript_internal(
-    typename libiop::enable_if<!is_multiplicative<FieldT>::value, FieldT>::type,
-    typename libiop::enable_if<!std::is_same<MT_hash_type, FieldT>::value, FieldT>::type,
+    typename enable_if<!is_multiplicative<FieldT>::value, FieldT>::type,
+    typename enable_if<!std::is_same<MT_hash_type, FieldT>::value, FieldT>::type,
     std::istream &in, bcs_transformation_transcript<FieldT, MT_hash_type> &t)
 {
     printf("Deserializing on binary fields or non-algebraic hashes is not implemented\n");

@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-#include "libiop/algebra/fields/gf64.hpp"
+#include "libff/algebra/fields/binary/gf64.hpp"
 #include "libiop/protocols/ldt/fri/fri_aux.hpp"
 #include "libiop/protocols/ldt/fri/argument_size_optimizer.hpp"
 #include "libiop/snark/fri_snark.hpp"

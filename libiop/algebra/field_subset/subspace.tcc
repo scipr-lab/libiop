@@ -171,14 +171,14 @@ FieldT affine_subspace<FieldT>::element_by_index(const std::size_t index) const
 
 
 template<typename FieldT>
-bool internal_element_in_subset(const typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type x,
+bool internal_element_in_subset(const typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type x,
     FieldT shift, size_t dimension)
 {
     throw std::invalid_argument("subspace.element_in_subset() is only supported for binary fields");
 }
 
 template<typename FieldT>
-bool internal_element_in_subset(const typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type x,
+bool internal_element_in_subset(const typename enable_if<is_additive<FieldT>::value, FieldT>::type x,
     FieldT shift, size_t dimension)
 {
     /** TODO: Implement this case */
@@ -193,7 +193,7 @@ bool internal_element_in_subset(const typename libiop::enable_if<is_additive<Fie
      *  this corresponds to all but the first basis.dimension() bits being 0.
      *  (using little endian ordering)
     */
-    const std::vector<uint64_t> words = (x + shift).as_words();
+    const std::vector<uint64_t> words = (x + shift).to_words();
     /* Check that all but the least significant 64 bits are 0 */
     for (size_t i = 1; i < words.size(); i++)
     {

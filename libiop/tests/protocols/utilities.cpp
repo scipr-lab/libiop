@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 
-#include "libiop/algebra/fields/gf64.hpp"
+#include "libff/algebra/fields/binary/gf64.hpp"
 #include "libiop/algebra/field_subset/field_subset.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/iop/iop.hpp"

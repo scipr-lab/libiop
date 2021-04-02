@@ -21,7 +21,7 @@ FieldT localizer_polynomial<FieldT>::evaluation_at_point(const FieldT &eval_poin
     }
     else if (this->type_ == multiplicative_coset_type)
     {
-        return libiop::power(eval_point, this->degree_);
+        return libff::power(eval_point, this->degree_);
     }
     return FieldT::zero();
 }

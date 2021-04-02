@@ -4,9 +4,9 @@
 
 #include <gtest/gtest.h>
 
-#include "libiop/algebra/fields/gf64.hpp"
+#include "libff/algebra/fields/binary/gf64.hpp"
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include "libiop/algebra/fields/utils.hpp"
+#include "libiop/algebra/field_utils.hpp"
 #include "libiop/algebra/fft.hpp"
 #include "libiop/algebra/field_subset/subgroup.hpp"
 #include "libiop/common/common.hpp"
@@ -17,7 +17,7 @@ namespace libiop {
 
 template<typename FieldT>
 field_subset<FieldT> make_domain_helper(const std::size_t dimension,
-                                        const typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type elem)
+                                        const typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type elem)
 {
     libiop::UNUSED(elem); // only to identify field type
 
@@ -27,7 +27,7 @@ field_subset<FieldT> make_domain_helper(const std::size_t dimension,
 
 template<typename FieldT>
 field_subset<FieldT> make_domain_helper(const std::size_t dimension,
-                                        const typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type elem)
+                                        const typename enable_if<is_additive<FieldT>::value, FieldT>::type elem)
 {
     libiop::UNUSED(elem); // only to identify field type
 

@@ -120,7 +120,7 @@ additive_successor_polynomial<FieldT>::additive_successor_polynomial(const affin
      *      we need polynomials L_c, for c \in [0,1] such that L_c(cZ_{S'}(g^{i - 1} + affine_shift)) = 1,
      *      and L_c((1 - c)Z_{S'}(g^{i - 1} + affine_shift)) = 0. */
     const FieldT multiplicative_generator_to_i_minus_one =
-        libiop::power(this->multiplicative_generator_, domain.dimension() - 1) + this->subspace_.shift();
+        libff::power(this->multiplicative_generator_, domain.dimension() - 1) + this->subspace_.shift();
     this->Z_S_truncated_at_multiplicative_generator_to_i_minus_one_ =
         this->Z_S_truncated_.evaluation_at_point(multiplicative_generator_to_i_minus_one);
     /** L_0 is the degree 1 polynomial that is 1 when the argument is 0,
