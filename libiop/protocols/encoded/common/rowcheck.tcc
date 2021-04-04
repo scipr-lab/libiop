@@ -18,7 +18,7 @@ template<typename FieldT>
 std::shared_ptr<std::vector<FieldT>> rowcheck_ABC_virtual_oracle<FieldT>::evaluated_contents(
     const std::vector<std::shared_ptr<std::vector<FieldT>> > &constituent_oracle_evaluations) const
 {
-    enter_block("rowcheck evaluated contents");
+    libiop::enter_block("rowcheck evaluated contents");
     if (constituent_oracle_evaluations.size() != 3)
     {
         throw std::invalid_argument("rowcheck_ABC has three constituent oracles.");
@@ -82,7 +82,7 @@ std::shared_ptr<std::vector<FieldT>> rowcheck_ABC_virtual_oracle<FieldT>::evalua
             }
         }
     }
-    leave_block("rowcheck evaluated contents");
+    libiop::leave_block("rowcheck evaluated contents");
     return result;
 }
 
@@ -92,7 +92,7 @@ FieldT rowcheck_ABC_virtual_oracle<FieldT>::evaluation_at_point(
     const FieldT evaluation_point,
     const std::vector<FieldT> &constituent_oracle_evaluations) const
 {
-    UNUSED(evaluation_position);
+    libiop::UNUSED(evaluation_position);
 
     if (constituent_oracle_evaluations.size() != 3)
     {

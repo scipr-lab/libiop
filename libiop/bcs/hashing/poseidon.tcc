@@ -122,14 +122,14 @@ double poseidon_params<FieldT>::achieved_soundness() const
 template<typename FieldT>
 void poseidon_params<FieldT>::print() const
 {
-    print_indent(); printf("\nPoseidon parameters\n");
-    print_indent(); printf("* State size = %lu\n", this->state_size_);
-    print_indent(); printf("* Rate = %lu\n", this->rate_);
-    print_indent(); printf("* Capacity = %lu\n", this->capacity_);
-    print_indent(); printf("* Alpha = %lu\n", this->alpha_);
-    print_indent(); printf("* Full rounds = %lu\n", this->full_rounds_);
-    print_indent(); printf("* Partial rounds = %lu\n", this->partial_rounds_);
-    print_indent(); printf("* Achieved security = %f\n", this->achieved_soundness());
+    libiop::print_indent(); printf("\nPoseidon parameters\n");
+    libiop::print_indent(); printf("* State size = %lu\n", this->state_size_);
+    libiop::print_indent(); printf("* Rate = %lu\n", this->rate_);
+    libiop::print_indent(); printf("* Capacity = %lu\n", this->capacity_);
+    libiop::print_indent(); printf("* Alpha = %lu\n", this->alpha_);
+    libiop::print_indent(); printf("* Full rounds = %lu\n", this->full_rounds_);
+    libiop::print_indent(); printf("* Partial rounds = %lu\n", this->partial_rounds_);
+    libiop::print_indent(); printf("* Achieved security = %f\n", this->achieved_soundness());
 }
 
 template<typename FieldT>

@@ -11,7 +11,7 @@
 namespace libiop {
 
 TEST(BatchInverseTest, SimpleTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const std::size_t sz = 100;
     const std::vector<FieldT> vec = random_vector<FieldT>(sz);

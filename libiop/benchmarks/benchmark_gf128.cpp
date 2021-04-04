@@ -6,6 +6,8 @@
 #include "libff/algebra/fields/binary/gf128.hpp"
 #include "libiop/algebra/utils.hpp"
 
+using namespace libff;
+
 namespace libiop {
 
 static void BM_gf128_mul_vec(benchmark::State &state)

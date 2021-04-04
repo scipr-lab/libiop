@@ -216,7 +216,7 @@ bool interleaved_rowcheck_protocol<FieldT>::verifier_predicate()
         /* EQUALITY TEST: does the polynomial that was sent equal 0 over the entire systematic
            domain, as it should if the claimed statement is true? */
 
-        enter_block("Rowcheck: equality test (p_0 equals 0 within systematic domain)");
+        libiop::enter_block("Rowcheck: equality test (p_0 equals 0 within systematic domain)");
         std::vector<FieldT> response = this->IOP_.receive_prover_message(this->response_handles_[h]); // coefficients of p_0
         const std::vector<FieldT> evaluations = FFT_over_field_subset<FieldT>(response, this->extended_systematic_domain_);
         const polynomial<FieldT> response_poly(std::move(response));
@@ -228,9 +228,9 @@ bool interleaved_rowcheck_protocol<FieldT>::verifier_predicate()
             if (evaluations[idx] != FieldT(0))
             {
 #ifdef DEBUG
-                print_indent(); printf("For interactive repetition h = %zu and systematic domain location d = %zu,\n", h, d);
+                libiop::print_indent(); printf("For interactive repetition h = %zu and systematic domain location d = %zu,\n", h, d);
 
-                print_indent(); print_indent();
+                libiop::print_indent(); libiop::print_indent();
                 printf("polynomial value p_0(zeta_d) = ");
                 evaluations[idx].print();
                 printf(" != 0\n");
@@ -238,14 +238,14 @@ bool interleaved_rowcheck_protocol<FieldT>::verifier_predicate()
                 return false;
             }
         }
-        leave_block("Rowcheck: equality test (p_0 equals 0 within systematic domain)");
+        libiop::leave_block("Rowcheck: equality test (p_0 equals 0 within systematic domain)");
 
         const std::vector<FieldT> random_linear_combination =
             this->IOP_.obtain_verifier_random_message(this->random_linear_combination_handles_[h]);
 
         /* CONSISTENCY TEST: do the polynomial's values match those of the oracles? */
 
-        enter_block("Rowcheck: querying and performing consistency tests");
+        libiop::enter_block("Rowcheck: querying and performing consistency tests");
         for (size_t k = 0; k < this->num_queries_; ++k)
         {
             const random_query_position_handle this_position_handle = this->query_position_handles_[k];
@@ -272,14 +272,14 @@ bool interleaved_rowcheck_protocol<FieldT>::verifier_predicate()
             if (lhs != rhs)
             {
 #ifdef DEBUG
-                print_indent(); printf("For interactive repetition h = %zu and query location j = %zu,\n", h, j);
+                libiop::print_indent(); printf("For interactive repetition h = %zu and query location j = %zu,\n", h, j);
 
-                print_indent(); print_indent();
+                libiop::print_indent(); libiop::print_indent();
                 printf("[LHS] value from oracles sum_{i in [m]} r_i * [U^x_i,j * U^y_i,j - U^z_i,j] + u_h'[j] = ");
                 lhs.print();
                 printf("\n");
 
-                print_indent(); print_indent();
+                libiop::print_indent(); libiop::print_indent();
                 printf("[RHS] polynomial value p_0(eta_j) = ");
                 rhs.print();
                 printf("\n");
@@ -287,7 +287,7 @@ bool interleaved_rowcheck_protocol<FieldT>::verifier_predicate()
                 return false;
             }
         }
-        leave_block("Rowcheck: querying and performing consistency tests");
+        libiop::leave_block("Rowcheck: querying and performing consistency tests");
     }
 
     return true;

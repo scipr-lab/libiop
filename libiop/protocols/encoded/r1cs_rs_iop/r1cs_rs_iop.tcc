@@ -181,7 +181,7 @@ public:
     virtual std::shared_ptr<std::vector<FieldT>> evaluated_contents(
         const std::vector<std::shared_ptr<std::vector<FieldT>>> &constituent_oracle_evaluations) const
     {
-        enter_block("fz evaluated contents");
+        libiop::enter_block("fz evaluated contents");
         if (constituent_oracle_evaluations.size() != 1)
         {
             throw std::invalid_argument("fz_virtual_oracle has one constituent oracle.");
@@ -220,7 +220,7 @@ public:
             result->emplace_back(
                 fw->operator[](i) * input_vp_over_codeword_domain[i] + f_1v_over_codeword_domain[i]);
         }
-        leave_block("fz evaluated contents");
+        libiop::leave_block("fz evaluated contents");
 
         return result;
     }
@@ -230,7 +230,7 @@ public:
         const FieldT evaluation_point,
         const std::vector<FieldT> &constituent_oracle_evaluations) const
     {
-        UNUSED(evaluation_position);
+        libiop::UNUSED(evaluation_position);
 
         if (constituent_oracle_evaluations.size() != 1)
         {
@@ -485,7 +485,7 @@ void encoded_aurora_protocol<FieldT>::submit_witness_oracles(
 {
     this->fz_oracle_->set_primary_input(primary_input);
 
-    enter_block("Submit witness oracles");
+    libiop::enter_block("Submit witness oracles");
     if (this->params_.holographic())
     {
         this->holographic_multi_lincheck_->submit_sumcheck_masking_polynomials();
@@ -495,7 +495,7 @@ void encoded_aurora_protocol<FieldT>::submit_witness_oracles(
         this->multi_lincheck_->submit_sumcheck_masking_polynomials();
     }
 
-    enter_block("Compute randomized f_w");
+    libiop::enter_block("Compute randomized f_w");
     /* Randomization polynomials for the top-level R1CS protocol */
     if (this->params_.make_zk()) {
         this->R_Az_ = polynomial<FieldT>::random_polynomial(this->params_.query_bound());
@@ -567,7 +567,7 @@ void encoded_aurora_protocol<FieldT>::submit_witness_oracles(
     this->fw_over_codeword_domain_ =
         FFT_over_field_subset<FieldT>(fw_prime.coefficients(), this->codeword_domain_);
 
-    leave_block("Compute randomized f_w");
+    libiop::leave_block("Compute randomized f_w");
 
     /**  2) Calculate f_{Az}, f_{Bz}, f_{Cz} over the constraint domain
      *   i)   Construct z, and compute Az, Bz, Cz
@@ -575,7 +575,7 @@ void encoded_aurora_protocol<FieldT>::submit_witness_oracles(
      *   iii) Adds Z_{constraint domain} * R_{A/B/Cz} to each of the corresponding codewords
      *   iv)  FFT this into the codeword domain
     */
-    enter_block("Compute A/B/Cz");
+    libiop::enter_block("Compute A/B/Cz");
 
     std::vector<FieldT> variable_assignment({ FieldT::one() });
     variable_assignment.insert(variable_assignment.end(),
@@ -592,14 +592,14 @@ void encoded_aurora_protocol<FieldT>::submit_witness_oracles(
     this->constraint_system_->create_Az_Bz_Cz_from_variable_assignment(
         variable_assignment, Az, Bz, Cz);
 
-    leave_block("Compute A/B/Cz");
+    libiop::leave_block("Compute A/B/Cz");
 
-    enter_block("Compute f_{A/B/Cz} over codeword domain");
+    libiop::enter_block("Compute f_{A/B/Cz} over codeword domain");
     this->compute_fprime_ABCz_over_codeword_domain(Az, Bz, Cz);
-    leave_block("Compute f_{A/B/Cz} over codeword domain");
+    libiop::leave_block("Compute f_{A/B/Cz} over codeword domain");
 
     /** 3) Submit all the oracles */
-    enter_block("Call IOP oracle submission routines");
+    libiop::enter_block("Call IOP oracle submission routines");
     this->IOP_.submit_oracle(this->fw_handle_, std::move(this->fw_over_codeword_domain_));
     this->IOP_.submit_oracle(this->fAz_handle_, std::move(this->fprime_Az_over_codeword_domain_));
     this->IOP_.submit_oracle(this->fBz_handle_, std::move(this->fprime_Bz_over_codeword_domain_));
@@ -609,9 +609,9 @@ void encoded_aurora_protocol<FieldT>::submit_witness_oracles(
     std::vector<FieldT>().swap(this->fprime_Az_over_codeword_domain_);
     std::vector<FieldT>().swap(this->fprime_Bz_over_codeword_domain_);
     std::vector<FieldT>().swap(this->fprime_Cz_over_codeword_domain_);
-    leave_block("Call IOP oracle submission routines");
+    libiop::leave_block("Call IOP oracle submission routines");
 
-    leave_block("Submit witness oracles");
+    libiop::leave_block("Submit witness oracles");
 }
 
 template<typename FieldT>

@@ -46,7 +46,7 @@ TEST(ExponentiationTest, SimpleTest) {
     for (std::size_t i = 0 ; i < max_power; ++i)
     {
         const FieldT X_i_naive = power_naive<FieldT>(X, i);
-        const FieldT X_i_square_and_multiply = power<FieldT>(X, i);
+        const FieldT X_i_square_and_multiply = libiop::power<FieldT>(X, i);
 
         EXPECT_EQ(X_i, X_i_naive);
         EXPECT_EQ(X_i, X_i_square_and_multiply);

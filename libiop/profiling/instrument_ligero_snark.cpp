@@ -89,19 +89,19 @@ void instrument_ligero_snark(options &options,
         r1cs_example<FieldT> example = generate_r1cs_example<FieldT>(n, k, m);
         parameters.bcs_params_ = default_bcs_params<FieldT, hash_type>(options.hash_enum, options.security_level, log_n);
 
-        enter_block("Check satisfiability of R1CS example");
+        libiop::enter_block("Check satisfiability of R1CS example");
         const bool is_satisfied = example.constraint_system_.is_satisfied(
             example.primary_input_, example.auxiliary_input_);
         assert(is_satisfied);
-        leave_block("Check satisfiability of R1CS example");
+        libiop::leave_block("Check satisfiability of R1CS example");
         printf("\n");
-        print_indent(); printf("* R1CS number of constraints: %zu\n", example.constraint_system_.num_constraints());
-        print_indent(); printf("* R1CS number of variables: %zu\n", example.constraint_system_.num_variables());
-        print_indent(); printf("* R1CS number of variables for primary input: %zu\n", example.primary_input_.size());
-        print_indent(); printf("* R1CS number of variables for auxiliary input: %zu\n", example.auxiliary_input_.size());
-        print_indent(); printf("* R1CS size of constraint system (bytes): %zu\n", example.constraint_system_.size_in_bytes());
-        print_indent(); printf("* R1CS size of primary input (bytes): %zu\n", example.primary_input_.size() * sizeof(FieldT));
-        print_indent(); printf("* R1CS size of auxiliary input (bytes): %zu\n", example.auxiliary_input_.size() * sizeof(FieldT));
+        libiop::print_indent(); printf("* R1CS number of constraints: %zu\n", example.constraint_system_.num_constraints());
+        libiop::print_indent(); printf("* R1CS number of variables: %zu\n", example.constraint_system_.num_variables());
+        libiop::print_indent(); printf("* R1CS number of variables for primary input: %zu\n", example.primary_input_.size());
+        libiop::print_indent(); printf("* R1CS number of variables for auxiliary input: %zu\n", example.auxiliary_input_.size());
+        libiop::print_indent(); printf("* R1CS size of constraint system (bytes): %zu\n", example.constraint_system_.size_in_bytes());
+        libiop::print_indent(); printf("* R1CS size of primary input (bytes): %zu\n", example.primary_input_.size() * sizeof(FieldT));
+        libiop::print_indent(); printf("* R1CS size of auxiliary input (bytes): %zu\n", example.auxiliary_input_.size() * sizeof(FieldT));
         printf("\n");
         const ligero_snark_argument<FieldT, hash_type> proof = ligero_snark_prover<FieldT, hash_type>(
             example.constraint_system_,
@@ -111,14 +111,14 @@ void instrument_ligero_snark(options &options,
 
         printf("\n");
 
-        print_indent(); printf("* Argument size in bytes (IOP): %zu\n", proof.IOP_size_in_bytes());
-        print_indent(); printf("* Argument size in bytes (BCS): %zu\n", proof.BCS_size_in_bytes());
-        print_indent(); printf("* Argument size in bytes (total): %zu\n", proof.size_in_bytes());
+        libiop::print_indent(); printf("* Argument size in bytes (IOP): %zu\n", proof.IOP_size_in_bytes());
+        libiop::print_indent(); printf("* Argument size in bytes (BCS): %zu\n", proof.BCS_size_in_bytes());
+        libiop::print_indent(); printf("* Argument size in bytes (total): %zu\n", proof.size_in_bytes());
 
         printf("\nIf we were to remove pruning of authentication paths in BCS,\n"
                "the argument would have the following sizes:\n");
-        print_indent(); printf("* Argument size in bytes (BCS, no pruning): %zu\n", proof.BCS_size_in_bytes_without_pruning());
-        print_indent(); printf("* Argument size in bytes (total, no pruning): %zu\n", proof.size_in_bytes_without_pruning());
+        libiop::print_indent(); printf("* Argument size in bytes (BCS, no pruning): %zu\n", proof.BCS_size_in_bytes_without_pruning());
+        libiop::print_indent(); printf("* Argument size in bytes (total, no pruning): %zu\n", proof.size_in_bytes_without_pruning());
 
         printf("\n");
 
@@ -130,7 +130,7 @@ void instrument_ligero_snark(options &options,
 
         printf("\n\n");
 
-        print_indent(); printf("* Verifier satisfied: %s\n", bit ? "true" : "false");
+        libiop::print_indent(); printf("* Verifier satisfied: %s\n", bit ? "true" : "false");
     }
 }
 
@@ -158,7 +158,7 @@ int main(int argc, const char * argv[])
     {
         ldt_reducer_soundness_type = LDT_reducer_soundness_type::optimistic_heuristic;
     }
-    start_profiling();
+    libiop::start_profiling();
 
     printf("Selected parameters:\n");
     printf("- log_n_min = %zu\n", default_vals.log_n_min);
