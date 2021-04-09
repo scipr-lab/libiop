@@ -435,7 +435,10 @@ protected:
     virtual std::size_t obtain_random_query_position(const random_query_position_handle &position);
     std::size_t min_oracle_id(const std::size_t round) const;
     std::size_t max_oracle_id(const std::size_t round) const;
-    domain_to_oracles_map oracles_in_round(const std::size_t round) const;
+    domain_to_oracles_map oracles_in_round_by_domain(const std::size_t round) const;
+    /** Each domain has one Merkle tree containing all oracles, so this is also the number of
+     *  Merkle trees per round. */
+    std::size_t num_domains_in_round(const std::size_t round) const;
 
     std::map<std::size_t, std::set<std::size_t> > oracle_id_to_query_positions_; /* HACK */
 };

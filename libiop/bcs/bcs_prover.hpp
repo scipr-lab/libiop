@@ -37,9 +37,11 @@ public:
      *  queries are registered. */
     virtual void seal_query_registrations();
     virtual void signal_index_submissions_done();
+    /** Overloaded method customizes running hashchain for prover. */
+    virtual void run_hashchain_for_round();
 
     /** We also overload verifier's randomness extraction functions
-     * below to use the extracted values.    */
+     *  below to use the extracted values.    */
     virtual std::vector<FieldT> obtain_verifier_random_message(const verifier_random_message_handle &random_message);
 
     virtual FieldT obtain_query_response(const query_handle &query);
