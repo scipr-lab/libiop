@@ -6,7 +6,7 @@
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
 
 #include "libiop/algebra/fft.hpp"
-#include "libff/algebra/fields/binary/gf64.hpp"
+#include <libff/algebra/fields/binary/gf64.hpp>
 #include "libiop/common/common.hpp"
 #include "libiop/iop/iop.hpp"
 #include "libiop/protocols/encoded/ligero/interleaved_lincheck_et.hpp"

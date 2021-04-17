@@ -4,7 +4,7 @@
 
 #include <gtest/gtest.h>
 
-#include "libff/algebra/fields/binary/gf64.hpp"
+#include <libff/algebra/fields/binary/gf64.hpp>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include "libiop/algebra/field_utils.hpp"
 #include "libiop/algebra/fft.hpp"

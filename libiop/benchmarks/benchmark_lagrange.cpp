@@ -1,11 +1,11 @@
 #include <vector>
 #include <benchmark/benchmark.h>
 
-#include "libff/algebra/fields/binary/gf64.hpp"
+#include <libff/algebra/fields/binary/gf64.hpp>
+#include <libff/algebra/curves/edwards/edwards_pp.hpp>
 #include "libiop/algebra/lagrange.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
 #include "libiop/common/common.hpp"
-#include <libff/algebra/curves/edwards/edwards_pp.hpp>
 
 namespace libiop {
 

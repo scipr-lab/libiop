@@ -2,9 +2,9 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-#include "libff/algebra/fields/binary/gf64.hpp"
-#include "libiop/algebra/exponentiation.hpp"
+#include <libff/algebra/fields/binary/gf64.hpp>
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
+#include "libiop/algebra/exponentiation.hpp"
 
 namespace libiop {
 

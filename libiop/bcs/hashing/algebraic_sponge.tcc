@@ -1,6 +1,6 @@
 #include "libiop/algebra/field_utils.hpp"
 #include "libiop/bcs/hashing/hashing.hpp"
-#include "libff/algebra/field_utils/bigint.hpp"
+#include <libff/algebra/field_utils/bigint.hpp>
 #include <cstring>
 #include <sstream>
 #include <stdexcept>

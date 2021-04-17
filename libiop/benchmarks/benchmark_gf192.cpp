@@ -3,7 +3,7 @@
 #include <vector>
 #include <benchmark/benchmark.h>
 
-#include "libff/algebra/fields/binary/gf192.hpp"
+#include <libff/algebra/fields/binary/gf192.hpp>
 #include "libiop/algebra/utils.hpp"
 
 using namespace libff;
