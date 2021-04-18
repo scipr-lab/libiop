@@ -2,7 +2,6 @@ add_library(
   iop
 
   common/common.cpp
-  common/profiling.cpp
   
   bcs/hashing/blake2b.cpp
   protocols/ldt/ldt_reducer.cpp

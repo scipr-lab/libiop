@@ -1,10 +1,10 @@
 #include <cmath>
 #include <stdexcept>
 
+#include <libff/common/profiling.hpp>
 #include "libiop/algebra/lagrange.hpp"
 #include "libiop/algebra/fft.hpp"
 #include "libiop/common/common.hpp"
-#include "libiop/common/profiling.hpp"
 
 namespace libiop {
 

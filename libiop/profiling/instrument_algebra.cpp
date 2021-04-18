@@ -10,14 +10,14 @@
 #include <boost/program_options.hpp>
 #endif
 
-#include "boost_profile.cpp"
-#include "libiop/algebra/fft.hpp"
 #include <libff/algebra/fields/binary/gf64.hpp>
 #include <libff/algebra/fields/binary/gf256.hpp>
 #include <libff/algebra/fields/binary/gf192.hpp>
 #include <libff/algebra/fields/binary/gf256.hpp>
+#include <libff/common/profiling.hpp>
+#include "boost_profile.cpp"
+#include "libiop/algebra/fft.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
-#include "libiop/common/profiling.hpp"
 
 #ifndef CPPDEBUG
 bool process_prover_command_line(const int argc, const char** argv,

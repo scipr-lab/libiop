@@ -2,9 +2,9 @@
 #include <numeric>
 #include <set>
 #include <libff/algebra/field_utils/bigint.hpp>
+#include <libff/common/profiling.hpp>
 
 #include "libiop/algebra/fft.hpp"
-#include "libiop/common/profiling.hpp"
 
 namespace libiop {
 

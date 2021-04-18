@@ -11,7 +11,7 @@
 
 #include <set>
 
-#include "libiop/common/profiling.hpp"
+#include <libff/common/profiling.hpp>
 #include "libiop/bcs/bcs_common.hpp"
 
 namespace libiop {

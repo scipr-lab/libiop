@@ -1,6 +1,6 @@
+#include <libff/common/profiling.hpp>
 #include "libiop/algebra/field_subset/subgroup.hpp"
 #include "libiop/common/common.hpp"
-#include "libiop/common/profiling.hpp"
 
 namespace libiop {
 

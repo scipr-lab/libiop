@@ -1,12 +1,12 @@
 #include <cmath>
 
+#include <libff/common/profiling.hpp>
 #include "libiop/algebra/fft.hpp"
 #include "libiop/algebra/lagrange.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/polynomials/vanishing_polynomial.hpp"
 #include "libiop/algebra/utils.hpp"
 #include "libiop/common/common.hpp"
-#include "libiop/common/profiling.hpp"
 
 namespace libiop {
 

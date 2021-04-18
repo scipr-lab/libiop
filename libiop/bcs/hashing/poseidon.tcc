@@ -1,7 +1,7 @@
 #include "libiop/algebra/field_utils.hpp"
 #include "libiop/algebra/exponentiation.hpp"
 #include "libiop/bcs/hashing/algebraic_sponge.hpp"
-#include "libiop/common/profiling.hpp"
+#include <libff/common/profiling.hpp>
 #include <cstring>
 #include <sstream>
 #include <stdexcept>

@@ -3,9 +3,9 @@
 #include <libfqfft/evaluation_domain/domains/basic_radix2_domain.hpp>
 #include <libfqfft/evaluation_domain/domains/basic_radix2_domain_aux.hpp>
 
+#include <libff/common/profiling.hpp>
 #include "libiop/algebra/field_utils.hpp"
 #include "libiop/algebra/utils.hpp"
-#include "libiop/common/profiling.hpp"
 
 namespace libiop {
 

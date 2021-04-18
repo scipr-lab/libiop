@@ -1,9 +1,9 @@
 #include <algorithm>
 #include <stdexcept>
 
+#include <libff/common/profiling.hpp>
 #include "libiop/common/cpp17_bits.hpp"
 #include "libiop/common/common.hpp"
-#include "libiop/common/profiling.hpp"
 
 #include <sodium/randombytes.h>
 
