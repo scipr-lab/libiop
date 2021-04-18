@@ -245,15 +245,15 @@ template<typename FieldT>
 void aurora_iop_parameters<FieldT>::print() const
 {
     printf("\nAurora IOP parameters\n");
-    libiop::print_indent(); printf("* target security parameter = %zu\n", this->security_parameter_);
-    libiop::print_indent(); printf("* achieved security parameter = %.1Lf\n", this->achieved_soundness());
-    libiop::print_indent(); printf("* RS extra dimensions = %zu\n", this->RS_extra_dimensions_);
-    libiop::print_indent(); printf("* codeword domain dim = %zu\n", this->codeword_domain_dim_);
-    libiop::print_indent(); printf("* constraint domain dim = %zu\n", this->constraint_domain_dim_);
-    libiop::print_indent(); printf("* variable domain dim = %zu\n", this->variable_domain_dim_);
-    libiop::print_indent(); printf("* query bound = %zu\n", this->query_bound_);
-    libiop::print_indent(); printf("* make zk = %s\n", (this->make_zk_ ? "true" : "false"));
-    libiop::print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->domain_type_]);
+    print_indent(); printf("* target security parameter = %zu\n", this->security_parameter_);
+    print_indent(); printf("* achieved security parameter = %.1Lf\n", this->achieved_soundness());
+    print_indent(); printf("* RS extra dimensions = %zu\n", this->RS_extra_dimensions_);
+    print_indent(); printf("* codeword domain dim = %zu\n", this->codeword_domain_dim_);
+    print_indent(); printf("* constraint domain dim = %zu\n", this->constraint_domain_dim_);
+    print_indent(); printf("* variable domain dim = %zu\n", this->variable_domain_dim_);
+    print_indent(); printf("* query bound = %zu\n", this->query_bound_);
+    print_indent(); printf("* make zk = %s\n", (this->make_zk_ ? "true" : "false"));
+    print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->domain_type_]);
     this->encoded_aurora_params_.multi_lincheck_params_.print();
     this->LDT_reducer_params_.print();
     this->FRI_params_.print();
@@ -346,13 +346,13 @@ void aurora_iop<FieldT>::produce_proof(const r1cs_primary_input<FieldT> &primary
 template<typename FieldT>
 bool aurora_iop<FieldT>::verifier_predicate(const r1cs_primary_input<FieldT> &primary_input)
 {
-    libiop::enter_block("Construct R1CS verifier state");
+    enter_block("Construct R1CS verifier state");
     this->protocol_->construct_verifier_state(primary_input);
-    libiop::leave_block("Construct R1CS verifier state");
+    leave_block("Construct R1CS verifier state");
 
-    libiop::enter_block("Check LDT verifier predicate");
+    enter_block("Check LDT verifier predicate");
     const bool decision = this->LDT_reducer_->verifier_predicate();
-    libiop::leave_block("Check LDT verifier predicate");
+    leave_block("Check LDT verifier predicate");
 
     return decision;
 }

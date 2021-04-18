@@ -47,9 +47,9 @@ size_t pow_parameters::work_parameter() const
 void pow_parameters::print() const
 {
     printf("\nProof of work parameters\n");
-    libiop::print_indent(); printf("* log of target work amount = %zu\n", this->work_parameter_);
-    libiop::print_indent(); printf("* assumed cost per hash = %zu\n", this->cost_per_hash_);
-    libiop::print_indent(); printf("* expected number of hashes = %d\n", 1 << this->pow_bitlen());
+    print_indent(); printf("* log of target work amount = %zu\n", this->work_parameter_);
+    print_indent(); printf("* assumed cost per hash = %zu\n", this->cost_per_hash_);
+    print_indent(); printf("* expected number of hashes = %d\n", 1 << this->pow_bitlen());
 }
 
 template<typename FieldT, typename hash_digest_type>

@@ -207,11 +207,11 @@ template<typename FieldT>
 std::vector<FieldT> additive_FFT_wrapper(const std::vector<FieldT> &v,
                                          const affine_subspace<FieldT> &H)
 {
-    libiop::enter_block("Call to additive_FFT_wrapper");
-    libiop::print_indent(); printf("* Vector size: %zu\n", v.size());
-    libiop::print_indent(); printf("* Subspace size: %zu\n", H.num_elements());
+    enter_block("Call to additive_FFT_wrapper");
+    print_indent(); printf("* Vector size: %zu\n", v.size());
+    print_indent(); printf("* Subspace size: %zu\n", H.num_elements());
     const std::vector<FieldT> result = additive_FFT(v, H);
-    libiop::leave_block("Call to additive_FFT_wrapper");
+    leave_block("Call to additive_FFT_wrapper");
     return result;
 }
 
@@ -219,11 +219,11 @@ template<typename FieldT>
 std::vector<FieldT> additive_IFFT_wrapper(const std::vector<FieldT> &v,
                                           const affine_subspace<FieldT> &H)
 {
-    libiop::enter_block("Call to additive_IFFT_wrapper");
-    libiop::print_indent(); printf("* Vector size: %zu\n", v.size());
-    libiop::print_indent(); printf("* Subspace size: %zu\n", H.num_elements());
+    enter_block("Call to additive_IFFT_wrapper");
+    print_indent(); printf("* Vector size: %zu\n", v.size());
+    print_indent(); printf("* Subspace size: %zu\n", H.num_elements());
     const std::vector<FieldT> result = additive_IFFT(v, H);
-    libiop::leave_block("Call to additive_IFFT_wrapper");
+    leave_block("Call to additive_IFFT_wrapper");
     return result;
 }
 
@@ -379,11 +379,11 @@ template<typename FieldT>
 std::vector<FieldT> multiplicative_FFT_wrapper(const std::vector<FieldT> &v,
                                                const multiplicative_coset<FieldT> &H)
 {
-    libiop::enter_block("Call to multiplicative_FFT_wrapper");
-    libiop::print_indent(); printf("* Vector size: %zu\n", v.size());
-    libiop::print_indent(); printf("* Subgroup size: %zu\n", H.num_elements());
+    enter_block("Call to multiplicative_FFT_wrapper");
+    print_indent(); printf("* Vector size: %zu\n", v.size());
+    print_indent(); printf("* Subgroup size: %zu\n", H.num_elements());
     const std::vector<FieldT> result = multiplicative_FFT(v, H);
-    libiop::leave_block("Call to multiplicative_FFT_wrapper");
+    leave_block("Call to multiplicative_FFT_wrapper");
     return result;
 }
 
@@ -391,16 +391,16 @@ template<typename FieldT>
 std::vector<FieldT> multiplicative_IFFT_wrapper(const std::vector<FieldT> &v,
                                                 const multiplicative_coset<FieldT> &H)
 {
-    libiop::enter_block("Call to multiplicative_IFFT_wrapper");
-    libiop::print_indent(); printf("* Vector size: %zu\n", v.size());
-    libiop::print_indent(); printf("* Coset size: %zu\n", H.num_elements());
+    enter_block("Call to multiplicative_IFFT_wrapper");
+    print_indent(); printf("* Vector size: %zu\n", v.size());
+    print_indent(); printf("* Coset size: %zu\n", H.num_elements());
     if (v.size() == 1)
     {
-        libiop::leave_block("Call to multiplicative_IFFT_wrapper");
+        leave_block("Call to multiplicative_IFFT_wrapper");
         return {v[0]};
     }
     const std::vector<FieldT> result = multiplicative_IFFT(v, H);
-    libiop::leave_block("Call to multiplicative_IFFT_wrapper");
+    leave_block("Call to multiplicative_IFFT_wrapper");
     return result;
 }
 

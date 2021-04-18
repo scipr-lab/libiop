@@ -36,7 +36,7 @@ merkle_tree<FieldT, hash_digest_type>::merkle_tree(
 template<typename FieldT, typename hash_digest_type>
 void merkle_tree<FieldT, hash_digest_type>::sample_leaf_randomness()
 {
-    libiop::enter_block("BCS: Sample randomness");
+    enter_block("BCS: Sample randomness");
     assert(this->zk_leaf_randomness_elements_.size() == 0);
     this->zk_leaf_randomness_elements_.reserve(this->num_leaves_);
 
@@ -68,7 +68,7 @@ void merkle_tree<FieldT, hash_digest_type>::sample_leaf_randomness()
         std::string rand_str(rand_leaf.begin(), rand_leaf.end());
         this->zk_leaf_randomness_elements_.push_back(rand_str);
     }
-    libiop::leave_block("BCS: Sample randomness");
+    leave_block("BCS: Sample randomness");
 }
 
 template<typename FieldT, typename hash_digest_type>

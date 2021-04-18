@@ -161,7 +161,7 @@ public:
         {
             throw std::invalid_argument("evaluation domain type is not the same as bivariate embedding type");
         }
-        libiop::enter_block("composed polynomial evaluated contents");
+        enter_block("composed polynomial evaluated contents");
         /** The projection, evaluated over a domain is another algebraically structured domain,
          *  and in most cases of interest is actually smaller than the eval domain.
          *  So we first calculate that potentially smaller domain. */
@@ -172,7 +172,7 @@ public:
         // In this case the projection is a 1 to 1 map, so these evaluations are correct.
         if (projected_domain.num_elements() == eval_domain.num_elements())
         {
-            libiop::leave_block("composed polynomial evaluated contents");
+            leave_block("composed polynomial evaluated contents");
             return projected_evals;
         }
         /** Now we have to duplicate these evals according to how they get replicated in eval domain.
@@ -196,7 +196,7 @@ public:
                 }
             }
         }
-        libiop::leave_block("composed polynomial evaluated contents");
+        leave_block("composed polynomial evaluated contents");
         return evals;
     }
 

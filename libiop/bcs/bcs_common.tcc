@@ -405,9 +405,9 @@ bcs_protocol<FieldT, MT_root_hash>::bcs_protocol(
     this->digest_len_bytes_ = 2 * (this->parameters_.security_parameter / 8);
     this->hashchain_ = this->parameters_.hashchain_->new_hashchain();
     printf("\nBCS parameters\n");
-    libiop::print_indent(); printf("* digest_len (bytes) = %zu\n", this->digest_len_bytes_);
-    libiop::print_indent(); printf("* digest_len (bits) = %zu\n", 8 * this->digest_len_bytes_);
-    libiop::print_indent(); printf("* hash_type = %s\n", bcs_hash_type_names[parameters.hash_enum]);
+    print_indent(); printf("* digest_len (bytes) = %zu\n", this->digest_len_bytes_);
+    print_indent(); printf("* digest_len (bits) = %zu\n", 8 * this->digest_len_bytes_);
+    print_indent(); printf("* hash_type = %s\n", bcs_hash_type_names[parameters.hash_enum]);
 }
 
 template<typename FieldT, typename MT_root_hash>
@@ -777,14 +777,14 @@ void print_detailed_transcript_data(
     /* Print summary of argument size first */
     printf("\n");
 
-    libiop::print_indent(); printf("* Argument size in bytes (IOP): %zu\n", transcript.IOP_size_in_bytes());
-    libiop::print_indent(); printf("* Argument size in bytes (BCS): %zu\n", transcript.BCS_size_in_bytes());
-    libiop::print_indent(); printf("* Argument size in bytes (total): %zu\n", transcript.size_in_bytes());
+    print_indent(); printf("* Argument size in bytes (IOP): %zu\n", transcript.IOP_size_in_bytes());
+    print_indent(); printf("* Argument size in bytes (BCS): %zu\n", transcript.BCS_size_in_bytes());
+    print_indent(); printf("* Argument size in bytes (total): %zu\n", transcript.size_in_bytes());
 
     printf("\nIf we were to remove pruning of authentication paths in BCS,\n"
             "the argument would have the following sizes:\n");
-    libiop::print_indent(); printf("* Argument size in bytes (BCS, no pruning): %zu\n", transcript.BCS_size_in_bytes_without_pruning());
-    libiop::print_indent(); printf("* Argument size in bytes (total, no pruning): %zu\n", transcript.size_in_bytes_without_pruning());
+    print_indent(); printf("* Argument size in bytes (BCS, no pruning): %zu\n", transcript.BCS_size_in_bytes_without_pruning());
+    print_indent(); printf("* Argument size in bytes (total, no pruning): %zu\n", transcript.size_in_bytes_without_pruning());
 
     printf("\n");
     printf("total prover messages size: %lu\n", total_prover_message_size);

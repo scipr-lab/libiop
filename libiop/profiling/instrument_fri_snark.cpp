@@ -121,19 +121,19 @@ void instrument_FRI(options &options,
 
         const FRI_snark_proof<FieldT, hash_type> proof = FRI_snark_prover<FieldT, hash_type>(params);
         printf("\n");
-        libiop::print_indent(); printf("* Argument size in bytes (IOP): %zu\n", proof.IOP_size_in_bytes());
-        libiop::print_indent(); printf("* Argument size in bytes (BCS): %zu\n", proof.BCS_size_in_bytes());
-        libiop::print_indent(); printf("* Argument size in bytes (total): %zu\n", proof.size_in_bytes());
+        print_indent(); printf("* Argument size in bytes (IOP): %zu\n", proof.IOP_size_in_bytes());
+        print_indent(); printf("* Argument size in bytes (BCS): %zu\n", proof.BCS_size_in_bytes());
+        print_indent(); printf("* Argument size in bytes (total): %zu\n", proof.size_in_bytes());
 
         printf("\nIf we were to remove the pruning of BCS merkle tree paths feature,\n"
                "the argument would have the following sizes:\n");
-        libiop::print_indent(); printf("* Argument size in bytes (BCS, no pruning): %zu\n", proof.BCS_size_in_bytes_without_pruning());
-        libiop::print_indent(); printf("* Argument size in bytes (total, no pruning): %zu\n", proof.size_in_bytes_without_pruning());
+        print_indent(); printf("* Argument size in bytes (BCS, no pruning): %zu\n", proof.BCS_size_in_bytes_without_pruning());
+        print_indent(); printf("* Argument size in bytes (total, no pruning): %zu\n", proof.size_in_bytes_without_pruning());
         printf("\n");
 
         const bool bit = FRI_snark_verifier<FieldT, hash_type>(proof, params);
 
-        libiop::print_indent(); printf("* Verifier satisfied: %s\n", bit ? "true" : "false");
+        print_indent(); printf("* Verifier satisfied: %s\n", bit ? "true" : "false");
     }
 }
 
@@ -166,7 +166,7 @@ int main(int argc, const char * argv[])
 
 #endif
 
-    libiop::start_profiling();
+    start_profiling();
 
     printf("Selected parameters:\n");
     printf("* log_n_min = %zu\n", default_vals.log_n_min);

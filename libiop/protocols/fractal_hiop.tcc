@@ -200,15 +200,15 @@ template<typename FieldT>
 void fractal_iop_parameters<FieldT>::print() const
 {
     printf("\nFractal hIOP parameters\n");
-    libiop::print_indent(); printf("* target security parameter = %zu\n", this->security_parameter_);
-    libiop::print_indent(); printf("* achieved security parameter = %.1Lf\n", this->achieved_soundness());
-    libiop::print_indent(); printf("* RS extra dimensions = %zu\n", this->RS_extra_dimensions_);
-    libiop::print_indent(); printf("* matrix domain dim = %zu\n", this->matrix_domain_.dimension());
-    libiop::print_indent(); printf("* index domain dim = %zu\n", this->index_domain_.dimension());
-    libiop::print_indent(); printf("* codeword domain dim = %zu\n", this->codeword_domain_dim_);
-    libiop::print_indent(); printf("* query bound = %zu\n", this->query_bound_);
-    libiop::print_indent(); printf("* make zk = %s\n", (this->make_zk_ ? "true" : "false"));
-    libiop::print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->matrix_domain_.type()]);
+    print_indent(); printf("* target security parameter = %zu\n", this->security_parameter_);
+    print_indent(); printf("* achieved security parameter = %.1Lf\n", this->achieved_soundness());
+    print_indent(); printf("* RS extra dimensions = %zu\n", this->RS_extra_dimensions_);
+    print_indent(); printf("* matrix domain dim = %zu\n", this->matrix_domain_.dimension());
+    print_indent(); printf("* index domain dim = %zu\n", this->index_domain_.dimension());
+    print_indent(); printf("* codeword domain dim = %zu\n", this->codeword_domain_dim_);
+    print_indent(); printf("* query bound = %zu\n", this->query_bound_);
+    print_indent(); printf("* make zk = %s\n", (this->make_zk_ ? "true" : "false"));
+    print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->matrix_domain_.type()]);
 
     this->encoded_aurora_params_.holographic_lincheck_params_.print();
     this->LDT_reducer_params_.print();
@@ -331,13 +331,13 @@ void fractal_iop<FieldT>::produce_proof(
 template<typename FieldT>
 bool fractal_iop<FieldT>::verifier_predicate(const r1cs_primary_input<FieldT> &primary_input)
 {
-    libiop::enter_block("Construct R1CS verifier state");
+    enter_block("Construct R1CS verifier state");
     this->protocol_->construct_verifier_state(primary_input);
-    libiop::leave_block("Construct R1CS verifier state");
+    leave_block("Construct R1CS verifier state");
 
-    libiop::enter_block("Check LDT verifier predicate");
+    enter_block("Check LDT verifier predicate");
     const bool decision = this->LDT_reducer_->verifier_predicate();
-    libiop::leave_block("Check LDT verifier predicate");
+    leave_block("Check LDT verifier predicate");
 
     return decision;
 }

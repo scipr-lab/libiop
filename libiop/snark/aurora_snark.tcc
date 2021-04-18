@@ -103,15 +103,15 @@ void aurora_snark_parameters<FieldT, hash_type>::initialize_bcs_params(const bcs
 template<typename FieldT, typename hash_type>
 void aurora_snark_parameters<FieldT, hash_type>::print() const
 {
-    libiop::print_indent(); printf("\nAurora SNARK parameters\n");
-    libiop::print_indent(); printf("* security parameter (bits) = %zu\n", security_parameter_);
-    libiop::print_indent(); printf("* RS extra dimensions = %zu\n", RS_extra_dimensions_);
-    libiop::print_indent(); printf("* LDT reducer soundness type = %s\n",
+    print_indent(); printf("\nAurora SNARK parameters\n");
+    print_indent(); printf("* security parameter (bits) = %zu\n", security_parameter_);
+    print_indent(); printf("* RS extra dimensions = %zu\n", RS_extra_dimensions_);
+    print_indent(); printf("* LDT reducer soundness type = %s\n",
         LDT_reducer_soundness_type_to_string(LDT_reducer_soundness_type_));
-    libiop::print_indent(); printf("* FRI soundness type = %s\n",
+    print_indent(); printf("* FRI soundness type = %s\n",
         FRI_soundness_type_to_string(FRI_soundness_type_));
-    libiop::print_indent(); printf("* zero-knowledge = %s\n", make_zk_ ? "true" : "false");
-    libiop::print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->domain_type_]);
+    print_indent(); printf("* zero-knowledge = %s\n", make_zk_ ? "true" : "false");
+    print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->domain_type_]);
 
     this->iop_params_.print();
 }
@@ -123,7 +123,7 @@ aurora_snark_argument<FieldT, hash_type> aurora_snark_prover(
     const r1cs_auxiliary_input<FieldT> &auxiliary_input,
     const aurora_snark_parameters<FieldT, hash_type> &parameters)
 {
-    libiop::enter_block("Aurora SNARK prover");
+    enter_block("Aurora SNARK prover");
     parameters.print();
 
     bcs_prover<FieldT, hash_type> IOP(parameters.bcs_params_);
@@ -135,13 +135,13 @@ aurora_snark_argument<FieldT, hash_type> aurora_snark_prover(
 
     full_protocol.produce_proof(primary_input, auxiliary_input);
 
-    libiop::enter_block("Obtain transcript");
+    enter_block("Obtain transcript");
     const aurora_snark_argument<FieldT, hash_type> transcript = IOP.get_transcript();
-    libiop::leave_block("Obtain transcript");
+    leave_block("Obtain transcript");
 
     IOP.describe_sizes();
 
-    libiop::leave_block("Aurora SNARK prover");
+    leave_block("Aurora SNARK prover");
     return transcript;
 }
 
@@ -151,29 +151,29 @@ bool aurora_snark_verifier(const r1cs_constraint_system<FieldT> &constraint_syst
                            const aurora_snark_argument<FieldT, hash_type> &proof,
                            const aurora_snark_parameters<FieldT, hash_type> &parameters)
 {
-    libiop::enter_block("Aurora SNARK verifier");
+    enter_block("Aurora SNARK verifier");
     parameters.print();
 
     bcs_verifier<FieldT, hash_type> IOP(parameters.bcs_params_, proof);
 
-    libiop::enter_block("Aurora IOP protocol initialization and registration");
+    enter_block("Aurora IOP protocol initialization and registration");
     aurora_iop<FieldT> full_protocol(IOP, constraint_system, parameters.iop_params_);
     full_protocol.register_interactions();
     IOP.seal_interaction_registrations();
     full_protocol.register_queries();
     IOP.seal_query_registrations();
-    libiop::leave_block("Aurora IOP protocol initialization and registration");
+    leave_block("Aurora IOP protocol initialization and registration");
 
-    libiop::enter_block("Check semantic validity of IOP transcript");
+    enter_block("Check semantic validity of IOP transcript");
     const bool IOP_transcript_valid = IOP.transcript_is_valid();
-    libiop::leave_block("Check semantic validity of IOP transcript");
+    leave_block("Check semantic validity of IOP transcript");
 
     const bool full_protocol_accepts = full_protocol.verifier_predicate(primary_input);
 
-    libiop::print_indent(); printf("* IOP transcript valid: %s\n", IOP_transcript_valid ? "true" : "false");
-    libiop::print_indent(); printf("* Full protocol decision predicate satisfied: %s\n", full_protocol_accepts ? "true" : "false");
+    print_indent(); printf("* IOP transcript valid: %s\n", IOP_transcript_valid ? "true" : "false");
+    print_indent(); printf("* Full protocol decision predicate satisfied: %s\n", full_protocol_accepts ? "true" : "false");
     const bool decision = IOP_transcript_valid && full_protocol_accepts;
-    libiop::leave_block("Aurora SNARK verifier");
+    leave_block("Aurora SNARK verifier");
 
     return decision;
 }

@@ -41,7 +41,7 @@ bool run_test(r1cs_constraint_system<FieldT> constraint_system,
     const std::size_t codeword_domain_dim = systematic_domain_dim + RS_extra_dimensions;
     const std::size_t codeword_domain_size = 1ull << codeword_domain_dim;
     
-    libiop::print_indent(); printf("codeword subspace dim: %zu\n", codeword_domain_dim);
+    print_indent(); printf("codeword subspace dim: %zu\n", codeword_domain_dim);
     
     const std::size_t matrix_width = systematic_domain_size * num_oracles_input;
     
@@ -54,7 +54,7 @@ bool run_test(r1cs_constraint_system<FieldT> constraint_system,
 
     const std::size_t extended_systematic_domain_size = systematic_domain_size << 1;
     
-    libiop::print_indent(); printf("num oracles for vectors / R1CS constraints (m_2): %zu\n", num_oracles_vectors);
+    print_indent(); printf("num oracles for vectors / R1CS constraints (m_2): %zu\n", num_oracles_vectors);
     
     FieldT shift;
 

@@ -149,19 +149,19 @@ void instrument_fractal_snark(options &options,
             parameters.reset_fri_localization_parameters(localization_parameter_array);
         }
 
-        libiop::enter_block("Check satisfiability of R1CS example");
+        enter_block("Check satisfiability of R1CS example");
         const bool is_satisfied = example.constraint_system_.is_satisfied(
             example.primary_input_, example.auxiliary_input_);
         assert(is_satisfied);
-        libiop::leave_block("Check satisfiability of R1CS example");
+        leave_block("Check satisfiability of R1CS example");
         printf("\n");
-        libiop::print_indent(); printf("* R1CS number of constraints: %zu\n", example.constraint_system_.num_constraints());
-        libiop::print_indent(); printf("* R1CS number of variables: %zu\n", example.constraint_system_.num_variables());
-        libiop::print_indent(); printf("* R1CS number of variables for primary input: %zu\n", example.primary_input_.size());
-        libiop::print_indent(); printf("* R1CS number of variables for auxiliary input: %zu\n", example.auxiliary_input_.size());
-        libiop::print_indent(); printf("* R1CS size of constraint system (bytes): %zu\n", example.constraint_system_.size_in_bytes());
-        libiop::print_indent(); printf("* R1CS size of primary input (bytes): %zu\n", example.primary_input_.size() * sizeof(FieldT));
-        libiop::print_indent(); printf("* R1CS size of auxiliary input (bytes): %zu\n", example.auxiliary_input_.size() * sizeof(FieldT));
+        print_indent(); printf("* R1CS number of constraints: %zu\n", example.constraint_system_.num_constraints());
+        print_indent(); printf("* R1CS number of variables: %zu\n", example.constraint_system_.num_variables());
+        print_indent(); printf("* R1CS number of variables for primary input: %zu\n", example.primary_input_.size());
+        print_indent(); printf("* R1CS number of variables for auxiliary input: %zu\n", example.auxiliary_input_.size());
+        print_indent(); printf("* R1CS size of constraint system (bytes): %zu\n", example.constraint_system_.size_in_bytes());
+        print_indent(); printf("* R1CS size of primary input (bytes): %zu\n", example.primary_input_.size() * sizeof(FieldT));
+        print_indent(); printf("* R1CS size of auxiliary input (bytes): %zu\n", example.auxiliary_input_.size() * sizeof(FieldT));
         printf("\n");
 
         std::pair<bcs_prover_index<FieldT, hash_type>, bcs_verifier_index<FieldT, hash_type>> index =
@@ -201,7 +201,7 @@ void instrument_fractal_snark(options &options,
 
         printf("\n\n");
 
-        libiop::print_indent(); printf("* Verifier satisfied: %s\n", bit ? "true" : "false");
+        print_indent(); printf("* Verifier satisfied: %s\n", bit ? "true" : "false");
     }
 }
 
@@ -238,7 +238,7 @@ int main(int argc, const char * argv[])
     if (heuristic_fri_soundness) {
         fri_soundness_type = FRI_soundness_type::heuristic;
     }
-    libiop::start_profiling();
+    start_profiling();
 
     printf("Selected parameters:\n");
     printf("- log_n_min = %zu\n", default_vals.log_n_min);

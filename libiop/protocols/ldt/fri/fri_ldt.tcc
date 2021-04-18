@@ -237,20 +237,20 @@ void FRI_protocol_parameters<FieldT>::print() const
     printf("\nFRI parameters\n");
     if (this->override_security_parameter_)
     {
-        libiop::print_indent(); printf("===WARNING=== FRI security parameter was overridden\n");
+        print_indent(); printf("===WARNING=== FRI security parameter was overridden\n");
     }
-    libiop::print_indent(); printf("* soundness type = %s\n", FRI_soundness_type_to_string(this->soundness_type_));
-    libiop::print_indent(); printf("* target interactive soundness error (bits) = %zu\n", this->target_interactive_security_parameter_);
-    libiop::print_indent(); printf("* achieved interactive soundness error (bits) = %.1Lf\n", this->achieved_interactive_soundness());
-    libiop::print_indent(); printf("* target query soundness error (bits) = %zu\n", this->target_query_security_parameter_);
-    libiop::print_indent(); printf("* achieved query soundness error (bits) = %.1Lf\n", this->achieved_query_soundness());
-    libiop::print_indent(); printf("* codeword domain dim = %zu\n", this->codeword_domain_dim_);
-    libiop::print_indent(); printf("* effective proximity parameter = %Lf\n", this->effective_proximity_parameter_);
-    libiop::print_indent(); printf("* number of interactive repetitions = %zu\n", this->num_interactive_repetitions_);
-    libiop::print_indent(); printf("* number of query repetitions = %zu\n", this->num_query_repetitions_);
-    libiop::print_indent(); printf("* localization parameter array = ");
+    print_indent(); printf("* soundness type = %s\n", FRI_soundness_type_to_string(this->soundness_type_));
+    print_indent(); printf("* target interactive soundness error (bits) = %zu\n", this->target_interactive_security_parameter_);
+    print_indent(); printf("* achieved interactive soundness error (bits) = %.1Lf\n", this->achieved_interactive_soundness());
+    print_indent(); printf("* target query soundness error (bits) = %zu\n", this->target_query_security_parameter_);
+    print_indent(); printf("* achieved query soundness error (bits) = %.1Lf\n", this->achieved_query_soundness());
+    print_indent(); printf("* codeword domain dim = %zu\n", this->codeword_domain_dim_);
+    print_indent(); printf("* effective proximity parameter = %Lf\n", this->effective_proximity_parameter_);
+    print_indent(); printf("* number of interactive repetitions = %zu\n", this->num_interactive_repetitions_);
+    print_indent(); printf("* number of query repetitions = %zu\n", this->num_query_repetitions_);
+    print_indent(); printf("* localization parameter array = ");
         libiop::print_vector<size_t>(this->localization_parameters_);
-    libiop::print_indent(); printf("* number of reductions = %zu\n", this->localization_parameters_.size());
+    print_indent(); printf("* number of reductions = %zu\n", this->localization_parameters_.size());
 }
 
 template<typename FieldT>
@@ -505,9 +505,9 @@ void FRI_protocol<FieldT>::calculate_and_submit_proof()
                 }
             }
 
-            libiop::enter_block("LDT signal prover round done");
+            enter_block("LDT signal prover round done");
             this->IOP_.signal_prover_round_done();
-            libiop::leave_block("LDT signal prover round done");
+            leave_block("LDT signal prover round done");
         }
 
         /* For each interaction, receive the verifier challenge and create f_{i + 1} */
@@ -516,7 +516,7 @@ void FRI_protocol<FieldT>::calculate_and_submit_proof()
             const FieldT x_i = this->IOP_.obtain_verifier_random_message(
                 this->verifier_challenge_handles_[i][j])[0];
 
-            libiop::enter_block("evaluating next FRI codeword");
+            enter_block("evaluating next FRI codeword");
             for (size_t ldt_index = 0; ldt_index < this->poly_handles_.size(); ldt_index++)
             {
                 multi_f_i_evaluations_by_interaction[j][ldt_index] = evaluate_next_f_i_over_entire_domain(
@@ -525,7 +525,7 @@ void FRI_protocol<FieldT>::calculate_and_submit_proof()
                     coset_size,
                     x_i);
             }
-            libiop::leave_block("evaluating next FRI codeword");
+            leave_block("evaluating next FRI codeword");
         }
     }
 
@@ -542,9 +542,9 @@ void FRI_protocol<FieldT>::calculate_and_submit_proof()
         }
     }
 
-    libiop::enter_block("LDT signal prover round done");
+    enter_block("LDT signal prover round done");
     this->IOP_.signal_prover_round_done();
-    libiop::leave_block("LDT signal prover round done");
+    leave_block("LDT signal prover round done");
 }
 
 template<typename FieldT>
@@ -561,11 +561,11 @@ bool FRI_protocol<FieldT>::verifier_predicate()
         }
     }
 
-    libiop::print_indent(); printf("* Number of FRI interactions: %zu\n", this->params_.interactive_repetitions());
-    libiop::print_indent(); printf("* Number of FRI query sets per interaction: %zu\n",
+    print_indent(); printf("* Number of FRI interactions: %zu\n", this->params_.interactive_repetitions());
+    print_indent(); printf("* Number of FRI query sets per interaction: %zu\n",
         this->query_sets_.size() / this->params_.interactive_repetitions());
-    libiop::print_indent(); printf("* Total number of FRI queries over all query sets (incl. repeated queries): %zu\n", this->num_queries_made_);
-    // libiop::print_indent(); printf("* Analytical expression: %zu\n", (2 + ((this->num_reductions_ - 1) << this->localization_parameter_)) * this->query_sets_.size());
+    print_indent(); printf("* Total number of FRI queries over all query sets (incl. repeated queries): %zu\n", this->num_queries_made_);
+    // print_indent(); printf("* Analytical expression: %zu\n", (2 + ((this->num_reductions_ - 1) << this->localization_parameter_)) * this->query_sets_.size());
 
     return decision;
 }

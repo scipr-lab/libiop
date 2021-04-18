@@ -17,7 +17,7 @@ void bcs_indexer<FieldT, MT_hash_type>::signal_prover_round_done()
 template<typename FieldT, typename MT_hash_type>
 void bcs_indexer<FieldT, MT_hash_type>::signal_index_submissions_done()
 {
-    libiop::enter_block("Merkelize indexed oracles");
+    enter_block("Merkelize indexed oracles");
     iop_protocol<FieldT>::signal_prover_round_done();
     std::size_t ended_round = this->num_prover_rounds_done_-1;
     if (ended_round != 0)
@@ -38,10 +38,10 @@ void bcs_indexer<FieldT, MT_hash_type>::signal_index_submissions_done()
             std::shared_ptr<std::vector<FieldT>> oracle_contents = this->oracles_[v.id()].evaluated_contents();
             all_evaluated_contents.emplace_back(oracle_contents);
         }
-        libiop::enter_block("Construct Merkle tree");
+        enter_block("Construct Merkle tree");
         this->Merkle_trees_[this->MTs_processed_].construct_with_leaves_serialized_by_cosets(
             all_evaluated_contents, round_params.quotient_map_size_);
-        libiop::leave_block("Construct Merkle tree");
+        leave_block("Construct Merkle tree");
 
         ++this->MTs_processed_;
         /* Now make the oracles in a form suitable for creating an index */
@@ -53,7 +53,7 @@ void bcs_indexer<FieldT, MT_hash_type>::signal_index_submissions_done()
         }
     }
 
-    libiop::leave_block("Merkelize indexed oracles");
+    leave_block("Merkelize indexed oracles");
 }
 
 template<typename FieldT, typename MT_hash_type>

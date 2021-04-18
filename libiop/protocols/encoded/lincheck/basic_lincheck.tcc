@@ -106,14 +106,14 @@ void basic_lincheck_parameters<FieldT>::print() const
     printf("\nMulti lincheck parameters\n");
     if (this->override_security_parameter_)
     {
-        libiop::print_indent(); printf("===WARNING=== Multi lincheck security parameter was overridden\n");
+        print_indent(); printf("===WARNING=== Multi lincheck security parameter was overridden\n");
     }
-    libiop::print_indent(); printf("* target interactive soundness error (bits) = %zu\n", this->interactive_security_parameter_);
-    libiop::print_indent(); printf("* achieved interactive soundness error (bits) = %.1Lf\n", this->achieved_interactive_soundness());
-    libiop::print_indent(); printf("* interactive repetitions = %zu\n", this->multi_lincheck_repetitions_);
-    libiop::print_indent(); printf("* constraint domain dim = %zu\n", this->constraint_domain_dim_);
-    libiop::print_indent(); printf("* make zk = %s\n", (this->make_zk_ ? "true" : "false"));
-    libiop::print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->domain_type_]);
+    print_indent(); printf("* target interactive soundness error (bits) = %zu\n", this->interactive_security_parameter_);
+    print_indent(); printf("* achieved interactive soundness error (bits) = %.1Lf\n", this->achieved_interactive_soundness());
+    print_indent(); printf("* interactive repetitions = %zu\n", this->multi_lincheck_repetitions_);
+    print_indent(); printf("* constraint domain dim = %zu\n", this->constraint_domain_dim_);
+    print_indent(); printf("* make zk = %s\n", (this->make_zk_ ? "true" : "false"));
+    print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->domain_type_]);
 }
 
 template<typename FieldT>
@@ -247,7 +247,7 @@ void multi_lincheck<FieldT>::submit_sumcheck_masking_polynomials()
 template<typename FieldT>
 void multi_lincheck<FieldT>::calculate_and_submit_proof()
 {
-    libiop::enter_block("multi_lincheck: Calculate and submit proof");
+    enter_block("multi_lincheck: Calculate and submit proof");
     for (size_t i = 0; i < this->params_.multi_lincheck_repetitions(); i++)
     {
         const FieldT alpha = this->IOP_.obtain_verifier_random_message(this->alpha_handles_[i])[0];
@@ -257,7 +257,7 @@ void multi_lincheck<FieldT>::calculate_and_submit_proof()
 
         this->sumchecks_[i]->calculate_and_submit_proof();
     }
-    libiop::leave_block("multi_lincheck: Calculate and submit proof");
+    leave_block("multi_lincheck: Calculate and submit proof");
 }
 
 template<typename FieldT>
