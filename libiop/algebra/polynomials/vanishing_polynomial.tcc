@@ -19,7 +19,7 @@ vanishing_polynomial<FieldT>::vanishing_polynomial(const field_subset<FieldT> &S
     if (this->type_ == affine_subspace_type) {
         this->linearized_polynomial_ = vanishing_polynomial_from_subspace(S.subspace());
     } else if (this->type_ == multiplicative_coset_type) {
-        this->vp_shift_ = libiop::power(S.coset().shift(), this->vp_degree_);
+        this->vp_shift_ = libff::power(S.coset().shift(), this->vp_degree_);
     } else {
         throw std::invalid_argument("field_subset type unsupported.");
     }
@@ -38,7 +38,7 @@ vanishing_polynomial<FieldT>::vanishing_polynomial(const multiplicative_coset<Fi
     type_(multiplicative_coset_type)
 {
     this->vp_degree_ = S.num_elements();
-    this->vp_shift_ = libiop::power(S.coset().shift(), this->vp_degree_);
+    this->vp_shift_ = libff::power(S.coset().shift(), this->vp_degree_);
 }
 
 template<typename FieldT>
@@ -46,7 +46,7 @@ FieldT vanishing_polynomial<FieldT>::evaluation_at_point(const FieldT &evalpoint
     if (this->type_ == affine_subspace_type) {
         return this->linearized_polynomial_.evaluation_at_point(evalpoint);
     } else if (this->type_ == multiplicative_coset_type) {
-        return libiop::power(evalpoint, this->vp_degree_) - this->vp_shift_;
+        return libff::power(evalpoint, this->vp_degree_) - this->vp_shift_;
     }
     throw std::logic_error("vanishing_polynomial<FieldT>::evaluation_at_point: "
         " this shouldn't happen");
@@ -59,7 +59,7 @@ FieldT vanishing_polynomial<FieldT>::formal_derivative_at_point(const FieldT &ev
     {
         /** In the multiplicative case, the formal derivative is |S|x^{|S| - 1} */
         return FieldT(this->vp_degree_) *
-            libiop::power(evalpoint, this->vp_degree_ - 1);
+            libff::power(evalpoint, this->vp_degree_ - 1);
     }
     else if (this->type_ == affine_subspace_type)
     {
@@ -123,7 +123,7 @@ std::vector<FieldT> vanishing_polynomial<FieldT>::evaluations_over_coset(const m
     const std::size_t order_g = this->vp_degree_;
     // points in S are of the form hg^i, where h is the shift of the coset, and g is its generator.
     // We cache h^|G|
-    const FieldT shift_to_order_g = libiop::power(S.shift(), order_g);
+    const FieldT shift_to_order_g = libff::power(S.shift(), order_g);
     std::vector<FieldT> evals;
     evals.reserve(order_s);
     if (order_g % order_s == 0)
@@ -147,7 +147,7 @@ std::vector<FieldT> vanishing_polynomial<FieldT>::evaluations_over_coset(const m
         number_of_distinct_evaluations = order_s / order_g;
         evaluation_repetitions = order_g;
     }
-    const FieldT generator_to_order_g = libiop::power(S.generator(), order_g);
+    const FieldT generator_to_order_g = libff::power(S.generator(), order_g);
     FieldT cur = shift_to_order_g;
     for (std::size_t i = 0; i < number_of_distinct_evaluations; i++)
     {
@@ -258,7 +258,7 @@ field_subset<FieldT> vanishing_polynomial<FieldT>::associated_k_to_1_map_at_doma
         }
         else if (gcd(domain.num_elements(), this->vp_degree_) == 1)
         {
-            const FieldT new_generator = libiop::power(domain.generator(), this->vp_degree_);
+            const FieldT new_generator = libff::power(domain.generator(), this->vp_degree_);
             return field_subset<FieldT>(multiplicative_coset<FieldT>(domain.num_elements(), new_shift, new_generator));
         }
         throw std::invalid_argument("We currently don't implement associated_k_to_1_map_of_domain(domain)"

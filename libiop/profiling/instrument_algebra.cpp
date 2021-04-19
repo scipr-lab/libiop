@@ -12,10 +12,10 @@
 
 #include "boost_profile.cpp"
 #include "libiop/algebra/fft.hpp"
-#include "libiop/algebra/fields/gf64.hpp"
-#include "libiop/algebra/fields/gf128.hpp"
-#include "libiop/algebra/fields/gf192.hpp"
-#include "libiop/algebra/fields/gf256.hpp"
+#include <libff/algebra/fields/binary/gf64.hpp>
+#include <libff/algebra/fields/binary/gf256.hpp>
+#include <libff/algebra/fields/binary/gf192.hpp>
+#include <libff/algebra/fields/binary/gf256.hpp>
 #include "libiop/algebra/field_subset/subspace.hpp"
 #include "libiop/common/profiling.hpp"
 
@@ -76,38 +76,38 @@ void instrument_algebra(std::size_t log_n_min,
     {
         print_separator();
         const std::size_t n = 1ul << log_n;
-        print_indent(); printf("* size of n: %zu\n", n);
+        libiop::print_indent(); printf("* size of n: %zu\n", n);
         const std::size_t sqrt_n = 1ul << (log_n / 2);
-        print_indent(); printf("* size of sqrt(n): %zu\n", sqrt_n);
+        libiop::print_indent(); printf("* size of sqrt(n): %zu\n", sqrt_n);
 
         /* FFT(n) */
         std::vector<FieldT> n_vec;
-        enter_block("n");
+        libiop::enter_block("n");
         for (size_t i = 0; i < n; ++i)
         {
             n_vec.push_back(FieldT::random_element());
         }
-        leave_block("n");
+        libiop::leave_block("n");
         affine_subspace<FieldT> n_subspace = linear_subspace<FieldT>::standard_basis(libiop::log2(n));
-        enter_block("FFT(n)");
+        libiop::enter_block("FFT(n)");
         std::vector<FieldT> fft_results = additive_FFT<FieldT>(n_vec, n_subspace);
-        leave_block("FFT(n)");
+        libiop::leave_block("FFT(n)");
 
         /* sqrt(n) * FFT(sqrt(n)) */
         std::vector<FieldT> sqrt_n_vec;
-        enter_block("sqrt(n)");
+        libiop::enter_block("sqrt(n)");
         for (size_t i = 0; i < sqrt_n; ++i)
         {
             sqrt_n_vec.push_back(FieldT::random_element());
         }
-        leave_block("sqrt(n)");
+        libiop::leave_block("sqrt(n)");
         affine_subspace<FieldT> sqrt_n_subspace = linear_subspace<FieldT>::standard_basis(libiop::log2(sqrt_n));
-        enter_block("sqrt(n) * FFT(sqrt(n))");
+        libiop::enter_block("sqrt(n) * FFT(sqrt(n))");
         for (size_t i = 0; i < sqrt_n; ++i)
         {
             std::vector<FieldT> sqrt_results = additive_FFT<FieldT>(sqrt_n_vec, sqrt_n_subspace);
         }
-        leave_block("sqrt(n) * FFT(sqrt(n))");
+        libiop::leave_block("sqrt(n) * FFT(sqrt(n))");
     }
 }
 

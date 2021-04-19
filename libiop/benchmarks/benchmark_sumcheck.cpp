@@ -3,7 +3,7 @@
 
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/fft.hpp"
-#include "libiop/algebra/fields/gf64.hpp"
+#include <libff/algebra/fields/binary/gf64.hpp>
 #include "libiop/algebra/field_subset/subspace.hpp"
 #include "libiop/algebra/utils.hpp"
 #include "libiop/common/common.hpp"

@@ -159,7 +159,7 @@ void r1cs_constraint_system<FieldT>::add_constraint(const r1cs_constraint<FieldT
 #ifdef DEBUG
     constraint_annotations_[constraints_.size()] = annotation;
 #else
-    UNUSED(annotation);
+    libiop::UNUSED(annotation);
 #endif
     constraints_.emplace_back(c);
 }

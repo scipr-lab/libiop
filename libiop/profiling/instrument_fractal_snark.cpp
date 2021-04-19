@@ -10,13 +10,13 @@
 #endif
 
 #include "boost_profile.cpp"
-#include "libiop/algebra/fields/gf64.hpp"
-#include "libiop/algebra/fields/gf128.hpp"
-#include "libiop/algebra/fields/gf192.hpp"
-#include "libiop/algebra/fields/gf256.hpp"
+#include <libff/algebra/fields/binary/gf64.hpp>
+#include <libff/algebra/fields/binary/gf256.hpp>
+#include <libff/algebra/fields/binary/gf192.hpp>
+#include <libff/algebra/fields/binary/gf256.hpp>
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include "libiop/algebra/fields/utils.hpp"
+#include "libiop/algebra/field_utils.hpp"
 
 #include "libiop/snark/fractal_snark.hpp"
 #include "libiop/bcs/bcs_common.hpp"
@@ -149,19 +149,19 @@ void instrument_fractal_snark(options &options,
             parameters.reset_fri_localization_parameters(localization_parameter_array);
         }
 
-        enter_block("Check satisfiability of R1CS example");
+        libiop::enter_block("Check satisfiability of R1CS example");
         const bool is_satisfied = example.constraint_system_.is_satisfied(
             example.primary_input_, example.auxiliary_input_);
         assert(is_satisfied);
-        leave_block("Check satisfiability of R1CS example");
+        libiop::leave_block("Check satisfiability of R1CS example");
         printf("\n");
-        print_indent(); printf("* R1CS number of constraints: %zu\n", example.constraint_system_.num_constraints());
-        print_indent(); printf("* R1CS number of variables: %zu\n", example.constraint_system_.num_variables());
-        print_indent(); printf("* R1CS number of variables for primary input: %zu\n", example.primary_input_.size());
-        print_indent(); printf("* R1CS number of variables for auxiliary input: %zu\n", example.auxiliary_input_.size());
-        print_indent(); printf("* R1CS size of constraint system (bytes): %zu\n", example.constraint_system_.size_in_bytes());
-        print_indent(); printf("* R1CS size of primary input (bytes): %zu\n", example.primary_input_.size() * sizeof(FieldT));
-        print_indent(); printf("* R1CS size of auxiliary input (bytes): %zu\n", example.auxiliary_input_.size() * sizeof(FieldT));
+        libiop::print_indent(); printf("* R1CS number of constraints: %zu\n", example.constraint_system_.num_constraints());
+        libiop::print_indent(); printf("* R1CS number of variables: %zu\n", example.constraint_system_.num_variables());
+        libiop::print_indent(); printf("* R1CS number of variables for primary input: %zu\n", example.primary_input_.size());
+        libiop::print_indent(); printf("* R1CS number of variables for auxiliary input: %zu\n", example.auxiliary_input_.size());
+        libiop::print_indent(); printf("* R1CS size of constraint system (bytes): %zu\n", example.constraint_system_.size_in_bytes());
+        libiop::print_indent(); printf("* R1CS size of primary input (bytes): %zu\n", example.primary_input_.size() * sizeof(FieldT));
+        libiop::print_indent(); printf("* R1CS size of auxiliary input (bytes): %zu\n", example.auxiliary_input_.size() * sizeof(FieldT));
         printf("\n");
 
         std::pair<bcs_prover_index<FieldT, hash_type>, bcs_verifier_index<FieldT, hash_type>> index =
@@ -201,7 +201,7 @@ void instrument_fractal_snark(options &options,
 
         printf("\n\n");
 
-        print_indent(); printf("* Verifier satisfied: %s\n", bit ? "true" : "false");
+        libiop::print_indent(); printf("* Verifier satisfied: %s\n", bit ? "true" : "false");
     }
 }
 
@@ -238,7 +238,7 @@ int main(int argc, const char * argv[])
     if (heuristic_fri_soundness) {
         fri_soundness_type = FRI_soundness_type::heuristic;
     }
-    start_profiling();
+    libiop::start_profiling();
 
     printf("Selected parameters:\n");
     printf("- log_n_min = %zu\n", default_vals.log_n_min);
@@ -279,19 +279,19 @@ int main(int argc, const char * argv[])
         switch (default_vals.field_size)
         {
             case 64:
-                instrument_fractal_snark<gf64, binary_hash_digest>(
+                instrument_fractal_snark<libff::gf64, binary_hash_digest>(
                     default_vals, ldt_reducer_soundness_type, fri_soundness_type, optimize_localization);
                 break;
             case 128:
-                instrument_fractal_snark<gf128, binary_hash_digest>(
+                instrument_fractal_snark<libff::gf128, binary_hash_digest>(
                     default_vals, ldt_reducer_soundness_type, fri_soundness_type, optimize_localization);
                 break;
             case 192:
-                instrument_fractal_snark<gf192, binary_hash_digest>(
+                instrument_fractal_snark<libff::gf192, binary_hash_digest>(
                     default_vals, ldt_reducer_soundness_type, fri_soundness_type, optimize_localization);
                 break;
             case 256:
-                instrument_fractal_snark<gf256, binary_hash_digest>(
+                instrument_fractal_snark<libff::gf256, binary_hash_digest>(
                     default_vals, ldt_reducer_soundness_type, fri_soundness_type, optimize_localization);
                 break;
             default:

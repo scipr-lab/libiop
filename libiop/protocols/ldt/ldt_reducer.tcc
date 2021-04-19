@@ -114,17 +114,17 @@ void LDT_instance_reducer_params<FieldT>::print() const
     printf("\nLDT instance reducer parameters\n");
     if (this->override_security_parameter_)
     {
-        print_indent(); printf("===WARNING=== LDT instance reducer security parameter was overridden\n");
+        libiop::print_indent(); printf("===WARNING=== LDT instance reducer security parameter was overridden\n");
     }
-    print_indent(); printf("* soundness type = %s\n", LDT_reducer_soundness_type_to_string(this->soundness_type_));
-    print_indent(); printf("* target interactive soundness error (bits) = %zu\n", this->interactive_soundness_bits_);
-    print_indent(); printf("* achieved interactive soundness error (bits) = %.1Lf\n", this->achieved_soundness());
-    print_indent(); printf("* codeword domain dim = %zu\n", this->codeword_domain_dim_);
-    print_indent(); printf("* max tested degree bound = %zu\n", this->max_tested_degree_bound_);
-    print_indent(); printf("* max constraint degree bound = %zu\n", this->max_constraint_degree_bound_);
-    print_indent(); printf("* absolute proximity parameter = %zu\n", this->absolute_proximity_parameter_);
-    print_indent(); printf("* fractional proximity parameter = %Lf\n", this->fractional_proximity_parameter_);
-    print_indent(); printf("* num output LDT instances = %zu\n", this->num_output_LDT_instances_);
+    libiop::print_indent(); printf("* soundness type = %s\n", LDT_reducer_soundness_type_to_string(this->soundness_type_));
+    libiop::print_indent(); printf("* target interactive soundness error (bits) = %zu\n", this->interactive_soundness_bits_);
+    libiop::print_indent(); printf("* achieved interactive soundness error (bits) = %.1Lf\n", this->achieved_soundness());
+    libiop::print_indent(); printf("* codeword domain dim = %zu\n", this->codeword_domain_dim_);
+    libiop::print_indent(); printf("* max tested degree bound = %zu\n", this->max_tested_degree_bound_);
+    libiop::print_indent(); printf("* max constraint degree bound = %zu\n", this->max_constraint_degree_bound_);
+    libiop::print_indent(); printf("* absolute proximity parameter = %zu\n", this->absolute_proximity_parameter_);
+    libiop::print_indent(); printf("* fractional proximity parameter = %Lf\n", this->fractional_proximity_parameter_);
+    libiop::print_indent(); printf("* num output LDT instances = %zu\n", this->num_output_LDT_instances_);
 }
 
 template<typename FieldT, typename multi_LDT_type>
@@ -138,7 +138,7 @@ LDT_instance_reducer<FieldT, multi_LDT_type>::LDT_instance_reducer(iop_protocol<
     /* Check that the single LDT type given in the template is valid. */
     typedef std::is_base_of<multi_LDT_base<FieldT>, multi_LDT_type> base_checker;
     assert(base_checker::value);
-    UNUSED(base_checker::value);
+    libiop::UNUSED(base_checker::value);
 
     this->codeword_domain_ = this->IOP_.get_domain(this->codeword_domain_handle_);
     std::size_t codeword_domain_size = this->codeword_domain_.num_elements();
@@ -241,7 +241,7 @@ void LDT_instance_reducer<FieldT, multi_LDT_type>::register_queries()
 template<typename FieldT, typename multi_LDT_type>
 void LDT_instance_reducer<FieldT, multi_LDT_type>::submit_masking_polynomial()
 {
-    enter_block("LDT Reducer: Submit masking polynomial");
+    libiop::enter_block("LDT Reducer: Submit masking polynomial");
     if (this->reducer_params_.make_zk())
     {
         for (size_t i = 0; i < this->reducer_params_.num_output_LDT_instances(); ++i)
@@ -253,13 +253,13 @@ void LDT_instance_reducer<FieldT, multi_LDT_type>::submit_masking_polynomial()
             this->IOP_.submit_oracle(this->blinding_vector_handles_[i], std::move(blinding_oracle));
         }
     }
-    leave_block("LDT Reducer: Submit masking polynomial");
+    libiop::leave_block("LDT Reducer: Submit masking polynomial");
 }
 
 template<typename FieldT, typename multi_LDT_type>
 void LDT_instance_reducer<FieldT, multi_LDT_type>::calculate_and_submit_proof()
 {
-    enter_block("LDT Reducer: Calculate and submit proof");
+    libiop::enter_block("LDT Reducer: Calculate and submit proof");
     for (size_t i = 0; i < this->reducer_params_.num_output_LDT_instances(); ++i)
     {
         const std::vector<FieldT> challenge = this->IOP_.obtain_verifier_random_message(
@@ -268,7 +268,7 @@ void LDT_instance_reducer<FieldT, multi_LDT_type>::calculate_and_submit_proof()
     }
 
     this->multi_LDT_->calculate_and_submit_proof();
-    leave_block("LDT Reducer: Calculate and submit proof");
+    libiop::leave_block("LDT Reducer: Calculate and submit proof");
 }
 
 template<typename FieldT, typename multi_LDT_type>

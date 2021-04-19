@@ -3,11 +3,6 @@ add_library(
 
   common/common.cpp
   common/profiling.cpp
-  algebra/fields/gf32.cpp
-  algebra/fields/gf64.cpp
-  algebra/fields/gf128.cpp
-  algebra/fields/gf192.cpp
-  algebra/fields/gf256.cpp
   
   bcs/hashing/blake2b.cpp
   protocols/ldt/ldt_reducer.cpp
@@ -111,21 +106,6 @@ target_link_libraries(test_exponentiation iop gtest_main)
 add_executable(test_fft tests/algebra/test_fft.cpp)
 target_link_libraries(test_fft iop gtest_main)
 
-add_executable(test_gf32 tests/algebra/test_gf32.cpp)
-target_link_libraries(test_gf32 iop gtest_main)
-
-add_executable(test_gf64 tests/algebra/test_gf64.cpp)
-target_link_libraries(test_gf64 iop gtest_main)
-
-add_executable(test_gf128 tests/algebra/test_gf128.cpp)
-target_link_libraries(test_gf128 iop gtest_main)
-
-add_executable(test_gf192 tests/algebra/test_gf192.cpp)
-target_link_libraries(test_gf192 iop gtest_main)
-
-add_executable(test_gf256 tests/algebra/test_gf256.cpp)
-target_link_libraries(test_gf256 iop gtest_main)
-
 add_executable(test_lagrange tests/algebra/test_lagrange.cpp)
 target_link_libraries(test_lagrange iop gtest_main)
 
@@ -161,26 +141,6 @@ add_test(
 add_test(
   NAME test_fft
   COMMAND test_fft
-)
-add_test(
-  NAME test_gf32
-  COMMAND test_gf32
-)
-add_test(
-  NAME test_gf64
-  COMMAND test_gf64
-)
-add_test(
-  NAME test_gf128
-  COMMAND test_gf128
-)
-add_test(
-  NAME test_gf192
-  COMMAND test_gf192
-)
-add_test(
-  NAME test_gf256
-  COMMAND test_gf256
 )
 add_test(
   NAME test_lagrange

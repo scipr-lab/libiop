@@ -188,7 +188,7 @@ TEST(SumcheckAdditiveLemmaTest, SimpleTest) {
     FieldT power_sum = FieldT::zero();
     for (auto &el : summation_domain.all_elements())
     {
-        power_sum += libiop::power(el, summation_domain.num_elements() - 1);
+        power_sum += libff::power(el, summation_domain.num_elements() - 1);
     }
     const linearized_polynomial<FieldT> Z =
         vanishing_polynomial_from_subspace(summation_domain);

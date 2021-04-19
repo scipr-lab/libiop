@@ -124,7 +124,7 @@ public:
         const FieldT evaluation_point,
         const std::vector<FieldT> &constituent_oracle_evaluations) const
     {
-        UNUSED(evaluation_position);
+        libiop::UNUSED(evaluation_position);
         /** The input is expected to be of the form: (p, N, D)
          *  where p is the codeword outputted by rational sumcheck,
          *  N is the numerator of the rational function, and D its denominator.
@@ -143,7 +143,7 @@ public:
             /** In the additive case this is computing q(x), where
              *  q(x) = (D(x) * (p(x) + eps^{-1} * claimed_sum * x^{|H| - 1}) - N(x)) / Z_H
              */
-            const FieldT x_to_H_minus_1 = libiop::power(x, this->summation_domain_.num_elements() - 1);
+            const FieldT x_to_H_minus_1 = libff::power(x, this->summation_domain_.num_elements() - 1);
 
             /** Compute q(x), by performing the correct arithmetic on the evaluations */
             return (D_at_x * (g_at_x + x_to_H_minus_1 * this->eps_inv_times_claimed_sum_) - N_at_x)

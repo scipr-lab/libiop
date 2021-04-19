@@ -65,7 +65,7 @@ public:
             throw std::invalid_argument("sumcheck_g_oracle has two constituent oracles");
         }
 
-        enter_block("Sumcheck: g evaluated contents");
+        libiop::enter_block("Sumcheck: g evaluated contents");
 
         /* evaluations of \hat{f} */
         std::shared_ptr<std::vector<FieldT>> result = std::make_shared<std::vector<FieldT>>(
@@ -117,7 +117,7 @@ public:
                 cur_x_inv *= generator_inv;
             }
         }
-        leave_block("Sumcheck: g evaluated contents");
+        libiop::leave_block("Sumcheck: g evaluated contents");
         return result;
     }
 
@@ -126,7 +126,7 @@ public:
         const FieldT evaluation_point,
         const std::vector<FieldT> &constituent_oracle_evaluations) const
     {
-        UNUSED(evaluation_position);
+        libiop::UNUSED(evaluation_position);
         /* oracle evaluations should be f(x) and h(x) */
         if (constituent_oracle_evaluations.size() != 2)
         {
@@ -144,7 +144,7 @@ public:
              */
 
             return (f_at_x
-                - this->eps_inv_times_claimed_sum_ * libiop::power(evaluation_point, this->summation_domain_.num_elements() - 1)
+                - this->eps_inv_times_claimed_sum_ * libff::power(evaluation_point, this->summation_domain_.num_elements() - 1)
                 - Z_at_x * h_at_x);
         } else if (this->field_subset_type_ == multiplicative_coset_type) {
             /** In the multiplicative case this is computing p'(x), where
@@ -298,12 +298,12 @@ void batch_sumcheck_protocol<FieldT>::submit_masking_polynomial()
      *  2) alter g such that its sum over H is 0
      *  3) compute m using the identity m = Z_H * h + g
      *  4) convert m to the codeword domain and submit it */
-    enter_block("Sumcheck: sample masking polynomial components");
+    libiop::enter_block("Sumcheck: sample masking polynomial components");
     polynomial<FieldT> masking_g_poly = polynomial<FieldT>::random_polynomial(this->summation_domain_size_);
     const polynomial<FieldT> masking_h_poly = polynomial<FieldT>::random_polynomial(this->h_degree_);
-    leave_block("Sumcheck: sample masking polynomial components");
+    libiop::leave_block("Sumcheck: sample masking polynomial components");
 
-    enter_block("Sumcheck: compute masking polynomial codeword");
+    libiop::enter_block("Sumcheck: compute masking polynomial codeword");
     const vanishing_polynomial<FieldT> summation_vp(this->summation_domain_);
 
     if (this->field_subset_type_ == multiplicative_coset_type) {
@@ -323,7 +323,7 @@ void batch_sumcheck_protocol<FieldT>::submit_masking_polynomial()
         this->masking_poly_handle_,
         oracle<FieldT>(FFT_over_field_subset<FieldT>(
             this->masking_poly_.coefficients(), this->codeword_domain_)));
-    leave_block("Sumcheck: compute masking polynomial codeword");
+    libiop::leave_block("Sumcheck: compute masking polynomial codeword");
 }
 
 template<typename FieldT>

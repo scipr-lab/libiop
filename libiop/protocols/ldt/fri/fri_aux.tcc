@@ -153,11 +153,11 @@ std::shared_ptr<std::vector<FieldT>> multiplicative_evaluate_next_f_i_over_entir
 
     const FieldT h_inc = f_i_domain.generator();
     const FieldT h_inc_to_coset_inv_plus_one =
-        libiop::power(h_inc, coset_size).inverse() * h_inc;
+        libff::power(h_inc, coset_size).inverse() * h_inc;
     const field_subset<FieldT> shiftless_coset(coset_size, FieldT::one());
     const FieldT g = shiftless_coset.generator();
     const FieldT g_inv = g.inverse();
-    const FieldT x_to_order_coset = libiop::power(x_i, coset_size);
+    const FieldT x_to_order_coset = libff::power(x_i, coset_size);
     /* xg^{-k} */
     std::vector<FieldT> shifted_x_elements(coset_size);
     shifted_x_elements[0] = x_i;
@@ -167,7 +167,7 @@ std::shared_ptr<std::vector<FieldT>> multiplicative_evaluate_next_f_i_over_entir
     }
 
     FieldT cur_h = f_i_domain.shift();
-    const FieldT first_h_to_coset_inv_plus_one = libiop::power(cur_h, coset_size).inverse() * cur_h;
+    const FieldT first_h_to_coset_inv_plus_one = libff::power(cur_h, coset_size).inverse() * cur_h;
     FieldT cur_coset_constant_plus_h = x_to_order_coset * first_h_to_coset_inv_plus_one;
 
     /* xg^{-k} - h, for all combinations of k, h.  */
@@ -314,10 +314,10 @@ FieldT multiplicative_evaluate_next_f_i_at_coset(
     /* vp(x) = x^m - h^m */
     const size_t coset_size = f_i_evals_over_coset.size();
     const FieldT m = FieldT(coset_size);
-    const FieldT vp_x = libiop::power(x_i, coset_size) -
-        libiop::power(h, coset_size);
+    const FieldT vp_x = libff::power(x_i, coset_size) -
+        libff::power(h, coset_size);
     const bool x_in_domain = vp_x == FieldT::zero();
-    const FieldT c = vp_x * (FieldT(m) * libiop::power(h, coset_size - 1)).inverse();
+    const FieldT c = vp_x * (FieldT(m) * libff::power(h, coset_size - 1)).inverse();
 
     // TODO: Add comments here for how coefficients are being generated.
     // (its the same as in lagrange.tcc, except we don't include l in the batch inversion,

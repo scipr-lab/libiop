@@ -6,7 +6,7 @@
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
 
 #include "libiop/algebra/fft.hpp"
-#include "libiop/algebra/fields/gf64.hpp"
+#include <libff/algebra/fields/binary/gf64.hpp>
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
 #include "libiop/common/common.hpp"
@@ -41,7 +41,7 @@ bool run_test(r1cs_constraint_system<FieldT> constraint_system,
     const std::size_t codeword_domain_dim = systematic_domain_dim + RS_extra_dimensions;
     const std::size_t codeword_domain_size = 1ull << codeword_domain_dim;
     
-    print_indent(); printf("codeword subspace dim: %zu\n", codeword_domain_dim);
+    libiop::print_indent(); printf("codeword subspace dim: %zu\n", codeword_domain_dim);
     
     const std::size_t matrix_width = systematic_domain_size * num_oracles_input;
     
@@ -54,7 +54,7 @@ bool run_test(r1cs_constraint_system<FieldT> constraint_system,
 
     const std::size_t extended_systematic_domain_size = systematic_domain_size << 1;
     
-    print_indent(); printf("num oracles for vectors / R1CS constraints (m_2): %zu\n", num_oracles_vectors);
+    libiop::print_indent(); printf("num oracles for vectors / R1CS constraints (m_2): %zu\n", num_oracles_vectors);
     
     FieldT shift;
 

@@ -34,7 +34,7 @@ void multi_lincheck_virtual_oracle<FieldT>::set_challenge(const FieldT &alpha, c
     }
     this->r_Mz_ = r_Mz;
 
-    enter_block("multi_lincheck compute alpha powers");
+    libiop::enter_block("multi_lincheck compute alpha powers");
     /** Set alpha powers */
     std::vector<FieldT> alpha_powers;
     alpha_powers.reserve(this->constraint_domain_.num_elements());
@@ -44,9 +44,9 @@ void multi_lincheck_virtual_oracle<FieldT>::set_challenge(const FieldT &alpha, c
         alpha_powers.emplace_back(cur);
         cur *= alpha;
     }
-    leave_block("multi_lincheck compute alpha powers");
+    libiop::leave_block("multi_lincheck compute alpha powers");
 
-    enter_block("multi_lincheck compute p_alpha_prime");
+    libiop::enter_block("multi_lincheck compute p_alpha_prime");
     /** This essentially places alpha powers into the correct spots,
      *  such that the zeroes when the |constraint domain| < summation domain
      *  are placed correctly. */
@@ -57,10 +57,10 @@ void multi_lincheck_virtual_oracle<FieldT>::set_challenge(const FieldT &alpha, c
             this->constraint_domain_.dimension(), i);
         p_alpha_prime_over_summation_domain[element_index] = alpha_powers[i];
     }
-    leave_block("multi_lincheck compute p_alpha_prime");
+    libiop::leave_block("multi_lincheck compute p_alpha_prime");
 
     /* Set p_alpha_ABC_evals */
-    enter_block("multi_lincheck compute p_alpha_ABC");
+    libiop::enter_block("multi_lincheck compute p_alpha_ABC");
     std::vector<FieldT> p_alpha_ABC_evals(
         this->summation_domain_.num_elements(), FieldT::zero());
     for (std::size_t m_index = 0; m_index < this->matrices_.size(); m_index++)
@@ -83,26 +83,26 @@ void multi_lincheck_virtual_oracle<FieldT>::set_challenge(const FieldT &alpha, c
             }
         }
     }
-    leave_block("multi_lincheck compute p_alpha_ABC");
+    libiop::leave_block("multi_lincheck compute p_alpha_ABC");
     // To use lagrange, the following IFFTs must also be moved to evaluated contents
     if (this->use_lagrange_)
     {
         this->alpha_powers_ = alpha_powers;
         this->p_alpha_ABC_evals_ = p_alpha_ABC_evals;
     }
-    enter_block("multi_lincheck IFFT p_alphas");
+    libiop::enter_block("multi_lincheck IFFT p_alphas");
     this->p_alpha_ABC_ = polynomial<FieldT>(
         IFFT_over_field_subset<FieldT>(p_alpha_ABC_evals, this->summation_domain_));
     this->p_alpha_prime_ = polynomial<FieldT>(
         IFFT_over_field_subset<FieldT>(p_alpha_prime_over_summation_domain, this->summation_domain_));
-    leave_block("multi_lincheck IFFT p_alphas");
+    libiop::leave_block("multi_lincheck IFFT p_alphas");
 }
 
 template<typename FieldT>
 std::shared_ptr<std::vector<FieldT>> multi_lincheck_virtual_oracle<FieldT>::evaluated_contents(
     const std::vector<std::shared_ptr<std::vector<FieldT>>> &constituent_oracle_evaluations) const
 {
-    enter_block("multi_lincheck evaluated contents");
+    libiop::enter_block("multi_lincheck evaluated contents");
     if (constituent_oracle_evaluations.size() != this->matrices_.size() + 1)
     {
         throw std::invalid_argument("multi_lincheck uses more constituent oracles than what was provided.");
@@ -139,7 +139,7 @@ std::shared_ptr<std::vector<FieldT>> multi_lincheck_virtual_oracle<FieldT>::eval
             f_combined_Mz[i] * p_alpha_prime_over_codeword_domain[i] -
             fz->operator[](i) * p_alpha_ABC_over_codeword_domain[i]);
     }
-    leave_block("multi_lincheck evaluated contents");
+    libiop::leave_block("multi_lincheck evaluated contents");
     return result;
 }
 
@@ -149,7 +149,7 @@ FieldT multi_lincheck_virtual_oracle<FieldT>::evaluation_at_point(
     const FieldT evaluation_point,
     const std::vector<FieldT> &constituent_oracle_evaluations) const
 {
-    UNUSED(evaluation_position);
+    libiop::UNUSED(evaluation_position);
     if (constituent_oracle_evaluations.size() != this->matrices_.size() + 1)
     {
         throw std::invalid_argument("multi_lincheck uses more constituent oracles than what was provided.");

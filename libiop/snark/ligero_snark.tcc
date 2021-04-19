@@ -9,12 +9,12 @@ namespace libiop {
 template<typename FieldT, typename MT_root_hash>
 void ligero_snark_parameters<FieldT, MT_root_hash>::describe()
 {
-    print_indent(); printf("Interleaved R1CS SNARK parameters:\n");
-    print_indent(); printf("Security level: %zu\n", security_level_);
-    print_indent(); printf("Height/width ratio: %f\n", height_width_ratio_);
-    print_indent(); printf("RS extra dimensions: %zu\n", RS_extra_dimensions_);
-    print_indent(); printf("Zero-knowledge: %d\n", make_zk_);
-    print_indent(); printf("Domain type = %s\n", field_subset_type_names[this->domain_type_]);
+    libiop::print_indent(); printf("Interleaved R1CS SNARK parameters:\n");
+    libiop::print_indent(); printf("Security level: %zu\n", security_level_);
+    libiop::print_indent(); printf("Height/width ratio: %f\n", height_width_ratio_);
+    libiop::print_indent(); printf("RS extra dimensions: %zu\n", RS_extra_dimensions_);
+    libiop::print_indent(); printf("Zero-knowledge: %d\n", make_zk_);
+    libiop::print_indent(); printf("Domain type = %s\n", field_subset_type_names[this->domain_type_]);
 }
 
 template<typename FieldT, typename MT_root_hash>
@@ -43,7 +43,7 @@ ligero_snark_argument<FieldT, MT_root_hash> ligero_snark_prover(
     const r1cs_auxiliary_input<FieldT> &auxiliary_input,
     const ligero_snark_parameters<FieldT, MT_root_hash> &parameters)
 {
-    enter_block("Ligero SNARK prover");
+    libiop::enter_block("Ligero SNARK prover");
     const ligero_iop_parameters<FieldT> iop_params =
         obtain_iop_parameters_from_ligero_snark_params<FieldT>(
             parameters,
@@ -61,13 +61,13 @@ ligero_snark_argument<FieldT, MT_root_hash> ligero_snark_prover(
 
     full_protocol.produce_proof(primary_input, auxiliary_input);
 
-    enter_block("Obtain transcript");
+    libiop::enter_block("Obtain transcript");
     const ligero_snark_argument<FieldT, MT_root_hash> transcript = IOP.get_transcript();
-    leave_block("Obtain transcript");
+    libiop::leave_block("Obtain transcript");
 
     IOP.describe_sizes();
 
-    leave_block("Ligero SNARK prover");
+    libiop::leave_block("Ligero SNARK prover");
     return transcript;
 }
 
@@ -77,7 +77,7 @@ bool ligero_snark_verifier(const r1cs_constraint_system<FieldT> &constraint_syst
                            const ligero_snark_argument<FieldT, MT_root_hash> &proof,
                            const ligero_snark_parameters<FieldT, MT_root_hash> &parameters)
 {
-    enter_block("Ligero SNARK verifier");
+    libiop::enter_block("Ligero SNARK verifier");
     const ligero_iop_parameters<FieldT> iop_params =
         obtain_iop_parameters_from_ligero_snark_params<FieldT>(
             parameters,
@@ -94,18 +94,18 @@ bool ligero_snark_verifier(const r1cs_constraint_system<FieldT> &constraint_syst
     full_protocol.register_queries();
     IOP.seal_query_registrations();
 
-    enter_block("Check semantic validity of IOP transcript");
+    libiop::enter_block("Check semantic validity of IOP transcript");
     const bool IOP_transcript_valid = IOP.transcript_is_valid();
-    leave_block("Check semantic validity of IOP transcript");
+    libiop::leave_block("Check semantic validity of IOP transcript");
 
-    enter_block("Check verifier predicate");
+    libiop::enter_block("Check verifier predicate");
     const bool full_protocol_accepts = full_protocol.verifier_predicate(primary_input);
-    leave_block("Check verifier predicate");
+    libiop::leave_block("Check verifier predicate");
 
-    print_indent(); printf("* IOP transcript valid: %s\n", IOP_transcript_valid ? "true" : "false");
-    print_indent(); printf("* Full protocol decision predicate satisfied: %s\n", full_protocol_accepts ? "true" : "false");
+    libiop::print_indent(); printf("* IOP transcript valid: %s\n", IOP_transcript_valid ? "true" : "false");
+    libiop::print_indent(); printf("* Full protocol decision predicate satisfied: %s\n", full_protocol_accepts ? "true" : "false");
     const bool decision = IOP_transcript_valid && full_protocol_accepts;
-    leave_block("Ligero SNARK verifier");
+    libiop::leave_block("Ligero SNARK verifier");
 
     return decision;
 }

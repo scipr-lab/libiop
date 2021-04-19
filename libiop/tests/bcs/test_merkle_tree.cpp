@@ -3,7 +3,7 @@
 #include <vector>
 #include <type_traits>
 
-#include "libiop/algebra/fields/gf64.hpp"
+#include <libff/algebra/fields/binary/gf64.hpp>
 #include "libiop/algebra/utils.hpp"
 #include "libiop/bcs/hashing/blake2b.hpp"
 #include "libiop/bcs/hashing/dummy_algebraic_hash.hpp"

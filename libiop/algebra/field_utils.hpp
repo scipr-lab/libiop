@@ -10,12 +10,12 @@
 #define LIBIOP_ALGEBRA_FIELDS_UTILS_HPP_
 
 #include "libiop/common/common.hpp"
-#include "libiop/algebra/fields/gf64.hpp"
-#include "libiop/algebra/fields/gf128.hpp"
-#include "libiop/algebra/fields/gf192.hpp"
-#include "libiop/algebra/fields/gf256.hpp"
 
-#include <libff/algebra/fields/fp.hpp>
+#include <libff/algebra/fields/binary/gf64.hpp>
+#include <libff/algebra/fields/binary/gf128.hpp>
+#include <libff/algebra/fields/binary/gf192.hpp>
+#include <libff/algebra/fields/binary/gf256.hpp>
+#include <libff/algebra/fields/prime_base/fp.hpp>
 
 namespace libiop {
 
@@ -79,7 +79,7 @@ template<typename FieldT>
 std::size_t log_of_field_size_helper(
     typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type field_elem)
 {
-    return FieldT::size_in_bits();
+    return FieldT::ceil_size_in_bits();
 }
 
 template<typename FieldT>
@@ -99,7 +99,7 @@ std::size_t soundness_log_of_field_size_helper(
      *  For calculating soundness, we use the log of field size as number of bits - 1,
      *  as (2 << returned) size lower bounds the actual size.
     */
-    return FieldT::size_in_bits() - 1;
+    return FieldT::ceil_size_in_bits() - 1;
 }
 
 template<typename FieldT>
@@ -113,7 +113,7 @@ template<typename FieldT>
 std::size_t get_word_of_field_elem(
     typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type field_elem, size_t word)
 {
-    return field_elem.as_words()[word];
+    return field_elem.to_words()[word];
 }
 
 template<typename FieldT>

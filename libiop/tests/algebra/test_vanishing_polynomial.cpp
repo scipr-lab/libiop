@@ -4,9 +4,9 @@
 #include <vector>
 
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
+#include <libff/algebra/fields/binary/gf64.hpp>
 #include "libiop/algebra/fft.hpp"
 #include "libiop/algebra/exponentiation.hpp"
-#include "libiop/algebra/fields/gf64.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/polynomials/vanishing_polynomial.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"

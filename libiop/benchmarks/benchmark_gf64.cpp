@@ -3,8 +3,10 @@
 #include <vector>
 #include <benchmark/benchmark.h>
 
-#include "libiop/algebra/fields/gf64.hpp"
+#include <libff/algebra/fields/binary/gf64.hpp>
 #include "libiop/algebra/utils.hpp"
+
+using namespace libff;
 
 namespace libiop {
 

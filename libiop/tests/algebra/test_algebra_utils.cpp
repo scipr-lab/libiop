@@ -4,14 +4,14 @@
 
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
-#include "libiop/algebra/fields/gf64.hpp"
+#include <libff/algebra/fields/binary/gf64.hpp>
 #include "libiop/algebra/utils.hpp"
 #include "libiop/common/common.hpp"
 
 namespace libiop {
 
 TEST(BatchInverseTest, SimpleTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const std::size_t sz = 100;
     const std::vector<FieldT> vec = random_vector<FieldT>(sz);

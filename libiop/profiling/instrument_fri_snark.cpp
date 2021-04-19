@@ -10,16 +10,17 @@
 #endif
 
 #include "boost_profile.cpp"
-#include "libff/algebra/curves/edwards/edwards_pp.hpp"
-#include "libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp"
+#include <libff/algebra/curves/edwards/edwards_pp.hpp>
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
-#include "libiop/algebra/fields/utils.hpp"
-#include "libiop/algebra/fft.hpp"
-#include "libiop/algebra/fields/gf64.hpp"
-#include "libiop/algebra/fields/gf128.hpp"
-#include "libiop/algebra/fields/gf192.hpp"
-#include "libiop/algebra/fields/gf256.hpp"
+#include "libiop/algebra/field_utils.hpp"
+#include <libff/algebra/fields/binary/gf64.hpp>
+#include <libff/algebra/fields/binary/gf256.hpp>
+#include <libff/algebra/fields/binary/gf192.hpp>
+#include <libff/algebra/fields/binary/gf256.hpp>
+
 #include "libiop/algebra/field_subset/subgroup.hpp"
+#include "libiop/algebra/fft.hpp"
 
 #include "libiop/common/common.hpp"
 #include "libiop/iop/iop.hpp"
@@ -120,14 +121,14 @@ void instrument_FRI(options &options,
 
         const FRI_snark_proof<FieldT, hash_type> proof = FRI_snark_prover<FieldT, hash_type>(params);
         printf("\n");
-        print_indent(); printf("* Argument size in bytes (IOP): %zu\n", proof.IOP_size_in_bytes());
-        print_indent(); printf("* Argument size in bytes (BCS): %zu\n", proof.BCS_size_in_bytes());
-        print_indent(); printf("* Argument size in bytes (total): %zu\n", proof.size_in_bytes());
+        libiop::print_indent(); printf("* Argument size in bytes (IOP): %zu\n", proof.IOP_size_in_bytes());
+        libiop::print_indent(); printf("* Argument size in bytes (BCS): %zu\n", proof.BCS_size_in_bytes());
+        libiop::print_indent(); printf("* Argument size in bytes (total): %zu\n", proof.size_in_bytes());
 
         printf("\nIf we were to remove the pruning of BCS merkle tree paths feature,\n"
                "the argument would have the following sizes:\n");
-        print_indent(); printf("* Argument size in bytes (BCS, no pruning): %zu\n", proof.BCS_size_in_bytes_without_pruning());
-        print_indent(); printf("* Argument size in bytes (total, no pruning): %zu\n", proof.size_in_bytes_without_pruning());
+        libiop::print_indent(); printf("* Argument size in bytes (BCS, no pruning): %zu\n", proof.BCS_size_in_bytes_without_pruning());
+        libiop::print_indent(); printf("* Argument size in bytes (total, no pruning): %zu\n", proof.size_in_bytes_without_pruning());
         printf("\n");
 
         const bool bit = FRI_snark_verifier<FieldT, hash_type>(proof, params);
@@ -165,7 +166,7 @@ int main(int argc, const char * argv[])
 
 #endif
 
-    start_profiling();
+    libiop::start_profiling();
 
     printf("Selected parameters:\n");
     printf("* log_n_min = %zu\n", default_vals.log_n_min);

@@ -1,5 +1,5 @@
 #include "sodium/crypto_generichash_blake2b.h"
-#include "libiop/algebra/fields/utils.hpp"
+#include "libiop/algebra/field_utils.hpp"
 #include "libiop/bcs/hashing/hashing.hpp"
 #include <cstring>
 #include <sstream>
@@ -33,7 +33,7 @@ void blake2b_hashchain<FieldT, hash_data_type>::absorb(const hash_data_type new_
 
 template<typename FieldT, typename hash_data_type>
 void blake2b_hashchain<FieldT, hash_data_type>::absorb_internal(
-    const typename libiop::enable_if<std::is_same<hash_data_type, FieldT>::value, hash_data_type>::type new_input)
+    const typename enable_if<std::is_same<hash_data_type, FieldT>::value, hash_data_type>::type new_input)
 {
     std::vector<FieldT> vec_new_input;
     vec_new_input.emplace_back(new_input);
@@ -42,7 +42,7 @@ void blake2b_hashchain<FieldT, hash_data_type>::absorb_internal(
 
 template<typename FieldT, typename hash_data_type>
 void blake2b_hashchain<FieldT, hash_data_type>::absorb_internal(
-    const typename libiop::enable_if<std::is_same<hash_data_type, binary_hash_digest>::value, hash_data_type>::type new_input)
+    const typename enable_if<std::is_same<hash_data_type, binary_hash_digest>::value, hash_data_type>::type new_input)
 {
     this->absorb_hash_digest(new_input);
 }
@@ -161,7 +161,7 @@ binary_hash_digest blake2b_field_element_hash(const std::vector<FieldT> &data,
 
 template<typename FieldT>
 FieldT blake2b_FieldT_rejection_sample(
-    typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type _,
+    typename enable_if<is_additive<FieldT>::value, FieldT>::type _,
     unsigned char* root_plus_index,
     size_t root_plus_index_size,
     const size_t key,
@@ -183,7 +183,7 @@ FieldT blake2b_FieldT_rejection_sample(
 
 template<typename FieldT>
 FieldT blake2b_FieldT_rejection_sample(
-    typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type _,
+    typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type _,
     unsigned char* root_plus_index,
     size_t root_plus_index_size,
     const size_t key,

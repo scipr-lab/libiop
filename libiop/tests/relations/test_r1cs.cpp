@@ -3,18 +3,18 @@
 
 #include <gtest/gtest.h>
 
-#include "libiop/algebra/fields/gf64.hpp"
+#include <libff/algebra/fields/binary/gf64.hpp>
+#include <libff/algebra/curves/edwards/edwards_pp.hpp>
+#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 #include "libiop/common/common.hpp"
 #include "libiop/relations/r1cs.hpp"
 #include "libiop/relations/variable.hpp"
 #include "libiop/relations/examples/r1cs_examples.hpp"
-#include <libff/algebra/curves/edwards/edwards_pp.hpp>
-#include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
 namespace libiop {
 
 TEST(R1CSTest, SimpleTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     r1cs_constraint_system<FieldT> constraints;
     constraints.primary_input_size_ = 1;
@@ -39,7 +39,7 @@ TEST(R1CSGeneratorTest, SimpleTests) {
             const std::size_t num_inputs = (1ull << (variable_dim - 2)) - 1;
             const std::size_t num_constraints = (1ull << constraint_dim);
 
-            r1cs_example<gf64> r1cs_params_gf64 = generate_r1cs_example<gf64>(
+            r1cs_example<libff::gf64> r1cs_params_gf64 = generate_r1cs_example<libff::gf64>(
                 num_constraints, num_inputs, num_variables);
             EXPECT_TRUE(r1cs_params_gf64.constraint_system_.is_satisfied(r1cs_params_gf64.primary_input_,
                                                                         r1cs_params_gf64.auxiliary_input_));

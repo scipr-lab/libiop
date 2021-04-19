@@ -15,7 +15,7 @@
 #include "libiop/iop/iop.hpp"
 #include "libiop/relations/r1cs.hpp"
 
-#include "libiop/algebra/fields/utils.hpp"
+#include "libiop/algebra/field_utils.hpp"
 #include "libiop/algebra/field_subset/subgroup.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"

@@ -1,7 +1,7 @@
 #include <vector>
 #include <benchmark/benchmark.h>
 
-#include "libiop/algebra/fields/utils.hpp"
+#include "libiop/algebra/field_utils.hpp"
 #include "libiop/common/common.hpp"
 #include "libiop/algebra/utils.hpp"
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>

@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <numeric>
 #include <set>
-#include <libff/algebra/fields/bigint.hpp>
+#include <libff/algebra/field_utils/bigint.hpp>
 
 #include "libiop/algebra/fft.hpp"
 #include "libiop/common/profiling.hpp"
@@ -308,8 +308,8 @@ std::istream& deserialize_size_t_vec_of_vec(
 
 template<typename FieldT, typename MT_hash_type>
 std::ostream& serialize_transcript_internal(
-    typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type,
-    typename libiop::enable_if<std::is_same<MT_hash_type, FieldT>::value, FieldT>::type,
+    typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type,
+    typename enable_if<std::is_same<MT_hash_type, FieldT>::value, FieldT>::type,
     std::ostream &out, const bcs_transformation_transcript<FieldT, MT_hash_type> &t)
 {
     // algebraic hash on multiplicative field
@@ -330,8 +330,8 @@ std::ostream& serialize_transcript_internal(
 
 template<typename FieldT, typename MT_hash_type>
 std::istream& deserialize_transcript_internal(
-    typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type,
-    typename libiop::enable_if<std::is_same<MT_hash_type, FieldT>::value, FieldT>::type,
+    typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type,
+    typename enable_if<std::is_same<MT_hash_type, FieldT>::value, FieldT>::type,
     std::istream &in, bcs_transformation_transcript<FieldT, MT_hash_type> &t)
 {
     // algebraic hash on multiplicative field
@@ -359,8 +359,8 @@ std::istream& deserialize_transcript_internal(
 
 template<typename FieldT, typename MT_hash_type>
 std::ostream& serialize_transcript_internal(
-    typename libiop::enable_if<!is_multiplicative<FieldT>::value, FieldT>::type,
-    typename libiop::enable_if<!std::is_same<MT_hash_type, FieldT>::value, FieldT>::type,
+    typename enable_if<!is_multiplicative<FieldT>::value, FieldT>::type,
+    typename enable_if<!std::is_same<MT_hash_type, FieldT>::value, FieldT>::type,
     std::ostream &out, const bcs_transformation_transcript<FieldT, MT_hash_type> &t)
 {
     printf("Serializing on binary fields or non-algebraic hashes is not implemented\n");
@@ -369,8 +369,8 @@ std::ostream& serialize_transcript_internal(
 
 template<typename FieldT, typename MT_hash_type>
 std::istream& deserialize_transcript_internal(
-    typename libiop::enable_if<!is_multiplicative<FieldT>::value, FieldT>::type,
-    typename libiop::enable_if<!std::is_same<MT_hash_type, FieldT>::value, FieldT>::type,
+    typename enable_if<!is_multiplicative<FieldT>::value, FieldT>::type,
+    typename enable_if<!std::is_same<MT_hash_type, FieldT>::value, FieldT>::type,
     std::istream &in, bcs_transformation_transcript<FieldT, MT_hash_type> &t)
 {
     printf("Deserializing on binary fields or non-algebraic hashes is not implemented\n");
@@ -405,9 +405,9 @@ bcs_protocol<FieldT, MT_root_hash>::bcs_protocol(
     this->digest_len_bytes_ = 2 * (this->parameters_.security_parameter / 8);
     this->hashchain_ = this->parameters_.hashchain_->new_hashchain();
     printf("\nBCS parameters\n");
-    print_indent(); printf("* digest_len (bytes) = %zu\n", this->digest_len_bytes_);
-    print_indent(); printf("* digest_len (bits) = %zu\n", 8 * this->digest_len_bytes_);
-    print_indent(); printf("* hash_type = %s\n", bcs_hash_type_names[parameters.hash_enum]);
+    libiop::print_indent(); printf("* digest_len (bytes) = %zu\n", this->digest_len_bytes_);
+    libiop::print_indent(); printf("* digest_len (bits) = %zu\n", 8 * this->digest_len_bytes_);
+    libiop::print_indent(); printf("* hash_type = %s\n", bcs_hash_type_names[parameters.hash_enum]);
 }
 
 template<typename FieldT, typename MT_root_hash>
@@ -777,14 +777,14 @@ void print_detailed_transcript_data(
     /* Print summary of argument size first */
     printf("\n");
 
-    print_indent(); printf("* Argument size in bytes (IOP): %zu\n", transcript.IOP_size_in_bytes());
-    print_indent(); printf("* Argument size in bytes (BCS): %zu\n", transcript.BCS_size_in_bytes());
-    print_indent(); printf("* Argument size in bytes (total): %zu\n", transcript.size_in_bytes());
+    libiop::print_indent(); printf("* Argument size in bytes (IOP): %zu\n", transcript.IOP_size_in_bytes());
+    libiop::print_indent(); printf("* Argument size in bytes (BCS): %zu\n", transcript.BCS_size_in_bytes());
+    libiop::print_indent(); printf("* Argument size in bytes (total): %zu\n", transcript.size_in_bytes());
 
     printf("\nIf we were to remove pruning of authentication paths in BCS,\n"
             "the argument would have the following sizes:\n");
-    print_indent(); printf("* Argument size in bytes (BCS, no pruning): %zu\n", transcript.BCS_size_in_bytes_without_pruning());
-    print_indent(); printf("* Argument size in bytes (total, no pruning): %zu\n", transcript.size_in_bytes_without_pruning());
+    libiop::print_indent(); printf("* Argument size in bytes (BCS, no pruning): %zu\n", transcript.BCS_size_in_bytes_without_pruning());
+    libiop::print_indent(); printf("* Argument size in bytes (total, no pruning): %zu\n", transcript.size_in_bytes_without_pruning());
 
     printf("\n");
     printf("total prover messages size: %lu\n", total_prover_message_size);
