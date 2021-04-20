@@ -299,7 +299,7 @@ void test_ABCz_row(const r1cs_testing_struct<FieldT> *params) {
 
 /* Friend test, so it can access members of r1cs IOP and ensure their validity individually */
 TEST(TestAdditiveR1CSComponents, R1CSTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
 /** Test configurations where constraint dim is greater than, less than, and equal to variable dim,
  *  both zk and non-zk */
@@ -391,8 +391,8 @@ for (std::size_t variable_domain_dim = 7; variable_domain_dim < 9; variable_doma
 
 /* Friend test, so it can access members of r1cs IOP and ensure their validity individually */
 TEST(TestMultiplicativeR1CSComponents, R1CSTest) {
-    edwards_pp::init_public_params();
-    typedef edwards_Fr FieldT;
+    libff::edwards_pp::init_public_params();
+    typedef libff::edwards_Fr FieldT;
 
 /** Test configurations where constraint dim is greater than, less than, and equal to variable dim,
  *  both zk and non-zk */

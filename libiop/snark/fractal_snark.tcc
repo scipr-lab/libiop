@@ -92,21 +92,21 @@ template<typename FieldT, typename hash_type>
 void fractal_snark_parameters<FieldT, hash_type>::initialize_bcs_params(const bcs_hash_type hash_enum)
 {
     this->bcs_params_ = default_bcs_params<FieldT, hash_type>(hash_enum, this->security_parameter_, 
-        log2(this->constraint_system_->num_constraints()));
+        libff::log2(this->constraint_system_->num_constraints()));
 }
 
 template<typename FieldT, typename hash_type>
 void fractal_snark_parameters<FieldT, hash_type>::print() const
 {
-    print_indent(); printf("\nFractal SNARK parameters\n");
-    print_indent(); printf("* security parameter (bits) = %zu\n", security_parameter_);
-    print_indent(); printf("* RS extra dimensions = %zu\n", RS_extra_dimensions_);
-    print_indent(); printf("* LDT reducer soundness type = %s\n",
+    libff::print_indent(); printf("\nFractal SNARK parameters\n");
+    libff::print_indent(); printf("* security parameter (bits) = %zu\n", security_parameter_);
+    libff::print_indent(); printf("* RS extra dimensions = %zu\n", RS_extra_dimensions_);
+    libff::print_indent(); printf("* LDT reducer soundness type = %s\n",
         LDT_reducer_soundness_type_to_string(LDT_reducer_soundness_type_));
-    print_indent(); printf("* FRI soundness type = %s\n",
+    libff::print_indent(); printf("* FRI soundness type = %s\n",
         FRI_soundness_type_to_string(FRI_soundness_type_));
-    print_indent(); printf("* zero-knowledge = %s\n", make_zk_ ? "true" : "false");
-    print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->domain_type_]);
+    libff::print_indent(); printf("* zero-knowledge = %s\n", make_zk_ ? "true" : "false");
+    libff::print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->domain_type_]);
 
     this->iop_params_.print();
 }
@@ -116,7 +116,7 @@ std::pair<bcs_prover_index<FieldT, hash_type>, bcs_verifier_index<FieldT, hash_t
 fractal_snark_indexer(
     const fractal_snark_parameters<FieldT, hash_type> &parameters)
 {
-    enter_block("Fractal SNARK indexer");
+    libff::enter_block("Fractal SNARK indexer");
     parameters.print();
     bcs_indexer<FieldT, hash_type> IOP(parameters.bcs_params_);
     fractal_iop<FieldT> full_protocol(IOP, parameters.iop_params_);
@@ -128,7 +128,7 @@ fractal_snark_indexer(
     bcs_verifier_index<FieldT, hash_type> verifier_index = IOP.get_verifier_index();
     std::pair<bcs_prover_index<FieldT, hash_type>, bcs_verifier_index<FieldT, hash_type>> index =
         std::make_pair(std::move(prover_index), verifier_index);
-    leave_block("Fractal SNARK indexer");
+    libff::leave_block("Fractal SNARK indexer");
     return index;
 }
 
@@ -139,7 +139,7 @@ fractal_snark_argument<FieldT, hash_type> fractal_snark_prover(
     const r1cs_auxiliary_input<FieldT> &auxiliary_input,
     const fractal_snark_parameters<FieldT, hash_type> &parameters)
 {
-    enter_block("Fractal SNARK prover");
+    libff::enter_block("Fractal SNARK prover");
     parameters.print();
 
     bcs_prover<FieldT, hash_type> IOP(parameters.bcs_params_, index);
@@ -151,13 +151,13 @@ fractal_snark_argument<FieldT, hash_type> fractal_snark_prover(
 
     full_protocol.produce_proof(primary_input, auxiliary_input, index.iop_index_);
 
-    enter_block("Obtain transcript");
+    libff::enter_block("Obtain transcript");
     const fractal_snark_argument<FieldT, hash_type> transcript = IOP.get_transcript();
-    leave_block("Obtain transcript");
+    libff::leave_block("Obtain transcript");
 
     IOP.describe_sizes();
 
-    leave_block("Fractal SNARK prover");
+    libff::leave_block("Fractal SNARK prover");
     return transcript;
 }
 
@@ -168,29 +168,29 @@ bool fractal_snark_verifier(
     const fractal_snark_argument<FieldT, hash_type> &proof,
     const fractal_snark_parameters<FieldT, hash_type> &parameters)
 {
-    enter_block("Fractal SNARK verifier");
+    libff::enter_block("Fractal SNARK verifier");
     parameters.print();
 
     bcs_verifier<FieldT, hash_type> IOP(parameters.bcs_params_, proof, index);
 
-    enter_block("Fractal IOP protocol initialization and registration");
+    libff::enter_block("Fractal IOP protocol initialization and registration");
     fractal_iop<FieldT> full_protocol(IOP, parameters.iop_params_);
     full_protocol.register_interactions();
     IOP.seal_interaction_registrations();
     full_protocol.register_queries();
     IOP.seal_query_registrations();
-    leave_block("Fractal IOP protocol initialization and registration");
+    libff::leave_block("Fractal IOP protocol initialization and registration");
 
-    enter_block("Check semantic validity of IOP transcript");
+    libff::enter_block("Check semantic validity of IOP transcript");
     const bool IOP_transcript_valid = IOP.transcript_is_valid();
-    leave_block("Check semantic validity of IOP transcript");
+    libff::leave_block("Check semantic validity of IOP transcript");
 
     const bool full_protocol_accepts = full_protocol.verifier_predicate(primary_input);
 
-    print_indent(); printf("* IOP transcript valid: %s\n", IOP_transcript_valid ? "true" : "false");
-    print_indent(); printf("* Full protocol decision predicate satisfied: %s\n", full_protocol_accepts ? "true" : "false");
+    libff::print_indent(); printf("* IOP transcript valid: %s\n", IOP_transcript_valid ? "true" : "false");
+    libff::print_indent(); printf("* Full protocol decision predicate satisfied: %s\n", full_protocol_accepts ? "true" : "false");
     const bool decision = IOP_transcript_valid && full_protocol_accepts;
-    leave_block("Fractal SNARK verifier");
+    libff::leave_block("Fractal SNARK verifier");
 
     return decision;
 }

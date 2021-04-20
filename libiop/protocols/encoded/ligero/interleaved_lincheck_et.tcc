@@ -220,7 +220,7 @@ bool interleaved_lincheck_et_protocol<FieldT>::verifier_predicate()
         /* EQUALITY TEST: does the polynomial that was sent sum to the value that it should if the
            claimed statement is true? */
 
-        enter_block("Lincheck: equality test (polynomial matches randomized vector)");
+        libff::enter_block("Lincheck: equality test (polynomial matches randomized vector)");
         std::vector<FieldT> response = this->IOP_.receive_prover_message(this->response_handles_[h]); // coefficients of p_0
         const std::vector<FieldT> evaluations = FFT_over_field_subset<FieldT>(response, this->extended_systematic_domain_);
         const polynomial<FieldT> response_poly(std::move(response));
@@ -247,19 +247,19 @@ bool interleaved_lincheck_et_protocol<FieldT>::verifier_predicate()
         if (equality_lhs != equality_rhs)
         {
 #ifdef DEBUG
-            print_indent();
+            libff::print_indent();
             printf("[LHS] sent polynomial value sum_{d in [l]} q(zeta_d) = ");
             equality_lhs.print();
             printf("\n");
 
-            print_indent();
+            libff::print_indent();
             printf("[RHS] randomized target vector sum_{i in [m], d in [l]} r_id b_id = ");
             equality_rhs.print();
             printf("\n");
 #endif // DEBUG
             return false;
         }
-        leave_block("Lincheck: equality test (polynomial matches randomized vector)");
+        libff::leave_block("Lincheck: equality test (polynomial matches randomized vector)");
 
         /* Preparation for consistency test. */
 
@@ -298,7 +298,7 @@ bool interleaved_lincheck_et_protocol<FieldT>::verifier_predicate()
 
         /* CONSISTENCY TEST: do the polynomial's values match those of the oracles? */
 
-        enter_block("Lincheck: querying and performing consistency tests");
+        libff::enter_block("Lincheck: querying and performing consistency tests");
         for (size_t k = 0; k < this->num_queries_; ++k)
         {
             const random_query_position_handle this_position_handle = this->query_position_handles_[k];
@@ -319,14 +319,14 @@ bool interleaved_lincheck_et_protocol<FieldT>::verifier_predicate()
             if (consistency_test_lhs != consistency_test_rhs)
             {
 #ifdef DEBUG
-                print_indent(); printf("For interactive repetition h = %zu and query position = %zu,\n", h, j);
+                libff::print_indent(); printf("For interactive repetition h = %zu and query position = %zu,\n", h, j);
 
-                print_indent(); print_indent();
+                libff::print_indent(); libff::print_indent();
                 printf("[LHS] value from oracles sum_{i in [m_1]} s_i,h(eta_j) * U^x_i,j + u_h'[h] = ");
                 consistency_test_lhs.print();
                 printf("\n");
 
-                print_indent(); print_indent();
+                libff::print_indent(); libff::print_indent();
                 printf("[RHS] polynomial value p_0(eta_j) = ");
                 consistency_test_rhs.print();
                 printf("\n");
@@ -334,7 +334,7 @@ bool interleaved_lincheck_et_protocol<FieldT>::verifier_predicate()
                 return false;
             }
         }
-        leave_block("Lincheck: querying and performing consistency tests");
+        libff::leave_block("Lincheck: querying and performing consistency tests");
     }
 
     return true;

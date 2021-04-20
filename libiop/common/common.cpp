@@ -2,6 +2,8 @@
 
 namespace libiop {
 
+using std::size_t;
+
 long double add_soundness_error_bits(const size_t bits1, const size_t bits2)
 {
     return add_soundness_error_bits((long double)bits1, (long double)bits2);

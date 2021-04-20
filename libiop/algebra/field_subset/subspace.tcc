@@ -94,7 +94,7 @@ template<typename FieldT>
 linear_subspace<FieldT> linear_subspace<FieldT>::standard_basis(const std::size_t dimension)
 {
     /** For binary fields, log_of_field_size = extension degree */
-    assert(dimension <= log_of_field_size_helper<FieldT>(FieldT::zero()));
+    assert(dimension <= libff::log_of_field_size_helper<FieldT>(FieldT::zero()));
 
     std::vector<FieldT> basis_elements;
     basis_elements.reserve(dimension);
@@ -171,14 +171,14 @@ FieldT affine_subspace<FieldT>::element_by_index(const std::size_t index) const
 
 
 template<typename FieldT>
-bool internal_element_in_subset(const typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type x,
+bool internal_element_in_subset(const typename libff::enable_if<libff::is_multiplicative<FieldT>::value, FieldT>::type x,
     FieldT shift, size_t dimension)
 {
     throw std::invalid_argument("subspace.element_in_subset() is only supported for binary fields");
 }
 
 template<typename FieldT>
-bool internal_element_in_subset(const typename enable_if<is_additive<FieldT>::value, FieldT>::type x,
+bool internal_element_in_subset(const typename libff::enable_if<libff::is_additive<FieldT>::value, FieldT>::type x,
     FieldT shift, size_t dimension)
 {
     /** TODO: Implement this case */

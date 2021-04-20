@@ -1,4 +1,4 @@
-#include "libiop/algebra/field_utils.hpp"
+#include <libff/algebra/field_utils/field_utils.hpp>
 #include "libiop/bcs/hashing/hashing.hpp"
 #include <libff/algebra/field_utils/bigint.hpp>
 #include <cstring>
@@ -109,7 +109,7 @@ void algebraic_sponge<FieldT>::initialize_element_of_state(
 /* multiplicative case */
 template<typename FieldT>
 FieldT string_to_field_elem(
-    typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type dummy_field_elem,
+    typename libff::enable_if<libff::is_multiplicative<FieldT>::value, FieldT>::type dummy_field_elem,
     const zk_salt_type &zk_salt)
 {
     libff::bigint<FieldT::num_limbs> num(0ul);
@@ -126,7 +126,7 @@ FieldT string_to_field_elem(
 /* additive case */
 template<typename FieldT>
 FieldT string_to_field_elem(
-    typename enable_if<is_additive<FieldT>::value, FieldT>::type dummy_field_elem,
+    typename libff::enable_if<libff::is_additive<FieldT>::value, FieldT>::type dummy_field_elem,
     const zk_salt_type &zk_salt)
 {
     throw std::invalid_argument("zk hash for binary fields is not yet implemented");
@@ -155,7 +155,7 @@ void algebraic_hashchain<FieldT, MT_root_type>::absorb(
 
 template<typename FieldT, typename MT_root_type>
 void algebraic_hashchain<FieldT, MT_root_type>::absorb_internal(
-    const typename enable_if<std::is_same<MT_root_type, binary_hash_digest>::value, MT_root_type>::type new_input)
+    const typename libff::enable_if<std::is_same<MT_root_type, binary_hash_digest>::value, MT_root_type>::type new_input)
 {
     FieldT new_input_as_FieldT = string_to_field_elem<FieldT>(new_input);
     this->sponge_->absorb(new_input_as_FieldT);
@@ -163,7 +163,7 @@ void algebraic_hashchain<FieldT, MT_root_type>::absorb_internal(
 
 template<typename FieldT, typename MT_root_type>
 void algebraic_hashchain<FieldT, MT_root_type>::absorb_internal(
-    const typename enable_if<std::is_same<MT_root_type, FieldT>::value, MT_root_type>::type new_input)
+    const typename libff::enable_if<std::is_same<MT_root_type, FieldT>::value, MT_root_type>::type new_input)
 {
     this->sponge_->absorb(std::vector<FieldT>({new_input}));
 }
@@ -193,7 +193,7 @@ std::vector<size_t> algebraic_hashchain<FieldT, MT_root_type>::squeeze_query_pos
     size_t word_index = 0;
     for (size_t i = 0; i < squeezed_elems.size(); i++)
     {
-        positions.emplace_back(get_word_of_field_elem<FieldT>(squeezed_elems[i], word_index) % range_of_positions);
+        positions.emplace_back(libff::get_word_of_field_elem<FieldT>(squeezed_elems[i], word_index) % range_of_positions);
     }
     return positions;
 }

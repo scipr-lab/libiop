@@ -7,8 +7,9 @@
 
 #include <libff/algebra/fields/binary/gf64.hpp>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include "libiop/algebra/fft.hpp"
 #include <libff/common/utils.hpp>
+#include "libiop/common/common.hpp"
+#include "libiop/algebra/fft.hpp"
 #include "libiop/iop/iop.hpp"
 #include "libiop/protocols/ldt/fri/fri_ldt.hpp"
 #include "libiop/protocols/ldt/ldt_reducer.hpp"
@@ -205,91 +206,91 @@ void run_failing_tests(const bool make_zk, bool is_FRI, bool is_direct)
 }
 
 TEST(MultiLDTFRITrueZKTest, MultiplicativeTest) {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
     run_passing_tests<FieldT, FRI_protocol<FieldT>>(true, true, false);
 }
 
 TEST(MultiLDTFRITrueNonZKTest, MultiplicativeTest) {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
     run_passing_tests<FieldT, FRI_protocol<FieldT>>(false, true, false);
 }
 
 TEST(MultiLDTFRIFalseZKTest, MultiplicativeTest) {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
     run_failing_tests<FieldT, FRI_protocol<FieldT>>(true, true, false);
 }
 
 TEST(MultiLDTFRIFalseNonZKTest, MultiplicativeTest) {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
     run_failing_tests<FieldT, FRI_protocol<FieldT>>(false, true, false);
 }
 
 TEST(MultiLDTDirectTrueZKTest, MultiplicativeTest) {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
     run_passing_tests<FieldT, direct_LDT_protocol<FieldT>>(true, false, true);
 }
 
 TEST(MultiLDTDirectTrueNonZKTest, MultiplicativeTest) {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
     run_passing_tests<FieldT, direct_LDT_protocol<FieldT>>(false, false, true);
 }
 
 TEST(MultiLDTDirectFalseZKTest, MultiplicativeTest) {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
     run_failing_tests<FieldT, direct_LDT_protocol<FieldT>>(true, false, true);
 }
 
 TEST(MultiLDTDirectFalseNonZKTest, MultiplicativeTest) {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
     run_failing_tests<FieldT, direct_LDT_protocol<FieldT>>(false, false, true);
 }
 
 TEST(MultiLDTFRITrueZKTest, AdditiveTest) {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
     run_passing_tests<FieldT, FRI_protocol<FieldT>>(true, true, false);
 }
 
 TEST(MultiLDTFRITrueNonZKTest, AdditiveTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     run_passing_tests<FieldT, FRI_protocol<FieldT>>(false, true, false);
 }
 
 TEST(MultiLDTFRIFalseZKTest, AdditiveTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     run_failing_tests<FieldT, FRI_protocol<FieldT>>(true, true, false);
 }
 
 TEST(MultiLDTFRIFalseNonZKTest, AdditiveTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     run_failing_tests<FieldT, FRI_protocol<FieldT>>(false, true, false);
 }
 
 TEST(MultiLDTDirectTrueZKTest, AdditiveTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     run_passing_tests<FieldT, direct_LDT_protocol<FieldT>>(true, false, true);
 }
 
 TEST(MultiLDTDirectTrueNonZKTest, AdditiveTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     run_passing_tests<FieldT, direct_LDT_protocol<FieldT>>(false, false, true);
 }
 
 TEST(MultiLDTDirectFalseZKTest, AdditiveTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     run_failing_tests<FieldT, direct_LDT_protocol<FieldT>>(true, false, true);
 }
 
 TEST(MultiLDTDirectFalseNonZKTest, AdditiveTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     run_failing_tests<FieldT, direct_LDT_protocol<FieldT>>(false, false, true);
 }
 

@@ -37,7 +37,7 @@ std::vector<FieldT> domain_element_powers_naive(const field_subset<FieldT> &S,
 
 
 TEST(ExponentiationTest, SimpleTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const std::size_t max_power = 1000;
     FieldT X = FieldT::random_element();
@@ -56,7 +56,7 @@ TEST(ExponentiationTest, SimpleTest) {
 }
 
 TEST(ExponentiationTest, SubspaceElementPowersTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const std::size_t dimension = 10;
     const std::size_t max_power = 1000;
@@ -76,8 +76,8 @@ TEST(ExponentiationTest, SubspaceElementPowersTest) {
 }
 
 TEST(ExponentiationTest, CosetElementPowersTest) {    
-    edwards_pp::init_public_params();
-    typedef edwards_Fr FieldT;
+    libff::edwards_pp::init_public_params();
+    typedef libff::edwards_Fr FieldT;
 
     const std::size_t dimension = 10;
     const std::size_t max_power = 1000;

@@ -13,10 +13,10 @@ namespace libiop {
 static void BM_gf256_mul_vec(benchmark::State &state)
 {
     const size_t sz = state.range(0);
-    const std::vector<gf256> avec = random_vector<gf256>(sz);
-    const std::vector<gf256> bvec = random_vector<gf256>(sz);
+    const std::vector<libff::gf256> avec = random_vector<libff::gf256>(sz);
+    const std::vector<libff::gf256> bvec = random_vector<libff::gf256>(sz);
 
-    std::vector<gf256> cvec(sz);
+    std::vector<libff::gf256> cvec(sz);
 
     for (auto _ : state)
     {
@@ -34,10 +34,10 @@ BENCHMARK(BM_gf256_mul_vec)->Range(1<<10, 1<<20)->Unit(benchmark::kMicrosecond);
 static void BM_gf256_mul_vec_data_dependency(benchmark::State &state)
 {
     const size_t sz = state.range(0);
-    const std::vector<gf256> avec = random_vector<gf256>(sz);
-    const std::vector<gf256> bvec = random_vector<gf256>(sz);
+    const std::vector<libff::gf256> avec = random_vector<libff::gf256>(sz);
+    const std::vector<libff::gf256> bvec = random_vector<libff::gf256>(sz);
 
-    gf256 sum = gf256(0);
+    libff::gf256 sum = libff::gf256(0);
 
     for (auto _ : state)
     {
@@ -61,8 +61,8 @@ static void BM_gf256_mul(benchmark::State &state)
     const size_t num_elems = (L1_cache_size / (4 * sizeof(gf256)));
 
     const size_t sz = state.range(0);
-    const std::vector<gf256> avec = random_vector<gf256>(num_elems);
-    const std::vector<gf256> bvec = random_vector<gf256>(num_elems);
+    const std::vector<libff::gf256> avec = random_vector<libff::gf256>(num_elems);
+    const std::vector<libff::gf256> bvec = random_vector<libff::gf256>(num_elems);
 
     const size_t num_iters = sz / num_elems; // may be off by 1 iteration, but that should be negligible
 
@@ -84,9 +84,9 @@ BENCHMARK(BM_gf256_mul)->Range(1<<20, 1<<28)->Unit(benchmark::kMicrosecond);
 static void BM_gf256_inverse_vec(benchmark::State& state)
 {
     const size_t sz = state.range(0);
-    const std::vector<gf256> vec = random_vector<gf256>(sz);
+    const std::vector<libff::gf256> vec = random_vector<libff::gf256>(sz);
 
-    std::vector<gf256> result(sz);
+    std::vector<libff::gf256> result(sz);
 
     for (auto _ : state)
     {

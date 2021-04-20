@@ -15,8 +15,8 @@
 namespace libiop {
 
 TEST(PolynomialTest, Initialization) {
-    const linearized_polynomial<gf64> lin_poly =
-        linearized_polynomial<gf64>::random_linearized_polynomial(4);
+    const linearized_polynomial<libff::gf64> lin_poly =
+        linearized_polynomial<libff::gf64>::random_linearized_polynomial(4);
 }
 
 template<typename FieldT>
@@ -64,7 +64,7 @@ void subspace_test_helper(const std::size_t dim,
 }
 
 TEST(PolynomialTest, SubspaceEval) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const std::size_t dim = 10;
     const affine_subspace<FieldT> S = affine_subspace<FieldT>::random_affine_subspace(dim);
@@ -92,7 +92,7 @@ TEST(PolynomialTest, SubspaceEval) {
 }
 
 TEST(PolynomialTest, LinearizedPolynomialDivisionTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     for (std::size_t deg_P = 0; deg_P < 1000; ++deg_P)
     {

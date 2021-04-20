@@ -61,7 +61,7 @@ std::vector<query_position_handle> calculate_next_coset_query_positions(
     const size_t cur_localization_parameter);
 
 /* return all partitions of this number (that is, all possible FRI localization parameter vectors
-   for log2(tested degree)) */
+   for libff::log2(tested degree)) */
 std::vector<std::vector<size_t>> all_localization_vectors(size_t dimension_to_reduce);
 
 } // namespace libiop

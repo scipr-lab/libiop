@@ -3,11 +3,11 @@
 
 #include <gtest/gtest.h>
 
+#include <libff/common/utils.hpp>
 #include "libiop/algebra/fft.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/polynomials/vanishing_polynomial.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
-#include <libff/common/utils.hpp>
 #include "libiop/protocols/encoded/r1cs_rs_iop/fractal_indexer.hpp"
 #include "libiop/relations/examples/r1cs_examples.hpp"
 #include "libiop/relations/r1cs.hpp"
@@ -134,7 +134,7 @@ void run_random_indexer_test(std::size_t domain_dim) {
         std::make_shared<r1cs_sparse_matrix<FieldT>>(M);
 
     const size_t codeword_domain_dim = 4 + domain_dim;
-    const size_t indexing_domain_dim = log2(M.num_nonzero_entries());
+    const size_t indexing_domain_dim = libff::log2(M.num_nonzero_entries());
     field_subset<FieldT> unshifted_codeword_domain(1ull << codeword_domain_dim);
     FieldT shift = unshifted_codeword_domain.element_outside_of_subset();
 
@@ -155,17 +155,17 @@ void run_all_indexer_tests()
 }
 
 TEST(AdditiveTests, IndexerTest) {
-    run_all_indexer_tests<gf64>();
-    run_all_indexer_tests<gf128>();
-    run_all_indexer_tests<gf192>();
-    run_all_indexer_tests<gf256>();
+    run_all_indexer_tests<libff::gf64>();
+    run_all_indexer_tests<libff::gf128>();
+    run_all_indexer_tests<libff::gf192>();
+    run_all_indexer_tests<libff::gf256>();
 }
 
 TEST(MultiplicativeTests, IndexerTest) {
-    edwards_pp::init_public_params();
-    alt_bn128_pp::init_public_params();
-    run_all_indexer_tests<edwards_Fr>();
-    run_all_indexer_tests<alt_bn128_Fr>();
+    libff::edwards_pp::init_public_params();
+    libff::alt_bn128_pp::init_public_params();
+    run_all_indexer_tests<libff::edwards_Fr>();
+    run_all_indexer_tests<libff::alt_bn128_Fr>();
 }
 
 }

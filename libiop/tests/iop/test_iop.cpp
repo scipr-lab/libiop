@@ -15,7 +15,7 @@
 namespace libiop {
 
 TEST(IOPTest, OracleRegistration) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const std::size_t L_dim = 10;
     for (size_t i = 0; i < 2; i++)
@@ -27,7 +27,7 @@ TEST(IOPTest, OracleRegistration) {
         const domain_handle L_handle = IOP.register_subspace(L);
 
         const oracle_handle R_handle = IOP.register_oracle("", L_handle, 20, make_zk); /* R \in RS[L,21] */
-        UNUSED(R_handle);
+        libff::UNUSED(R_handle);
 
         /* registering an overflowing oracle (deg >= elements in subspace)
         should raise an error */
@@ -38,7 +38,7 @@ TEST(IOPTest, OracleRegistration) {
 /* TODO: add more tests for the basic IOP scaffolding */
 
 TEST(IOPTest, SumcheckTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const std::size_t H_dim = 10;
     const std::size_t L_dim = 12;
@@ -92,7 +92,7 @@ TEST(IOPTest, SumcheckTest) {
     EXPECT_EQ(g.num_terms(), H_size);
 
     const FieldT beta = g[H_size-1];
-    UNUSED(beta);
+    libff::UNUSED(beta);
 
     g.set_degree(H_size-2, true); /* g is now a degree H_size-2 polynomial */
 
@@ -129,7 +129,7 @@ TEST(IOPTest, SumcheckTest) {
 }
 
 TEST(IOPTest, ZeroKnowledgeSumcheckTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const std::size_t H_dim = 10;
     const std::size_t L_dim = 12;
@@ -212,7 +212,7 @@ TEST(IOPTest, ZeroKnowledgeSumcheckTest) {
     EXPECT_EQ(g.num_terms(), H_size);
 
     const FieldT beta = g[H_size-1];
-    UNUSED(beta);
+    libff::UNUSED(beta);
 
     g.set_degree(H_size-2, true); /* g is now a degree H_size-2 polynomial */
 

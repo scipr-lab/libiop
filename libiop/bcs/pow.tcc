@@ -6,7 +6,7 @@
 #include <libff/common/utils.hpp>
 
 #include <sodium/randombytes.h>
-#include "libiop/algebra/field_utils.hpp"
+#include <libff/algebra/field_utils/field_utils.hpp>
 
 namespace libiop {
 
@@ -20,10 +20,10 @@ pow_parameters::pow_parameters(
 
 size_t pow_parameters::pow_bitlen() const
 {
-    // For now we round the hash cost to 1 << floor(log2(cost))
+    // For now we round the hash cost to 1 << floor(libff::log2(cost))
     // This makes the proof of work condition very simple, at the expense of some extra prover work
     // for the same desired security.
-    size_t log_hash_cost = log2(this->cost_per_hash_);
+    size_t log_hash_cost = libff::log2(this->cost_per_hash_);
     if ((1 << log_hash_cost) > this->cost_per_hash_)
     {
         log_hash_cost -= 1;
@@ -47,9 +47,9 @@ size_t pow_parameters::work_parameter() const
 void pow_parameters::print() const
 {
     printf("\nProof of work parameters\n");
-    print_indent(); printf("* log of target work amount = %zu\n", this->work_parameter_);
-    print_indent(); printf("* assumed cost per hash = %zu\n", this->cost_per_hash_);
-    print_indent(); printf("* expected number of hashes = %d\n", 1 << this->pow_bitlen());
+    libff::print_indent(); printf("* log of target work amount = %zu\n", this->work_parameter_);
+    libff::print_indent(); printf("* assumed cost per hash = %zu\n", this->cost_per_hash_);
+    libff::print_indent(); printf("* expected number of hashes = %d\n", 1 << this->pow_bitlen());
 }
 
 template<typename FieldT, typename hash_digest_type>
@@ -73,7 +73,7 @@ hash_digest_type pow<FieldT, hash_digest_type>::solve_pow(
 template<typename FieldT, typename hash_digest_type>
 hash_digest_type pow<FieldT, hash_digest_type>::solve_pow_internal(
     const two_to_one_hash_function<hash_digest_type> &node_hasher, 
-    const typename enable_if<std::is_same<hash_digest_type, FieldT>::value, hash_digest_type>::type challenge) const
+    const typename libff::enable_if<std::is_same<hash_digest_type, FieldT>::value, hash_digest_type>::type challenge) const
 {
     FieldT pow = FieldT::zero();
     while (this->verify_pow(node_hasher, challenge, pow) == false)
@@ -86,7 +86,7 @@ hash_digest_type pow<FieldT, hash_digest_type>::solve_pow_internal(
 template<typename FieldT, typename hash_digest_type>
 hash_digest_type pow<FieldT, hash_digest_type>::solve_pow_internal(
     const two_to_one_hash_function<hash_digest_type> &node_hasher, 
-    const typename enable_if<std::is_same<hash_digest_type, binary_hash_digest>::value, hash_digest_type>::type challenge) const
+    const typename libff::enable_if<std::is_same<hash_digest_type, binary_hash_digest>::value, hash_digest_type>::type challenge) const
 {
     binary_hash_digest pow;
     pow.assign(challenge);
@@ -128,9 +128,9 @@ void print_string_in_hex(const std::string& input)
 
 template<typename FieldT, typename hash_digest_type>
 bool pow<FieldT, hash_digest_type>::verify_pow_internal(
-    const typename enable_if<std::is_same<hash_digest_type, FieldT>::value, hash_digest_type>::type &hash) const
+    const typename libff::enable_if<std::is_same<hash_digest_type, FieldT>::value, hash_digest_type>::type &hash) const
 {
-    size_t least_significant_word = get_word_of_field_elem<FieldT>(hash, 0);
+    size_t least_significant_word = libff::get_word_of_field_elem<FieldT>(hash, 0);
     size_t relevant_bits = least_significant_word & ((1 << this->parameters_.pow_bitlen()) - 1);
     if (relevant_bits <= this->parameters_.pow_upperbound())
     {
@@ -141,7 +141,7 @@ bool pow<FieldT, hash_digest_type>::verify_pow_internal(
 
 template<typename FieldT, typename hash_digest_type>
 bool pow<FieldT, hash_digest_type>::verify_pow_internal(
-    const typename enable_if<std::is_same<hash_digest_type, binary_hash_digest>::value, hash_digest_type>::type &hash) const
+    const typename libff::enable_if<std::is_same<hash_digest_type, binary_hash_digest>::value, hash_digest_type>::type &hash) const
 {
     size_t num_words = hash.length() / sizeof(size_t);
     size_t least_significant_word;

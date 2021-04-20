@@ -10,7 +10,7 @@
 
 #include <cstddef>
 #include <vector>
-#include "libiop/algebra/field_utils.hpp"
+#include <libff/algebra/field_utils/field_utils.hpp>
 #include "libiop/algebra/polynomials/polynomial.hpp"
 
 namespace libiop {

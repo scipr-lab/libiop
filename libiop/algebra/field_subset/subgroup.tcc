@@ -32,7 +32,7 @@ multiplicative_subgroup_base<FieldT>::multiplicative_subgroup_base(size_t order,
 
 template<typename FieldT>
 void multiplicative_subgroup_base<FieldT>::construct_internal(
-    typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type order, const FieldT generator)
+    typename libff::enable_if<libff::is_multiplicative<FieldT>::value, FieldT>::type order, const FieldT generator)
 {
     FieldT F_order = FieldT(FieldT::mod) - 1;
     // In debug mode, check that subgroup order divides the order of the field.
@@ -68,7 +68,7 @@ void multiplicative_subgroup_base<FieldT>::construct_internal(
     this->fft_cache_ = std::make_shared<std::vector<FieldT> >();
     this->order_ = order.as_ulong();
 
-    if (is_power_of_2(this->order_) && this->order_ > 1)
+    if (libff::is_power_of_2(this->order_) && this->order_ > 1)
     {
         this->FFT_eval_domain_ = std::make_shared<libfqfft::basic_radix2_domain<FieldT>>(this->order_);
     }
@@ -76,7 +76,7 @@ void multiplicative_subgroup_base<FieldT>::construct_internal(
 
 template<typename FieldT>
 void multiplicative_subgroup_base<FieldT>::construct_internal(
-    typename enable_if<is_additive<FieldT>::value, FieldT>::type order, const FieldT generator)
+    typename libff::enable_if<libff::is_additive<FieldT>::value, FieldT>::type order, const FieldT generator)
 {
     throw std::invalid_argument("cannot create multiplicative subgroup of this field type");
 }
@@ -100,9 +100,9 @@ std::size_t multiplicative_subgroup_base<FieldT>::dimension() const
 
     /* dimension for a subgroup is only defined when the number of elements
        is a power of 2 */
-    assert(is_power_of_2(num_elems));
+    assert(libff::is_power_of_2(num_elems));
 
-    return log2(num_elems);
+    return libff::log2(num_elems);
 }
 
 template<typename FieldT>
@@ -199,7 +199,7 @@ std::size_t multiplicative_subgroup_base<FieldT>::position_by_coset_indices(
 template<typename FieldT>
 libfqfft::basic_radix2_domain<FieldT> multiplicative_subgroup_base<FieldT>::FFT_eval_domain() const
 {
-    assert(is_power_of_2(this->order_));
+    assert(libff::is_power_of_2(this->order_));
     return *(this->FFT_eval_domain_);
 }
 

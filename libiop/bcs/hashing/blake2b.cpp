@@ -53,7 +53,7 @@ std::size_t blake2b_integer_randomness_extractor(const binary_hash_digest &root,
 {
     /* TODO: only required to make % below not biased. we should
        implement rejection sampling when we add prime field support */
-    if (!is_power_of_2(upper_bound))
+    if (!libff::is_power_of_2(upper_bound))
     {
         throw std::invalid_argument("upper_bound must be a power of two.");
     }

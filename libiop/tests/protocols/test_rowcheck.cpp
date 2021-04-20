@@ -157,7 +157,7 @@ void run_random_rowcheck_instance(std::size_t constraint_domain_dim,
 }
 
 TEST(AdditiveSucceedingTests, RowcheckTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     for (std::size_t constraint_domain_dim = 6; constraint_domain_dim < 8; constraint_domain_dim++) {
         for (std::size_t variable_domain_dim = 6; variable_domain_dim < 8; variable_domain_dim++) {
             std::size_t input_variable_domain_dim = variable_domain_dim - 2;
@@ -173,8 +173,8 @@ TEST(AdditiveSucceedingTests, RowcheckTest) {
 }
 
 TEST(MultiplicativeSucceedingTests, RowcheckTest) {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
     for (std::size_t constraint_domain_dim = 6; constraint_domain_dim < 8; constraint_domain_dim++) {
         for (std::size_t variable_domain_dim = 6; variable_domain_dim < 8; variable_domain_dim++) {
             std::size_t input_variable_domain_dim = variable_domain_dim - 2;
@@ -239,13 +239,13 @@ void run_failing_rowcheck_instances(std::size_t constraint_domain_dim,
 }
 
 TEST(AdditiveFailingTests, RowcheckTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     run_failing_rowcheck_instances<FieldT>(6, 7, 5);
 }
 
 TEST(MultiplicativeFailingTests, RowcheckTest) {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
     run_failing_rowcheck_instances<FieldT>(6, 7, 5);
 }
 

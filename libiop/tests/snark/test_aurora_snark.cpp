@@ -11,7 +11,7 @@ namespace libiop {
 
 TEST(AuroraSnarkTest, SimpleTest) {
     /* Set up R1CS */
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     typedef binary_hash_digest hash_type;
 
     const std::size_t num_constraints = 1 << 13;
@@ -65,8 +65,8 @@ TEST(AuroraSnarkTest, SimpleTest) {
 
 TEST(AuroraSnarkMultiplicativeTest, SimpleTest) {
     /* Set up R1CS */
-    edwards_pp::init_public_params();
-    typedef edwards_Fr FieldT;
+    libff::edwards_pp::init_public_params();
+    typedef libff::edwards_Fr FieldT;
     typedef binary_hash_digest hash_type;
 
     const size_t num_constraints = 1 << 13;

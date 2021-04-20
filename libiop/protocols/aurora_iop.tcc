@@ -14,28 +14,28 @@ aurora_iop_parameters<FieldT>::aurora_iop_parameters(const size_t security_param
     make_zk_(make_zk),
     domain_type_(domain_type)
 {
-    if (!is_power_of_2(num_constraints))
+    if (!libff::is_power_of_2(num_constraints))
     {
         char err_msg [1000];
-        const size_t next_power_of_two = 1ull << log2(num_constraints);
+        const size_t next_power_of_two = 1ull << libff::log2(num_constraints);
         const size_t pad_amount = next_power_of_two - num_constraints;
         sprintf(err_msg, "number of constraints in the constraint system must a power of two."
             " Perhaps pad your constraint system with %lu empty constraints?",
             pad_amount);
         throw std::invalid_argument(err_msg);
     }
-    if (!is_power_of_2(num_variables + 1))
+    if (!libff::is_power_of_2(num_variables + 1))
     {
         char err_msg [1000];
-        const size_t next_power_of_two = 1ull << log2(num_variables + 1);
+        const size_t next_power_of_two = 1ull << libff::log2(num_variables + 1);
         const size_t pad_amount = next_power_of_two - (num_variables + 1);
         sprintf(err_msg, "number of variables in the constraint system must be one less than a power of two."
             " Perhaps pad your constraint system with %lu variables?",
             pad_amount);
         throw std::invalid_argument(err_msg);
     }
-    this->constraint_domain_dim_ = log2(num_constraints);
-    this->variable_domain_dim_ = log2(num_variables + 1);
+    this->constraint_domain_dim_ = libff::log2(num_constraints);
+    this->variable_domain_dim_ = libff::log2(num_variables + 1);
     this->summation_domain_dim_ = std::max<size_t>(this->constraint_domain_dim_, this->variable_domain_dim_);
     /* Extra dimensions required due to constructed oracles requiring larger rate. */
     this->extra_systematic_dims_ = (this->make_zk_ ? 2 : 0);
@@ -245,15 +245,15 @@ template<typename FieldT>
 void aurora_iop_parameters<FieldT>::print() const
 {
     printf("\nAurora IOP parameters\n");
-    print_indent(); printf("* target security parameter = %zu\n", this->security_parameter_);
-    print_indent(); printf("* achieved security parameter = %.1Lf\n", this->achieved_soundness());
-    print_indent(); printf("* RS extra dimensions = %zu\n", this->RS_extra_dimensions_);
-    print_indent(); printf("* codeword domain dim = %zu\n", this->codeword_domain_dim_);
-    print_indent(); printf("* constraint domain dim = %zu\n", this->constraint_domain_dim_);
-    print_indent(); printf("* variable domain dim = %zu\n", this->variable_domain_dim_);
-    print_indent(); printf("* query bound = %zu\n", this->query_bound_);
-    print_indent(); printf("* make zk = %s\n", (this->make_zk_ ? "true" : "false"));
-    print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->domain_type_]);
+    libff::print_indent(); printf("* target security parameter = %zu\n", this->security_parameter_);
+    libff::print_indent(); printf("* achieved security parameter = %.1Lf\n", this->achieved_soundness());
+    libff::print_indent(); printf("* RS extra dimensions = %zu\n", this->RS_extra_dimensions_);
+    libff::print_indent(); printf("* codeword domain dim = %zu\n", this->codeword_domain_dim_);
+    libff::print_indent(); printf("* constraint domain dim = %zu\n", this->constraint_domain_dim_);
+    libff::print_indent(); printf("* variable domain dim = %zu\n", this->variable_domain_dim_);
+    libff::print_indent(); printf("* query bound = %zu\n", this->query_bound_);
+    libff::print_indent(); printf("* make zk = %s\n", (this->make_zk_ ? "true" : "false"));
+    libff::print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->domain_type_]);
     this->encoded_aurora_params_.multi_lincheck_params_.print();
     this->LDT_reducer_params_.print();
     this->FRI_params_.print();
@@ -267,11 +267,11 @@ aurora_iop<FieldT>::aurora_iop(iop_protocol<FieldT> &IOP,
     constraint_system_(constraint_system),
     parameters_(parameters)
 {
-    if (!is_power_of_2(this->constraint_system_.num_inputs() + 1))
+    if (!libff::is_power_of_2(this->constraint_system_.num_inputs() + 1))
     {
         throw std::invalid_argument("number of inputs in the constraint system must be one less than a power of two.");
     }
-    if (!is_power_of_2(this->constraint_system_.num_inputs() + 1))
+    if (!libff::is_power_of_2(this->constraint_system_.num_inputs() + 1))
     {
         throw std::invalid_argument("number of inputs in the constraint system must be one less than a power of two.");
     }
@@ -346,13 +346,13 @@ void aurora_iop<FieldT>::produce_proof(const r1cs_primary_input<FieldT> &primary
 template<typename FieldT>
 bool aurora_iop<FieldT>::verifier_predicate(const r1cs_primary_input<FieldT> &primary_input)
 {
-    enter_block("Construct R1CS verifier state");
+    libff::enter_block("Construct R1CS verifier state");
     this->protocol_->construct_verifier_state(primary_input);
-    leave_block("Construct R1CS verifier state");
+    libff::leave_block("Construct R1CS verifier state");
 
-    enter_block("Check LDT verifier predicate");
+    libff::enter_block("Check LDT verifier predicate");
     const bool decision = this->LDT_reducer_->verifier_predicate();
-    leave_block("Check LDT verifier predicate");
+    libff::leave_block("Check LDT verifier predicate");
 
     return decision;
 }

@@ -36,7 +36,7 @@ void run_black_box_multi_lincheck_test(
     size_t index_domain_size = 0;
     for (size_t i = 0; i < matrices.size(); i++)
     {
-        const size_t cur_size = round_to_next_power_of_2(
+        const size_t cur_size = libff::round_to_next_power_of_2(
             matrices[i].num_nonzero_entries());
         if (cur_size > index_domain_size)
         {
@@ -240,7 +240,7 @@ void run_random_multi_lincheck_instance(std::size_t matrix_dim,
 }
 
 TEST(AdditiveSucceedingTests, LincheckTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     for (std::size_t matrix_dim = 6; matrix_dim < 8; matrix_dim++) {
         for (size_t num_matrices = 1; num_matrices < 4; num_matrices++)
         {
@@ -258,8 +258,8 @@ TEST(AdditiveSucceedingTests, LincheckTest) {
 }
 
 TEST(MultiplicativeSucceedingTests, LincheckTest) {
-    edwards_pp::init_public_params();
-    typedef edwards_Fr FieldT;
+    libff::edwards_pp::init_public_params();
+    typedef libff::edwards_Fr FieldT;
     for (std::size_t matrix_dim = 6; matrix_dim < 8; matrix_dim++)
     {
         for (size_t num_matrices = 1; num_matrices < 4; num_matrices++)
@@ -338,14 +338,14 @@ void run_failing_single_lincheck_instances(std::size_t matrix_dim,
 }
 
 TEST(AdditiveFailingTests, LincheckTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     run_failing_single_lincheck_instances<FieldT>(7, 5, affine_subspace_type, false);
     run_failing_single_lincheck_instances<FieldT>(7, 5, affine_subspace_type, true);
 }
 
 TEST(MultiplicativeFailingTests, LincheckTest) {
-    edwards_pp::init_public_params();
-    typedef edwards_Fr FieldT;
+    libff::edwards_pp::init_public_params();
+    typedef libff::edwards_Fr FieldT;
     run_failing_single_lincheck_instances<FieldT>(7, 5, multiplicative_coset_type, false);
     run_failing_single_lincheck_instances<FieldT>(7, 5, multiplicative_coset_type, true);
 }

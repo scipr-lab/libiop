@@ -81,7 +81,7 @@ std::vector<FieldT> subspace_element_powers(const affine_subspace<FieldT> &S,
      *
      *  In the case where the exponent is a power of two, we skip the multiplications.
      */
-    if (is_power_of_2(exponent))
+    if (libff::is_power_of_2(exponent))
     {
         return subspace_to_power_of_two(S, exponent);
     }

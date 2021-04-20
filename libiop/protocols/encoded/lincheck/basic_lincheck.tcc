@@ -49,7 +49,7 @@ basic_lincheck_parameters<FieldT>::basic_lincheck_parameters(
      *  We compute the denominator as:
      *      log(constraint_domain_size / |F|) = constraint_domain_dim - log(|F|)
      */
-    const long double field_size_bits = (long double)(soundness_log_of_field_size_helper<FieldT>(FieldT::zero()));
+    const long double field_size_bits = (long double)(libff::soundness_log_of_field_size_helper<FieldT>(FieldT::zero()));
     const long double denominator = (long double)(this->constraint_domain_dim_) - field_size_bits;
     const long double multi_lincheck_repetitions =
         ceil(-1.0 * (long double)(this->interactive_security_parameter_) / denominator);
@@ -94,7 +94,7 @@ size_t basic_lincheck_parameters<FieldT>::locality() const
 template<typename FieldT>
 long double basic_lincheck_parameters<FieldT>::achieved_interactive_soundness() const
 {
-    const long double field_size_bits = (long double)(soundness_log_of_field_size_helper<FieldT>(FieldT::zero()));
+    const long double field_size_bits = (long double)(libff::soundness_log_of_field_size_helper<FieldT>(FieldT::zero()));
     const long double soundness_per_repetition = (long double)(this->constraint_domain_dim_) - field_size_bits;
     return -((long double)this->multi_lincheck_repetitions_) * soundness_per_repetition;
 }
@@ -106,14 +106,14 @@ void basic_lincheck_parameters<FieldT>::print() const
     printf("\nMulti lincheck parameters\n");
     if (this->override_security_parameter_)
     {
-        print_indent(); printf("===WARNING=== Multi lincheck security parameter was overridden\n");
+        libff::print_indent(); printf("===WARNING=== Multi lincheck security parameter was overridden\n");
     }
-    print_indent(); printf("* target interactive soundness error (bits) = %zu\n", this->interactive_security_parameter_);
-    print_indent(); printf("* achieved interactive soundness error (bits) = %.1Lf\n", this->achieved_interactive_soundness());
-    print_indent(); printf("* interactive repetitions = %zu\n", this->multi_lincheck_repetitions_);
-    print_indent(); printf("* constraint domain dim = %zu\n", this->constraint_domain_dim_);
-    print_indent(); printf("* make zk = %s\n", (this->make_zk_ ? "true" : "false"));
-    print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->domain_type_]);
+    libff::print_indent(); printf("* target interactive soundness error (bits) = %zu\n", this->interactive_security_parameter_);
+    libff::print_indent(); printf("* achieved interactive soundness error (bits) = %.1Lf\n", this->achieved_interactive_soundness());
+    libff::print_indent(); printf("* interactive repetitions = %zu\n", this->multi_lincheck_repetitions_);
+    libff::print_indent(); printf("* constraint domain dim = %zu\n", this->constraint_domain_dim_);
+    libff::print_indent(); printf("* make zk = %s\n", (this->make_zk_ ? "true" : "false"));
+    libff::print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->domain_type_]);
 }
 
 template<typename FieldT>
@@ -247,7 +247,7 @@ void multi_lincheck<FieldT>::submit_sumcheck_masking_polynomials()
 template<typename FieldT>
 void multi_lincheck<FieldT>::calculate_and_submit_proof()
 {
-    enter_block("multi_lincheck: Calculate and submit proof");
+    libff::enter_block("multi_lincheck: Calculate and submit proof");
     for (size_t i = 0; i < this->params_.multi_lincheck_repetitions(); i++)
     {
         const FieldT alpha = this->IOP_.obtain_verifier_random_message(this->alpha_handles_[i])[0];
@@ -257,7 +257,7 @@ void multi_lincheck<FieldT>::calculate_and_submit_proof()
 
         this->sumchecks_[i]->calculate_and_submit_proof();
     }
-    leave_block("multi_lincheck: Calculate and submit proof");
+    libff::leave_block("multi_lincheck: Calculate and submit proof");
 }
 
 template<typename FieldT>

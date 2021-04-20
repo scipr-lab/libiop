@@ -122,7 +122,7 @@ void run_random_sumcheck_test(
 }
 
 TEST(SumcheckAdditiveTestGf64, SimpleTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const std::size_t summation_domain_dim = 5;
     const std::size_t codeword_domain_dim = 9;
@@ -145,8 +145,8 @@ TEST(SumcheckAdditiveTestGf64, SimpleTest) {
 }
 
 TEST(SumcheckMultiplicativeTest, SimpleTest) {
-    edwards_pp::init_public_params();
-    typedef edwards_Fr FieldT;
+    libff::edwards_pp::init_public_params();
+    typedef libff::edwards_Fr FieldT;
 
     const std::size_t summation_domain_dim = 5;
     const std::size_t codeword_domain_dim = 9;
@@ -220,7 +220,7 @@ void run_sumcheck_soundness_tests(
 }
 
 TEST(SumcheckFailingAdditiveTestsGf64, SimpleTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const std::size_t summation_domain_dim = 5;
     const std::size_t codeword_domain_dim = 9;
@@ -245,8 +245,8 @@ TEST(SumcheckFailingAdditiveTestsGf64, SimpleTest) {
 }
 
 TEST(SumcheckFailingMultiplicativeTestsEdwards, SimpleTest) {
-    edwards_pp::init_public_params();
-    typedef edwards_Fr FieldT;
+    libff::edwards_pp::init_public_params();
+    typedef libff::edwards_Fr FieldT;
 
     const std::size_t summation_domain_dim = 5;
     const std::size_t codeword_domain_dim = 9;

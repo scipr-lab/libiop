@@ -109,13 +109,13 @@ for (std::size_t variable_domain_dim = 7; variable_domain_dim < 9; variable_doma
 }
 
 TEST(R1CSAdditiveProtocolTest, R1CSTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     run_test<FieldT>(affine_subspace_type);
 }
 
 TEST(R1CSMultiplicativeProtocolTest, R1CSTest) {
-    edwards_pp::init_public_params();
-    typedef edwards_Fr FieldT;
+    libff::edwards_pp::init_public_params();
+    typedef libff::edwards_Fr FieldT;
     run_test<FieldT>(multiplicative_coset_type);
 }
 

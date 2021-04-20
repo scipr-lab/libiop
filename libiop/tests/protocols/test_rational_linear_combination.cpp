@@ -95,7 +95,7 @@ void run_random_test(const size_t systematic_domain_dim, const size_t num_ration
 }
 
 TEST(AdditiveSucceedingTests, RowcheckTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     for (std::size_t systematic_domain_dim = 6; systematic_domain_dim < 8; systematic_domain_dim++) {
         for (std::size_t num_rationals = 1; num_rationals < 4; num_rationals++) {
             run_random_test<FieldT>(
@@ -106,8 +106,8 @@ TEST(AdditiveSucceedingTests, RowcheckTest) {
 }
 
 TEST(MultiplicativeSucceedingTests, RowcheckTest) {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
     for (std::size_t systematic_domain_dim = 6; systematic_domain_dim < 8; systematic_domain_dim++) {
         for (std::size_t num_rationals = 1; num_rationals < 4; num_rationals++) {
             run_random_test<FieldT>(

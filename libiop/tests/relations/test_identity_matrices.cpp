@@ -33,7 +33,7 @@ void run_identity_test(const size_t dim)
 }
 
 TEST(AdditiveIdentityTest, SimpleTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     for (size_t i = 1; i < 10; i++)
     {
         run_identity_test<FieldT>(i);
@@ -41,8 +41,8 @@ TEST(AdditiveIdentityTest, SimpleTest) {
 }
 
 TEST(MultiplicativeIdentityTest, SimpleTest) {
-    edwards_pp::init_public_params();
-    typedef edwards_Fr FieldT;
+    libff::edwards_pp::init_public_params();
+    typedef libff::edwards_Fr FieldT;
     for (size_t i = 1; i < 10; i++)
     {
         run_identity_test<FieldT>(i);
@@ -91,8 +91,8 @@ void run_shifted_identity_test(const size_t dim)
 }
 
 TEST(MultiplicativeShiftedIdentityTest, SimpleTest) {
-    edwards_pp::init_public_params();
-    typedef edwards_Fr FieldT;
+    libff::edwards_pp::init_public_params();
+    typedef libff::edwards_Fr FieldT;
     for (size_t i = 1; i < 10; i++)
     {
         run_shifted_identity_test<FieldT>(i);

@@ -45,7 +45,7 @@ void run_query_to_queries_for_entire_coset_test(
 }
 
 TEST(QueryEntireCosetTest, AdditiveTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     size_t codeword_domain_dim = 10;
     FieldT codeword_domain_offset = FieldT::zero();
     size_t coset_size = 4;
@@ -63,8 +63,8 @@ TEST(QueryEntireCosetTest, AdditiveTest) {
 }
 
 TEST(QueryEntireCosetTest, MultiplicativeTest) {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
 
     size_t codeword_domain_dim = 10;
     FieldT codeword_domain_shift = FieldT::one();

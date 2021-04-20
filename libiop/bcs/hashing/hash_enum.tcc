@@ -26,7 +26,7 @@ poseidon_params<FieldT> get_poseidon_parameters(const bcs_hash_type hash_enum)
 /* Algebraic hashchain case */
 template<typename FieldT, typename MT_root_type>
 std::shared_ptr<hashchain<FieldT, MT_root_type>> get_hashchain_internal(
-    const typename enable_if<std::is_same<MT_root_type, FieldT>::value, FieldT>::type _, 
+    const typename libff::enable_if<std::is_same<MT_root_type, FieldT>::value, FieldT>::type _, 
     const bcs_hash_type hash_enum,
     const size_t security_parameter)
 {
@@ -50,7 +50,7 @@ std::shared_ptr<hashchain<FieldT, MT_root_type>> get_hashchain_internal(
 /* Algebraic hashchain case */
 template<typename FieldT, typename MT_root_type>
 std::shared_ptr<hashchain<FieldT, MT_root_type>> get_hashchain_internal(
-    const typename enable_if<!std::is_same<MT_root_type, FieldT>::value, FieldT>::type _, 
+    const typename libff::enable_if<!std::is_same<MT_root_type, FieldT>::value, FieldT>::type _, 
     const bcs_hash_type hash_enum,
     const size_t security_parameter)
 {
@@ -71,7 +71,7 @@ std::shared_ptr<hashchain<FieldT, MT_root_type>> get_hashchain(bcs_hash_type has
 /* Algebraic leafhash case */
 template<typename FieldT, typename leaf_hash_type>
 std::shared_ptr<leafhash<FieldT, leaf_hash_type>> get_leafhash_internal(
-    const typename enable_if<std::is_same<leaf_hash_type, FieldT>::value, FieldT>::type _, 
+    const typename libff::enable_if<std::is_same<leaf_hash_type, FieldT>::value, FieldT>::type _, 
     const bcs_hash_type hash_enum,
     const size_t security_parameter, 
     const size_t leaf_size)
@@ -96,7 +96,7 @@ std::shared_ptr<leafhash<FieldT, leaf_hash_type>> get_leafhash_internal(
 /* Binary_hash_digest leafhash */
 template<typename FieldT, typename leaf_hash_type>
 std::shared_ptr<leafhash<FieldT, leaf_hash_type>> get_leafhash_internal(
-    const typename enable_if<!std::is_same<leaf_hash_type, FieldT>::value, FieldT>::type _, 
+    const typename libff::enable_if<!std::is_same<leaf_hash_type, FieldT>::value, FieldT>::type _, 
     const bcs_hash_type hash_enum,
     const size_t security_parameter, 
     const size_t leaf_size)
@@ -118,7 +118,7 @@ std::shared_ptr<leafhash<FieldT, leaf_hash_type>> get_leafhash(
 /* binary hash digest 2->1 hash */
 template<typename hash_type, typename FieldT>
 two_to_one_hash_function<hash_type> get_two_to_one_hash_internal(
-    const typename enable_if<!std::is_same<hash_type, FieldT>::value, FieldT>::type _, 
+    const typename libff::enable_if<!std::is_same<hash_type, FieldT>::value, FieldT>::type _, 
     const bcs_hash_type hash_enum, 
     const size_t security_parameter)
 {
@@ -132,7 +132,7 @@ two_to_one_hash_function<hash_type> get_two_to_one_hash_internal(
 /* algebraic 2->1 hash */
 template<typename hash_type, typename FieldT>
 two_to_one_hash_function<FieldT> get_two_to_one_hash_internal(
-    const typename enable_if<std::is_same<hash_type, FieldT>::value, FieldT>::type _, 
+    const typename libff::enable_if<std::is_same<hash_type, FieldT>::value, FieldT>::type _, 
     const bcs_hash_type hash_enum, 
     const size_t security_parameter)
 {

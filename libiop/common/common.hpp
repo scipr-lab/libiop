@@ -17,8 +17,16 @@
 
 namespace libiop {
 
-long double add_soundness_error_bits(const size_t bits1, const size_t bits2);
+long double add_soundness_error_bits(const std::size_t bits1, const std::size_t bits2);
 long double add_soundness_error_bits(const long double bits1, const long double bits2);
+
+std::ostream &operator<<(std::ostream &os, const std::vector<std::size_t> &input)
+{
+    for (auto const &i: input) {
+        os << i << " ";
+    }
+    return os;
+}
 
 } // namespace libiop
 

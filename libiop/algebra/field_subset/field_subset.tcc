@@ -3,7 +3,7 @@ namespace libiop {
 template<typename FieldT>
 field_subset<FieldT>::field_subset(const std::size_t num_elements)
 {
-    if (is_multiplicative<FieldT>::value) {
+    if (libff::is_multiplicative<FieldT>::value) {
         this->construct_internal(num_elements, FieldT::one());
     } else {
         this->construct_internal(num_elements, FieldT::zero());
@@ -31,7 +31,7 @@ field_subset<FieldT>::field_subset(const multiplicative_coset<FieldT> coset) :
 
 template<typename FieldT>
 void field_subset<FieldT>::construct_internal(const std::size_t num_elements,
-                                              const typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type coset_shift)
+                                              const typename libff::enable_if<libff::is_multiplicative<FieldT>::value, FieldT>::type coset_shift)
 {
     if (coset_shift == FieldT::zero()) {
         throw std::invalid_argument("coset_shift was supplied as 0, it was likely intended to be 1");
@@ -43,10 +43,10 @@ void field_subset<FieldT>::construct_internal(const std::size_t num_elements,
 
 template<typename FieldT>
 void field_subset<FieldT>::construct_internal(const std::size_t num_elements,
-                                              const typename enable_if<is_additive<FieldT>::value, FieldT>::type coset_shift)
+                                              const typename libff::enable_if<libff::is_additive<FieldT>::value, FieldT>::type coset_shift)
 {
-    assert(is_power_of_2(num_elements));
-    const std::size_t dimension = log2(num_elements);
+    assert(libff::is_power_of_2(num_elements));
+    const std::size_t dimension = libff::log2(num_elements);
 
     if (coset_shift != FieldT(0))
     {
@@ -221,7 +221,7 @@ field_subset<FieldT> field_subset<FieldT>::get_subset_of_order(const std::size_t
     {
         case affine_subspace_type:
         {
-            const std::size_t subset_dim = log2(order);
+            const std::size_t subset_dim = libff::log2(order);
             std::vector<FieldT> input_subspace_basis = this->subspace_->basis();
             input_subspace_basis.resize(subset_dim);
             return field_subset<FieldT>(

@@ -11,8 +11,8 @@ namespace libiop {
 
 static void BM_blake2b(benchmark::State &state)
 {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
     
     const size_t sz = state.range(0);
 
@@ -33,8 +33,8 @@ BENCHMARK(BM_blake2b)->RangeMultiplier(2)->Range(1, 16)->Unit(benchmark::kNanose
 
 static void BM_Starkware_poseidon(benchmark::State &state)
 {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
     
     const size_t sz = state.range(0);
 
@@ -57,8 +57,8 @@ BENCHMARK(BM_Starkware_poseidon)->RangeMultiplier(2)->Range(1, 16)->Unit(benchma
 
 static void BM_high_alpha_poseidon(benchmark::State &state)
 {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
 
     const size_t sz = state.range(0);
 
@@ -81,8 +81,8 @@ BENCHMARK(BM_high_alpha_poseidon)->RangeMultiplier(2)->Range(1, 32)->Unit(benchm
 
 static void BM_high_alpha_poseidon_state_size_4(benchmark::State &state)
 {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
 
     const size_t sz = state.range(0);
 

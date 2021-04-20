@@ -351,7 +351,7 @@ void run_random_multi_lincheck_instance(std::size_t constraint_domain_dim,
 }
 
 TEST(AdditiveSucceedingTests, LincheckTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     for (std::size_t constraint_domain_dim = 5; constraint_domain_dim < 8; constraint_domain_dim++) {
         for (std::size_t variable_domain_dim = 5; variable_domain_dim < 8; variable_domain_dim++) {
             std::size_t input_variable_domain_dim = variable_domain_dim - 2;
@@ -373,8 +373,8 @@ TEST(AdditiveSucceedingTests, LincheckTest) {
 }
 
 TEST(MultiplicativeSucceedingTests, LincheckTest) {
-    edwards_pp::init_public_params();
-    typedef edwards_Fr FieldT;
+    libff::edwards_pp::init_public_params();
+    typedef libff::edwards_Fr FieldT;
     for (std::size_t constraint_domain_dim = 6; constraint_domain_dim < 8; constraint_domain_dim++) {
         for (std::size_t variable_domain_dim = 6; variable_domain_dim < 8; variable_domain_dim++) {
             std::size_t input_variable_domain_dim = variable_domain_dim - 2;
@@ -462,14 +462,14 @@ void run_failing_single_lincheck_instances(std::size_t constraint_domain_dim,
 }
 
 TEST(AdditiveFailingTests, LincheckTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     run_failing_single_lincheck_instances<FieldT>(7, 7, 5, affine_subspace_type, false);
     run_failing_single_lincheck_instances<FieldT>(7, 7, 5, affine_subspace_type, true);
 }
 
 TEST(MultiplicativeFailingTests, LincheckTest) {
-    edwards_pp::init_public_params();
-    typedef edwards_Fr FieldT;
+    libff::edwards_pp::init_public_params();
+    typedef libff::edwards_Fr FieldT;
     run_failing_single_lincheck_instances<FieldT>(7, 7, 5, multiplicative_coset_type, false);
 }
 

@@ -181,17 +181,17 @@ TEST(MultiplicativeBivariateEmbedding, TestOrdering)
     // it suggests we need a list of the factors for the field somewhere.
     size_t dimension = 10;
     size_t order = (1ull << dimension) * 3;
-    edwards_pp::init_public_params();
-    multiplicative_bivariate_embedding_tests_for_field<edwards_Fr>(order, 1ull << dimension);
+    libff::edwards_pp::init_public_params();
+    multiplicative_bivariate_embedding_tests_for_field<libff::edwards_Fr>(order, 1ull << dimension);
 }
 
 TEST(AdditiveBivariateEmbedding, TestOrdering)
 {
     const size_t dimension = 10;
-    additive_bivariate_embedding_tests_for_field<gf64>(dimension);
-    additive_bivariate_embedding_tests_for_field<gf128>(dimension);
-    additive_bivariate_embedding_tests_for_field<gf192>(dimension);
-    additive_bivariate_embedding_tests_for_field<gf256>(dimension);
+    additive_bivariate_embedding_tests_for_field<libff::gf64>(dimension);
+    additive_bivariate_embedding_tests_for_field<libff::gf128>(dimension);
+    additive_bivariate_embedding_tests_for_field<libff::gf192>(dimension);
+    additive_bivariate_embedding_tests_for_field<libff::gf256>(dimension);
 }
 
 }

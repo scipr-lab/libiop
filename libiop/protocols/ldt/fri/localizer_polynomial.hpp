@@ -10,7 +10,7 @@ Implementation for FRI localizer polynomial
 
 #include <functional>
 
-#include "libiop/algebra/field_utils.hpp"
+#include <libff/algebra/field_utils/field_utils.hpp>
 #include "libiop/algebra/polynomials/vanishing_polynomial.hpp"
 
 namespace libiop {

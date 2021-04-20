@@ -22,7 +22,7 @@ bcs_transformation_parameters<FieldT, MT_root_hash> default_bcs_params(
 
     // Work per hash. Todo generalize this w/ proper explanations of work amounts
     const size_t work_per_hash = (hash_type == 1) ? 1 : 128;
-    params.pow_params_ = pow_parameters(dim_h + 3 + log2(work_per_hash), work_per_hash);
+    params.pow_params_ = pow_parameters(dim_h + 3 + libff::log2(work_per_hash), work_per_hash);
     return params;
 }
 

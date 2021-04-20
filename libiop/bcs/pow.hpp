@@ -60,16 +60,16 @@ public:
 protected:
     hash_digest_type solve_pow_internal(
         const two_to_one_hash_function<hash_digest_type> &node_hasher, 
-        const typename enable_if<std::is_same<hash_digest_type, binary_hash_digest>::value, hash_digest_type>::type challenge) const;
+        const typename libff::enable_if<std::is_same<hash_digest_type, binary_hash_digest>::value, hash_digest_type>::type challenge) const;
     hash_digest_type solve_pow_internal(
         const two_to_one_hash_function<hash_digest_type> &node_hasher, 
-        const typename enable_if<std::is_same<hash_digest_type, FieldT>::value, hash_digest_type>::type challenge) const;
+        const typename libff::enable_if<std::is_same<hash_digest_type, FieldT>::value, hash_digest_type>::type challenge) const;
 
     bool verify_pow_internal(
-        const typename enable_if<std::is_same<hash_digest_type, FieldT>::value, hash_digest_type>::type &hash) const;
+        const typename libff::enable_if<std::is_same<hash_digest_type, FieldT>::value, hash_digest_type>::type &hash) const;
 
     bool verify_pow_internal(
-        const typename enable_if<std::is_same<hash_digest_type, binary_hash_digest>::value, hash_digest_type>::type &hash) const;
+        const typename libff::enable_if<std::is_same<hash_digest_type, binary_hash_digest>::value, hash_digest_type>::type &hash) const;
 };
 
 } // namespace libiop

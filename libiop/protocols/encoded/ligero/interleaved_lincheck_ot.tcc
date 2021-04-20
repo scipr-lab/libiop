@@ -202,7 +202,7 @@ void interleaved_lincheck_ot_protocol<FieldT>::calculate_and_submit_responses(co
        0s) as an argument, encode it, and add it to the encoded (hidden) input, which should start
        with 0s. By linearity, this will give the right result iff the correct overall input begins
        with the public prefix. */
-    enter_block("Input consistency");
+    libff::enter_block("Input consistency");
     std::vector<std::vector<FieldT>> supplementary_input_vectors;
     supplementary_input_vectors.resize(this->num_oracles_input_);
     const std::size_t num_supplementary_input_vectors = (std::size_t) ceil((supplementary_input_size + 0.0) / this->systematic_domain_size_);
@@ -242,7 +242,7 @@ void interleaved_lincheck_ot_protocol<FieldT>::calculate_and_submit_responses(co
     {
         supplementary_target_vectors[i] = std::vector<FieldT>(this->codeword_domain_size_, FieldT(0));
     }
-    leave_block("Input consistency");
+    libff::leave_block("Input consistency");
 
     /* We accept values for the random linear combinations as a parameter, to ensure consistency.
        If none are given, we use the actual random values sent by the verifier. */
@@ -400,7 +400,7 @@ bool interleaved_lincheck_ot_protocol<FieldT>::verifier_predicate(const std::vec
                                                                   std::vector<std::vector<FieldT>> random_linear_combinations,
                                                                   std::vector<std::vector<FieldT>> lagrange_coefficients)
 {
-    enter_block("Input consistency");
+    libff::enter_block("Input consistency");
     std::vector<std::vector<FieldT>> supplementary_input_vectors;
     supplementary_input_vectors.resize(this->num_oracles_input_);
     const std::size_t num_supplementary_input_vectors = (std::size_t) ceil((supplementary_input_size + 0.0) / this->systematic_domain_size_);
@@ -440,7 +440,7 @@ bool interleaved_lincheck_ot_protocol<FieldT>::verifier_predicate(const std::vec
     {
         supplementary_target_vectors[i] = std::vector<FieldT>(this->codeword_domain_size_, FieldT(0));
     }
-    leave_block("Input consistency");
+    libff::leave_block("Input consistency");
 
     if (random_linear_combinations.size() == 0)
     {
@@ -467,7 +467,7 @@ bool interleaved_lincheck_ot_protocol<FieldT>::verifier_predicate(const std::vec
         /* EQUALITY TEST: does the polynomial that was sent sum to 0 over the systematic domain, as
            it should if the claimed statement is true? */
 
-        enter_block("Lincheck: equality test (p_0 sums to 0 over systematic domain)");
+        libff::enter_block("Lincheck: equality test (p_0 sums to 0 over systematic domain)");
         std::vector<FieldT> response = this->IOP_.receive_prover_message(this->response_handles_[h]); // coefficients of p_0
         const std::vector<FieldT> evaluations = FFT_over_field_subset<FieldT>(response, this->extended_systematic_domain_);
         polynomial<FieldT> response_poly(std::move(response));
@@ -483,16 +483,16 @@ bool interleaved_lincheck_ot_protocol<FieldT>::verifier_predicate(const std::vec
         if (equality_lhs != FieldT(0))
         {
 #ifdef DEBUG
-            print_indent(); printf("For interactive repetition h = %zu\n", h);
+            libff::print_indent(); printf("For interactive repetition h = %zu\n", h);
 
-            print_indent(); print_indent();
+            libff::print_indent(); libff::print_indent();
             printf("sum_{d in [l]} p_0,h(zeta_d) = ");
             equality_lhs.print();
             printf(" != 0\n");
 #endif // DEBUG
             return false;
         }
-        leave_block("Lincheck: equality test (p_0 sums to 0 over systematic domain)");
+        libff::leave_block("Lincheck: equality test (p_0 sums to 0 over systematic domain)");
 
         /* Preparation for consistency test. */
 
@@ -572,7 +572,7 @@ bool interleaved_lincheck_ot_protocol<FieldT>::verifier_predicate(const std::vec
         {
             /* TODO: efficiency running FFTs to evaluate here vs saving polynomials and evaluating them
             in tests depends on parameters */
-            enter_block("Precomputing for consistency tests");
+            libff::enter_block("Precomputing for consistency tests");
             random_linear_combination_row_evals.reserve(this->num_oracles_target_);
             for (size_t i = 0; i < this->num_oracles_target_; ++i)
             {
@@ -593,10 +593,10 @@ bool interleaved_lincheck_ot_protocol<FieldT>::verifier_predicate(const std::vec
                                                                                 this->codeword_domain_);
                 randomized_matrix_row_vector_evals.emplace_back(std::move(row_vector_poly_evals));
             }
-            leave_block("Precomputing for consistency tests");
+            libff::leave_block("Precomputing for consistency tests");
         }
 
-        enter_block("Lincheck: querying and performing consistency tests");
+        libff::enter_block("Lincheck: querying and performing consistency tests");
         for (size_t k = 0; k < this->num_queries_; ++k)
         {
             const random_query_position_handle this_position_handle = this->query_position_handles_[k];
@@ -673,15 +673,15 @@ bool interleaved_lincheck_ot_protocol<FieldT>::verifier_predicate(const std::vec
             if (consistency_test_lhs != consistency_test_rhs)
             {
 #ifdef DEBUG
-                print_indent(); printf("For interactive repetition h = %zu and query position j = %zu,\n", h, j);
+                libff::print_indent(); printf("For interactive repetition h = %zu and query position j = %zu,\n", h, j);
 
-                print_indent(); print_indent();
+                libff::print_indent(); libff::print_indent();
                 printf("[LHS] value from oracles sum_{i in [m_1]} r_i,h(eta_j) * U^x_i,j ");
                 printf("- sum_{i in [m_2]} s_i,h(eta_j) * U^y_i,j + u_h'[h] = ");
                 consistency_test_lhs.print();
                 printf("\n");
 
-                print_indent(); print_indent();
+                libff::print_indent(); libff::print_indent();
                 printf("[RHS] polynomial value p_0(eta_j) = ");
                 consistency_test_rhs.print();
                 printf("\n");
@@ -689,7 +689,7 @@ bool interleaved_lincheck_ot_protocol<FieldT>::verifier_predicate(const std::vec
                 return false;
             }
         }
-        leave_block("Lincheck: querying and performing consistency tests");
+        libff::leave_block("Lincheck: querying and performing consistency tests");
     }
 
     return true;

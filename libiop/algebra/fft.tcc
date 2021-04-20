@@ -4,7 +4,7 @@
 #include <libfqfft/evaluation_domain/domains/basic_radix2_domain_aux.hpp>
 
 #include <libff/common/profiling.hpp>
-#include "libiop/algebra/field_utils.hpp"
+#include <libff/algebra/field_utils/field_utils.hpp>
 #include "libiop/algebra/utils.hpp"
 
 namespace libiop {
@@ -207,11 +207,11 @@ template<typename FieldT>
 std::vector<FieldT> additive_FFT_wrapper(const std::vector<FieldT> &v,
                                          const affine_subspace<FieldT> &H)
 {
-    enter_block("Call to additive_FFT_wrapper");
-    print_indent(); printf("* Vector size: %zu\n", v.size());
-    print_indent(); printf("* Subspace size: %zu\n", H.num_elements());
+    libff::enter_block("Call to additive_FFT_wrapper");
+    libff::print_indent(); printf("* Vector size: %zu\n", v.size());
+    libff::print_indent(); printf("* Subspace size: %zu\n", H.num_elements());
     const std::vector<FieldT> result = additive_FFT(v, H);
-    leave_block("Call to additive_FFT_wrapper");
+    libff::leave_block("Call to additive_FFT_wrapper");
     return result;
 }
 
@@ -219,11 +219,11 @@ template<typename FieldT>
 std::vector<FieldT> additive_IFFT_wrapper(const std::vector<FieldT> &v,
                                           const affine_subspace<FieldT> &H)
 {
-    enter_block("Call to additive_IFFT_wrapper");
-    print_indent(); printf("* Vector size: %zu\n", v.size());
-    print_indent(); printf("* Subspace size: %zu\n", H.num_elements());
+    libff::enter_block("Call to additive_IFFT_wrapper");
+    libff::print_indent(); printf("* Vector size: %zu\n", v.size());
+    libff::print_indent(); printf("* Subspace size: %zu\n", H.num_elements());
     const std::vector<FieldT> result = additive_IFFT(v, H);
-    leave_block("Call to additive_IFFT_wrapper");
+    libff::leave_block("Call to additive_IFFT_wrapper");
     return result;
 }
 
@@ -239,7 +239,7 @@ std::vector<FieldT> multiplicative_FFT_degree_aware(const std::vector<FieldT> &p
                                                     const FieldT &shift)
 {
     assert(poly_coeffs.size() <= coset.num_elements());
-    const size_t n = coset.num_elements(), logn = log2(n);
+    const size_t n = coset.num_elements(), logn = libff::log2(n);
 
     std::vector<FieldT> a(poly_coeffs);
     /** If there is a coset shift x, the degree i term of the polynomial is multiplied by x^i */
@@ -249,7 +249,7 @@ std::vector<FieldT> multiplicative_FFT_degree_aware(const std::vector<FieldT> &p
     }
     a.resize(n, FieldT::zero());
 
-    const size_t poly_dimension = log2(poly_coeffs.size());
+    const size_t poly_dimension = libff::log2(poly_coeffs.size());
     const size_t poly_size = poly_coeffs.size();
     /** When the polynomial is of size k*|coset|, for k < 2^i,
      *  the first i iterations of Cooley Tukey are easily predictable.
@@ -318,7 +318,7 @@ std::vector<FieldT> multiplicative_FFT_degree_aware(const std::vector<FieldT> &p
 
 template<typename FieldT>
 std::vector<FieldT> multiplicative_FFT_internal(
-    const std::vector<typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type> &poly_coeffs,
+    const std::vector<typename libff::enable_if<libff::is_multiplicative<FieldT>::value, FieldT>::type> &poly_coeffs,
     const multiplicative_subgroup_base<FieldT> &domain, const FieldT shift)
 {
     assert(poly_coeffs.size() <= domain.num_elements());
@@ -327,7 +327,7 @@ std::vector<FieldT> multiplicative_FFT_internal(
 
 template<typename FieldT>
 std::vector<FieldT> multiplicative_FFT_internal(
-    const std::vector<typename enable_if<is_additive<FieldT>::value, FieldT>::type> &poly_coeffs,
+    const std::vector<typename libff::enable_if<libff::is_additive<FieldT>::value, FieldT>::type> &poly_coeffs,
     const multiplicative_subgroup_base<FieldT> &domain, const FieldT shift)
 {
     throw std::invalid_argument("attempting to perform multiplicative IFFT with non-multiplicative field type");
@@ -342,7 +342,7 @@ std::vector<FieldT> multiplicative_FFT(const std::vector<FieldT> &poly_coeffs,
 
 template<typename FieldT>
 std::vector<FieldT> multiplicative_IFFT_internal(
-    const std::vector<typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type> &evals,
+    const std::vector<typename libff::enable_if<libff::is_multiplicative<FieldT>::value, FieldT>::type> &evals,
     const multiplicative_subgroup_base<FieldT> &domain, const FieldT shift)
 {
     assert(domain.num_elements() == evals.size());
@@ -362,7 +362,7 @@ std::vector<FieldT> multiplicative_IFFT_internal(
 
 template<typename FieldT>
 std::vector<FieldT> multiplicative_IFFT_internal(
-    const std::vector<typename enable_if<is_additive<FieldT>::value, FieldT>::type> &evals,
+    const std::vector<typename libff::enable_if<libff::is_additive<FieldT>::value, FieldT>::type> &evals,
     const multiplicative_subgroup_base<FieldT> &domain, const FieldT shift)
 {
     throw std::invalid_argument("attempting to perform multiplicative IFFT with non-multiplicative field type");
@@ -379,11 +379,11 @@ template<typename FieldT>
 std::vector<FieldT> multiplicative_FFT_wrapper(const std::vector<FieldT> &v,
                                                const multiplicative_coset<FieldT> &H)
 {
-    enter_block("Call to multiplicative_FFT_wrapper");
-    print_indent(); printf("* Vector size: %zu\n", v.size());
-    print_indent(); printf("* Subgroup size: %zu\n", H.num_elements());
+    libff::enter_block("Call to multiplicative_FFT_wrapper");
+    libff::print_indent(); printf("* Vector size: %zu\n", v.size());
+    libff::print_indent(); printf("* Subgroup size: %zu\n", H.num_elements());
     const std::vector<FieldT> result = multiplicative_FFT(v, H);
-    leave_block("Call to multiplicative_FFT_wrapper");
+    libff::leave_block("Call to multiplicative_FFT_wrapper");
     return result;
 }
 
@@ -391,42 +391,42 @@ template<typename FieldT>
 std::vector<FieldT> multiplicative_IFFT_wrapper(const std::vector<FieldT> &v,
                                                 const multiplicative_coset<FieldT> &H)
 {
-    enter_block("Call to multiplicative_IFFT_wrapper");
-    print_indent(); printf("* Vector size: %zu\n", v.size());
-    print_indent(); printf("* Coset size: %zu\n", H.num_elements());
+    libff::enter_block("Call to multiplicative_IFFT_wrapper");
+    libff::print_indent(); printf("* Vector size: %zu\n", v.size());
+    libff::print_indent(); printf("* Coset size: %zu\n", H.num_elements());
     if (v.size() == 1)
     {
-        leave_block("Call to multiplicative_IFFT_wrapper");
+        libff::leave_block("Call to multiplicative_IFFT_wrapper");
         return {v[0]};
     }
     const std::vector<FieldT> result = multiplicative_IFFT(v, H);
-    leave_block("Call to multiplicative_IFFT_wrapper");
+    libff::leave_block("Call to multiplicative_IFFT_wrapper");
     return result;
 }
 
 template<typename FieldT>
-std::vector<FieldT> FFT_over_field_subset(const std::vector<typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type> coeffs,
+std::vector<FieldT> FFT_over_field_subset(const std::vector<typename libff::enable_if<libff::is_multiplicative<FieldT>::value, FieldT>::type> coeffs,
                                           field_subset<FieldT> domain)
 {
     return multiplicative_FFT_wrapper<FieldT>(coeffs, domain.coset());
 }
 
 template<typename FieldT>
-std::vector<FieldT> FFT_over_field_subset(const std::vector<typename enable_if<is_additive<FieldT>::value, FieldT>::type> coeffs,
+std::vector<FieldT> FFT_over_field_subset(const std::vector<typename libff::enable_if<libff::is_additive<FieldT>::value, FieldT>::type> coeffs,
                                           field_subset<FieldT> domain)
 {
     return additive_FFT_wrapper<FieldT>(coeffs, domain.subspace());
 }
 
 template<typename FieldT>
-std::vector<FieldT> IFFT_over_field_subset(const std::vector<typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type> evals,
+std::vector<FieldT> IFFT_over_field_subset(const std::vector<typename libff::enable_if<libff::is_multiplicative<FieldT>::value, FieldT>::type> evals,
                                            field_subset<FieldT> domain)
 {
     return multiplicative_IFFT_wrapper<FieldT>(evals, domain.coset());
 }
 
 template<typename FieldT>
-std::vector<FieldT> IFFT_over_field_subset(const std::vector<typename enable_if<is_additive<FieldT>::value, FieldT>::type> evals,
+std::vector<FieldT> IFFT_over_field_subset(const std::vector<typename libff::enable_if<libff::is_additive<FieldT>::value, FieldT>::type> evals,
                                            field_subset<FieldT> domain)
 {
     return additive_IFFT_wrapper<FieldT>(evals, domain.subspace());
@@ -434,7 +434,7 @@ std::vector<FieldT> IFFT_over_field_subset(const std::vector<typename enable_if<
 
 template<typename FieldT>
 std::vector<FieldT> IFFT_of_known_degree_over_field_subset(
-    const std::vector<typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type> evals,
+    const std::vector<typename libff::enable_if<libff::is_multiplicative<FieldT>::value, FieldT>::type> evals,
     size_t degree,
     field_subset<FieldT> domain)
 {
@@ -443,7 +443,7 @@ std::vector<FieldT> IFFT_of_known_degree_over_field_subset(
      *  The evaluations in this coset are every nth element of the evaluations
      *  over the entire domain, where n = |domain| / |degree|
      */
-    const size_t closest_power_of_two = round_to_next_power_of_2(degree);
+    const size_t closest_power_of_two = libff::round_to_next_power_of_2(degree);
     field_subset<FieldT> minimal_coset = domain.get_subset_of_order(closest_power_of_two);
     std::vector<FieldT> evals_in_minimal_coset;
     evals_in_minimal_coset.reserve(closest_power_of_two);
@@ -457,7 +457,7 @@ std::vector<FieldT> IFFT_of_known_degree_over_field_subset(
 
 template<typename FieldT>
 std::vector<FieldT> IFFT_of_known_degree_over_field_subset(
-    const std::vector<typename enable_if<is_additive<FieldT>::value, FieldT>::type> evals,
+    const std::vector<typename libff::enable_if<libff::is_additive<FieldT>::value, FieldT>::type> evals,
     size_t degree,
     field_subset<FieldT> domain)
 {
@@ -466,7 +466,7 @@ std::vector<FieldT> IFFT_of_known_degree_over_field_subset(
      *  therefore the evaluations are the first elements of the evaluations
      *  over the entire domain.
      */
-    const size_t closest_power_of_two = round_to_next_power_of_2(degree);
+    const size_t closest_power_of_two = libff::round_to_next_power_of_2(degree);
     field_subset<FieldT> minimal_subspace = domain.get_subset_of_order(closest_power_of_two);
     std::vector<FieldT> evals_in_minimal_subspace;
     evals_in_minimal_subspace.insert(

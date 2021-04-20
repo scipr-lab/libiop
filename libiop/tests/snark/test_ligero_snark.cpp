@@ -13,7 +13,7 @@ namespace libiop {
 
 TEST(InterleavedR1CSSnarkTest, SimpleTest) {
     /* Set up R1CS */
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     std::size_t num_constraints = 16;
     std::size_t constraint_dim = 4;
@@ -51,8 +51,8 @@ TEST(InterleavedR1CSSnarkTest, SimpleTest) {
 
 TEST(InterleavedR1CSSnarkMultiplicativeTest, SimpleTest) {
     /* Set up R1CS */
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
 
     std::size_t num_constraints = 16;
     std::size_t constraint_dim = 4;

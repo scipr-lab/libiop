@@ -28,10 +28,10 @@ std::vector<FieldT> compute_p_alpha_M(
             }
         }
     }
-    enter_block("multi_lincheck IFFT p_alpha_M");
+    libff::enter_block("multi_lincheck IFFT p_alpha_M");
     std::vector<FieldT> p_alpha_M =
         IFFT_over_field_subset<FieldT>(p_alpha_M_over_H, summation_domain);
-    leave_block("multi_lincheck IFFT p_alpha_M");
+    libff::leave_block("multi_lincheck IFFT p_alpha_M");
     return p_alpha_M;
 }
 

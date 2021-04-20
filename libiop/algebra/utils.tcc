@@ -145,7 +145,7 @@ template<typename T>
 void bitreverse_vector(std::vector<T> &a)
 {
     const size_t n = a.size();
-    const size_t logn = log2(n);
+    const size_t logn = libff::log2(n);
     assert(n == 1ull<<logn);
 
     for (size_t k = 0; k < n; ++k)

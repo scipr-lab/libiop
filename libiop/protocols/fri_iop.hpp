@@ -31,7 +31,7 @@ struct FRI_iop_protocol_parameters {
 
     std::size_t num_oracles_;
 
-    field_type field_type_;
+    libff::field_type field_type_;
 };
 
 template<typename FieldT>

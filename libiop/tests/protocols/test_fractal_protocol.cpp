@@ -80,7 +80,7 @@ for (std::size_t summation_domain_dim = 7; summation_domain_dim < 9; summation_d
         {
             matrices.emplace_back(
                 std::make_shared<r1cs_sparse_matrix<FieldT>>(cs, matrix_types[i]));
-            const size_t cur_size = round_to_next_power_of_2(
+            const size_t cur_size = libff::round_to_next_power_of_2(
                 matrices[i]->num_nonzero_entries());
             if (cur_size > index_domain_size)
             {
@@ -152,13 +152,13 @@ for (std::size_t summation_domain_dim = 7; summation_domain_dim < 9; summation_d
 }
 
 TEST(R1CSAdditiveProtocolTest, R1CSTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     run_test<FieldT>(affine_subspace_type);
 }
 
 TEST(R1CSMultiplicativeProtocolTest, R1CSTest) {
-    edwards_pp::init_public_params();
-    typedef edwards_Fr FieldT;
+    libff::edwards_pp::init_public_params();
+    typedef libff::edwards_Fr FieldT;
     run_test<FieldT>(multiplicative_coset_type);
 }
 

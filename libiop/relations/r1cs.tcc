@@ -280,10 +280,10 @@ std::size_t r1cs_constraint_system<FieldT>::size_in_bytes() const
     /*
       Assume that the most efficient representation spends:
        - 3 bits per constraint (to delineate A, B, and C)
-       - log2(num_variables) + |FieldT| bits per term
+       - libff::log2(num_variables) + |FieldT| bits per term
     */
     const std::size_t size_in_bits = 3 * this->num_constraints() +
-        num_terms * (log2(this->num_variables()) + 8*sizeof(FieldT));
+        num_terms * (libff::log2(this->num_variables()) + 8*sizeof(FieldT));
 
     return size_in_bits / 8;
 }
