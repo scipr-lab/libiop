@@ -138,7 +138,7 @@ LDT_instance_reducer<FieldT, multi_LDT_type>::LDT_instance_reducer(iop_protocol<
     /* Check that the single LDT type given in the template is valid. */
     typedef std::is_base_of<multi_LDT_base<FieldT>, multi_LDT_type> base_checker;
     assert(base_checker::value);
-    libiop::UNUSED(base_checker::value);
+    UNUSED(base_checker::value);
 
     this->codeword_domain_ = this->IOP_.get_domain(this->codeword_domain_handle_);
     std::size_t codeword_domain_size = this->codeword_domain_.num_elements();

@@ -1,12 +1,12 @@
 #include <cmath>
 
 #include <libff/common/profiling.hpp>
+#include <libff/common/utils.hpp>
 #include "libiop/algebra/fft.hpp"
 #include "libiop/algebra/lagrange.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/polynomials/vanishing_polynomial.hpp"
 #include "libiop/algebra/utils.hpp"
-#include "libiop/common/common.hpp"
 
 namespace libiop {
 
@@ -230,7 +230,7 @@ public:
         const FieldT evaluation_point,
         const std::vector<FieldT> &constituent_oracle_evaluations) const
     {
-        libiop::UNUSED(evaluation_position);
+        UNUSED(evaluation_position);
 
         if (constituent_oracle_evaluations.size() != 1)
         {

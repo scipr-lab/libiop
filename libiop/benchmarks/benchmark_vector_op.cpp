@@ -4,8 +4,8 @@
 #include <benchmark/benchmark.h>
 
 #include <libff/algebra/fields/binary/gf64.hpp>
+#include <libff/common/utils.hpp>
 #include "libiop/algebra/utils.hpp"
-#include "libiop/common/common.hpp"
 
 namespace libiop {
 

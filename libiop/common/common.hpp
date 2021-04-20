@@ -1,6 +1,6 @@
 /**@file
  *****************************************************************************
- Common routines.
+ Common routines not already present in libff.
  *****************************************************************************
  * @author     This file is part of libiop (see AUTHORS)
  * @copyright  MIT license (see LICENSE file)
@@ -17,55 +17,8 @@
 
 namespace libiop {
 
-template<bool B, class T = void>
-struct enable_if { typedef void* type; };
-
-template<class T>
-struct enable_if<true, T> { typedef T type; };
-
-/* returns ceil(log2(n)), so 1ul<<log2(n) is the smallest power of 2,
-   that is not less than n. */
-std::size_t log2(std::size_t n);
-
-std::size_t round_to_next_power_of_2(const std::size_t n);
-bool is_power_of_2(const std::size_t n);
-
-std::size_t bitreverse(std::size_t n, const std::size_t l);
-
 long double add_soundness_error_bits(const size_t bits1, const size_t bits2);
 long double add_soundness_error_bits(const long double bits1, const long double bits2);
-
-/* A variadic template to suppress unused argument warnings */
-template<typename ... Types>
-void UNUSED(Types&&...) {}
-
-/* Print a vector in the form { elem0 elem1 elem2 ... }, with a newline at the end
-template<typename T>
-void print_vector(std::vector<T> &vec);
-template<typename T>
-void print_vector(std::vector<T> vec);*/
-
-template<typename T>
-void print_vector(std::vector<T> &vec)
-{
-    printf("{ ");
-    for (auto const& elem : vec)
-    {
-        std::cout << elem << " ";
-    }
-    printf("}\n");
-}
-
-template<typename T>
-void print_vector(std::vector<T> vec)
-{
-    printf("{ ");
-    for (auto const& elem : vec)
-    {
-        std::cout << elem << " ";
-    }
-    printf("}\n");
-}
 
 } // namespace libiop
 

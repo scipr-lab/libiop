@@ -1,12 +1,12 @@
 #include <vector>
 #include <benchmark/benchmark.h>
 
+#include <libff/algebra/fields/binary/gf64.hpp>
+#include <libff/common/utils.hpp>
+#include "libiop/algebra/utils.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/fft.hpp"
-#include <libff/algebra/fields/binary/gf64.hpp>
 #include "libiop/algebra/field_subset/subspace.hpp"
-#include "libiop/algebra/utils.hpp"
-#include "libiop/common/common.hpp"
 #include "libiop/iop/iop.hpp"
 #include "libiop/protocols/encoded/sumcheck/sumcheck.hpp"
 #include "libiop/relations/examples/r1cs_examples.hpp"

@@ -5,7 +5,7 @@
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
 #include "libiop/algebra/lagrange.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 
 namespace libiop {
 

@@ -1,13 +1,13 @@
 #include <vector>
 #include <benchmark/benchmark.h>
 
-#include "libiop/algebra/polynomials/polynomial.hpp"
-#include "libiop/algebra/polynomials/vanishing_polynomial.hpp"
 #include <libff/algebra/fields/binary/gf64.hpp>
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
-#include "libiop/algebra/field_subset/subspace.hpp"
+#include <libff/common/utils.hpp>
 #include "libiop/algebra/utils.hpp"
-#include "libiop/common/common.hpp"
+#include "libiop/algebra/polynomials/polynomial.hpp"
+#include "libiop/algebra/polynomials/vanishing_polynomial.hpp"
+#include "libiop/algebra/field_subset/subspace.hpp"
 
 namespace libiop {
 

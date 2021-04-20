@@ -22,7 +22,7 @@
 #include "libiop/algebra/field_subset/subgroup.hpp"
 #include "libiop/algebra/fft.hpp"
 
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 #include "libiop/iop/iop.hpp"
 #include "libiop/protocols/ldt/fri/fri_ldt.hpp"
 #include "libiop/snark/fri_snark.hpp"
@@ -154,7 +154,7 @@ int main(int argc, const char * argv[])
         printf("There is no argument parsing in CPPDEBUG mode.");
         exit(1);
     }
-    libiop::UNUSED(argv);
+    UNUSED(argv);
 
 #else
     if (!process_prover_command_line(argc, argv, default_vals, localization_parameter,

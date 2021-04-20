@@ -9,7 +9,7 @@
 #include <libff/algebra/fields/binary/gf64.hpp>
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 #include "libiop/protocols/encoded/ligero/ligero.hpp"
 #include "libiop/relations/examples/r1cs_examples.hpp"
 #include "libiop/relations/r1cs.hpp"

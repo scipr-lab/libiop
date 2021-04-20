@@ -149,7 +149,7 @@ std::vector<size_t> compute_argument_size_optimal_localization_parameters(
     /* Set this to improve efficiency of brute force */
     const size_t minimum_final_constant_dim = 2;
     /* TODO: Consider if the -1 is necessary, I think it is for max_tested_degree */
-    size_t num_dimensions_to_reduce = libiop::log2(max_tested_degree) - 1 - minimum_final_constant_dim;
+    size_t num_dimensions_to_reduce = log2(max_tested_degree) - 1 - minimum_final_constant_dim;
     std::vector<std::vector<size_t>> options =
         all_localization_vectors(num_dimensions_to_reduce);
 

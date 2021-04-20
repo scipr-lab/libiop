@@ -3,7 +3,7 @@
 
 #include <libff/common/profiling.hpp>
 #include "libiop/common/cpp17_bits.hpp"
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 
 #include <sodium/randombytes.h>
 #include "libiop/algebra/field_utils.hpp"

@@ -9,7 +9,7 @@
 #include "libiop/algebra/field_utils.hpp"
 #include "libiop/algebra/fft.hpp"
 #include "libiop/algebra/field_subset/subgroup.hpp"
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 #include "libiop/iop/iop.hpp"
 #include "libiop/protocols/ldt/fri/fri_ldt.hpp"
 
@@ -19,7 +19,7 @@ template<typename FieldT>
 field_subset<FieldT> make_domain_helper(const std::size_t dimension,
                                         const typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type elem)
 {
-    libiop::UNUSED(elem); // only to identify field type
+    UNUSED(elem); // only to identify field type
 
     const std::size_t size = 1ull << dimension;
     return field_subset<FieldT>(size, FieldT::multiplicative_generator);
@@ -29,7 +29,7 @@ template<typename FieldT>
 field_subset<FieldT> make_domain_helper(const std::size_t dimension,
                                         const typename enable_if<is_additive<FieldT>::value, FieldT>::type elem)
 {
-    libiop::UNUSED(elem); // only to identify field type
+    UNUSED(elem); // only to identify field type
 
     const size_t size = 1ull << dimension;
     return field_subset<FieldT>(size, FieldT(size));

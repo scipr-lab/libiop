@@ -2,7 +2,7 @@
 #include <benchmark/benchmark.h>
 
 #include "libiop/algebra/field_utils.hpp"
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 #include "libiop/algebra/utils.hpp"
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 

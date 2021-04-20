@@ -88,7 +88,7 @@ void instrument_algebra(std::size_t log_n_min,
             n_vec.push_back(FieldT::random_element());
         }
         leave_block("n");
-        affine_subspace<FieldT> n_subspace = linear_subspace<FieldT>::standard_basis(libiop::log2(n));
+        affine_subspace<FieldT> n_subspace = linear_subspace<FieldT>::standard_basis(log2(n));
         enter_block("FFT(n)");
         std::vector<FieldT> fft_results = additive_FFT<FieldT>(n_vec, n_subspace);
         leave_block("FFT(n)");
@@ -101,7 +101,7 @@ void instrument_algebra(std::size_t log_n_min,
             sqrt_n_vec.push_back(FieldT::random_element());
         }
         leave_block("sqrt(n)");
-        affine_subspace<FieldT> sqrt_n_subspace = linear_subspace<FieldT>::standard_basis(libiop::log2(sqrt_n));
+        affine_subspace<FieldT> sqrt_n_subspace = linear_subspace<FieldT>::standard_basis(log2(sqrt_n));
         enter_block("sqrt(n) * FFT(sqrt(n))");
         for (size_t i = 0; i < sqrt_n; ++i)
         {
@@ -124,7 +124,7 @@ int main(int argc, const char * argv[])
         printf("There is no argument parsing in CPPDEBUG mode.");
         exit(1);
     }
-    libiop::UNUSED(argv);
+    UNUSED(argv);
 
     log_n_min = 8;
     log_n_max = 20;

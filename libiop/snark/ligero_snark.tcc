@@ -1,6 +1,6 @@
 #include <libff/common/profiling.hpp>
+#include <libff/common/utils.hpp>
 #include "libiop/algebra/field_subset/subspace.hpp"
-#include "libiop/common/common.hpp"
 #include "libiop/bcs/bcs_common.hpp"
 #include "libiop/bcs/hashing/blake2b.hpp"
 

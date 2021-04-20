@@ -15,7 +15,7 @@
 #include "libiop/algebra/field_subset/field_subset.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
 #include "libiop/algebra/field_subset/subgroup.hpp"
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 
 namespace libiop {
 

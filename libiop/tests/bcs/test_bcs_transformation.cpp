@@ -136,7 +136,7 @@ void run_test(const field_subset<FieldT> codeword_domain,
                 {
                     bool record = true;
                     FieldT eval = prover_IOP.get_oracle_evaluation_at_point(handle, query_positions[r][i], record);
-                    libiop::UNUSED(eval);
+                    UNUSED(eval);
                 }
             }
         }

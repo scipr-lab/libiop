@@ -10,7 +10,7 @@ direct_LDT_parameters<FieldT>::direct_LDT_parameters(const size_t query_soundnes
     RS_extra_dimensions_(RS_extra_dimensions),
     absolute_proximity_parameter_(absolute_proximity_parameter)
 {
-    this->codeword_domain_dim_ = libiop::log2(this->poly_degree_bound_) + RS_extra_dimensions;
+    this->codeword_domain_dim_ = log2(this->poly_degree_bound_) + RS_extra_dimensions;
     const long double codeword_domain_size = (long double)(1ull << this->codeword_domain_dim_);
     /** query_soundness_error = (1 - fractional_proximity)^{num_queries}]x
      *  Consequently the bits of security is:

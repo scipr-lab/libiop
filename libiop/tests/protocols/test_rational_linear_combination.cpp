@@ -7,7 +7,7 @@
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/polynomials/vanishing_polynomial.hpp"
 #include "libiop/algebra/field_subset/field_subset.hpp"
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 #include "libiop/protocols/encoded/common/rational_linear_combination.hpp"
 #include "libiop/tests/protocols/utilities.cpp"
 

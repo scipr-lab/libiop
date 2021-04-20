@@ -7,7 +7,7 @@
 
 #include "libiop/algebra/fft.hpp"
 #include <libff/algebra/fields/binary/gf64.hpp>
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 #include "libiop/iop/iop.hpp"
 #include "libiop/protocols/encoded/ligero/interleaved_lincheck_ot.hpp"
 #include "libiop/relations/r1cs.hpp"

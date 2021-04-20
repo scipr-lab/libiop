@@ -19,7 +19,7 @@
 #include "libiop/algebra/trace_embedding/bivariate_embedding.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
 #include "libiop/algebra/field_subset/basis_utils.hpp"
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 
 namespace libiop {
 

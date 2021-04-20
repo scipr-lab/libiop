@@ -110,7 +110,7 @@ size_t internal_hash_circuit_size(
     size_t total_two_to_one_hashes = 0;
     size_t upper_cap_total_circuit_cost = 0;
     /* TODO: Be more accurate about upper cap size */
-    const size_t upper_cap_depth = libiop::log2(num_queries) - 1;
+    const size_t upper_cap_depth = log2(num_queries) - 1;
     const size_t upper_cap_logic_cost = 0;
     const size_t logic_cost_per_two_to_one_hash = 2;
 
@@ -197,7 +197,7 @@ std::vector<size_t> compute_circuit_size_optimal_localization_parameters(
     /* Set this to improve efficiency of brute force */
     const size_t minimum_final_constant_dim = 2;
     /* TODO: Consider if the -1 is necessary, I think it is for max_tested_degree */
-    size_t num_dimensions_to_reduce = libiop::log2(max_tested_degree) - 1 - minimum_final_constant_dim;
+    size_t num_dimensions_to_reduce = log2(max_tested_degree) - 1 - minimum_final_constant_dim;
     std::vector<std::vector<size_t>> options =
         all_localization_vectors(num_dimensions_to_reduce);
 

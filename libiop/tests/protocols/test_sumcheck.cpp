@@ -5,7 +5,7 @@
 #include <gtest/gtest.h>
 
 #include "libiop/algebra/fft.hpp"
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 #include "libiop/iop/iop.hpp"
 #include "libiop/protocols/encoded/sumcheck/sumcheck.hpp"
 #include "libiop/tests/protocols/utilities.cpp"

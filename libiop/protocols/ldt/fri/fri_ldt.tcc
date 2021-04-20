@@ -1,6 +1,6 @@
 #include <libff/common/profiling.hpp>
+#include <libff/common/utils.hpp>
 #include "libiop/algebra/field_subset/subgroup.hpp"
-#include "libiop/common/common.hpp"
 
 namespace libiop {
 
@@ -249,7 +249,7 @@ void FRI_protocol_parameters<FieldT>::print() const
     print_indent(); printf("* number of interactive repetitions = %zu\n", this->num_interactive_repetitions_);
     print_indent(); printf("* number of query repetitions = %zu\n", this->num_query_repetitions_);
     print_indent(); printf("* localization parameter array = ");
-        libiop::print_vector<size_t>(this->localization_parameters_);
+        print_vector<size_t>(this->localization_parameters_);
     print_indent(); printf("* number of reductions = %zu\n", this->localization_parameters_.size());
 }
 

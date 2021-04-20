@@ -239,7 +239,7 @@ std::vector<FieldT> multiplicative_FFT_degree_aware(const std::vector<FieldT> &p
                                                     const FieldT &shift)
 {
     assert(poly_coeffs.size() <= coset.num_elements());
-    const size_t n = coset.num_elements(), logn = libiop::log2(n);
+    const size_t n = coset.num_elements(), logn = log2(n);
 
     std::vector<FieldT> a(poly_coeffs);
     /** If there is a coset shift x, the degree i term of the polynomial is multiplied by x^i */
@@ -249,7 +249,7 @@ std::vector<FieldT> multiplicative_FFT_degree_aware(const std::vector<FieldT> &p
     }
     a.resize(n, FieldT::zero());
 
-    const size_t poly_dimension = libiop::log2(poly_coeffs.size());
+    const size_t poly_dimension = log2(poly_coeffs.size());
     const size_t poly_size = poly_coeffs.size();
     /** When the polynomial is of size k*|coset|, for k < 2^i,
      *  the first i iterations of Cooley Tukey are easily predictable.

@@ -220,7 +220,7 @@ int main(int argc, const char * argv[])
         printf("There is no argument parsing in CPPDEBUG mode.");
         exit(1);
     }
-    libiop::UNUSED(argv);
+    UNUSED(argv);
 
 #else
     if (!process_prover_command_line(argc, argv, default_vals, heuristic_fri_soundness, optimize_localization))

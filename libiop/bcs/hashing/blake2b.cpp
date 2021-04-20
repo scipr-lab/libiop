@@ -1,7 +1,7 @@
 #include "sodium/crypto_generichash_blake2b.h"
 #include <stdexcept>
 
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 #include "libiop/bcs/hashing/hashing.hpp"
 
 namespace libiop {

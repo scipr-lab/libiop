@@ -71,7 +71,7 @@ FieldT holographic_multi_lincheck_virtual_oracle<FieldT>::evaluation_at_point(
     const FieldT evaluation_point,
     const std::vector<FieldT> &constituent_oracle_evaluations) const
 {
-    libiop::UNUSED(evaluation_position);
+    UNUSED(evaluation_position);
     if (constituent_oracle_evaluations.size() != this->matrices_.size() + 2)
     {
         throw std::invalid_argument("multi_lincheck uses more constituent oracles than what was provided.");
@@ -143,7 +143,7 @@ FieldT single_matrix_denominator<FieldT>::evaluation_at_point(
     const FieldT evaluation_point,
     const std::vector<FieldT> &constituent_oracle_evaluations) const
 {
-    libiop::UNUSED(evaluation_position);
+    UNUSED(evaluation_position);
     if (constituent_oracle_evaluations.size() != 3)
     {
         throw std::invalid_argument("single_matrix_denominator was expecting row, col, row*col oracles as input");

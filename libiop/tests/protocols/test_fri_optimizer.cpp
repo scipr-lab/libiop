@@ -5,12 +5,12 @@
 #include <libff/algebra/fields/binary/gf64.hpp>
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include "libiop/algebra/utils.hpp"
 #include "libiop/protocols/ldt/fri/fri_aux.hpp"
 #include "libiop/protocols/ldt/fri/argument_size_optimizer.hpp"
 #include "libiop/snark/fri_snark.hpp"
 #include "libiop/algebra/field_subset/field_subset.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"
-#include "libiop/algebra/utils.hpp"
 
 
 namespace libiop {

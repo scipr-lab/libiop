@@ -12,7 +12,7 @@
 #include "libiop/algebra/field_subset/basis_utils.hpp"
 #include "libiop/algebra/field_subset/field_subset.hpp"
 #include "libiop/algebra/polynomials/vanishing_polynomial.hpp"
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 
 namespace libiop {
 

@@ -126,7 +126,7 @@ public:
         const FieldT evaluation_point,
         const std::vector<FieldT> &constituent_oracle_evaluations) const
     {
-        libiop::UNUSED(evaluation_position);
+        UNUSED(evaluation_position);
         /* oracle evaluations should be f(x) and h(x) */
         if (constituent_oracle_evaluations.size() != 2)
         {

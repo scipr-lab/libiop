@@ -9,7 +9,7 @@
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/polynomials/vanishing_polynomial.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 #include "libiop/iop/iop.hpp"
 
 namespace libiop {
@@ -27,7 +27,7 @@ TEST(IOPTest, OracleRegistration) {
         const domain_handle L_handle = IOP.register_subspace(L);
 
         const oracle_handle R_handle = IOP.register_oracle("", L_handle, 20, make_zk); /* R \in RS[L,21] */
-        libiop::UNUSED(R_handle);
+        UNUSED(R_handle);
 
         /* registering an overflowing oracle (deg >= elements in subspace)
         should raise an error */
@@ -92,7 +92,7 @@ TEST(IOPTest, SumcheckTest) {
     EXPECT_EQ(g.num_terms(), H_size);
 
     const FieldT beta = g[H_size-1];
-    libiop::UNUSED(beta);
+    UNUSED(beta);
 
     g.set_degree(H_size-2, true); /* g is now a degree H_size-2 polynomial */
 
@@ -212,7 +212,7 @@ TEST(IOPTest, ZeroKnowledgeSumcheckTest) {
     EXPECT_EQ(g.num_terms(), H_size);
 
     const FieldT beta = g[H_size-1];
-    libiop::UNUSED(beta);
+    UNUSED(beta);
 
     g.set_degree(H_size-2, true); /* g is now a degree H_size-2 polynomial */
 

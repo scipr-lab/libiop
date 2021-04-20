@@ -9,7 +9,7 @@
 #ifndef LIBIOP_ALGEBRA_FIELDS_UTILS_HPP_
 #define LIBIOP_ALGEBRA_FIELDS_UTILS_HPP_
 
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 
 #include <libff/algebra/fields/binary/gf64.hpp>
 #include <libff/algebra/fields/binary/gf128.hpp>
@@ -62,36 +62,36 @@ enum field_type {
 };
 
 template<typename FieldT>
-field_type get_field_type(const typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type elem)
+field_type get_field_type(const typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type elem)
 {
-    libiop::UNUSED(elem); // only to identify field type
+    UNUSED(elem); // only to identify field type
     return multiplicative_field_type;
 }
 
 template<typename FieldT>
-field_type get_field_type(const typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type elem)
+field_type get_field_type(const typename enable_if<is_additive<FieldT>::value, FieldT>::type elem)
 {
-    libiop::UNUSED(elem); // only to identify field type
+    UNUSED(elem); // only to identify field type
     return additive_field_type;
 }
 
 template<typename FieldT>
 std::size_t log_of_field_size_helper(
-    typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type field_elem)
+    typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type field_elem)
 {
     return FieldT::ceil_size_in_bits();
 }
 
 template<typename FieldT>
 std::size_t log_of_field_size_helper(
-    typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type field_elem)
+    typename enable_if<is_additive<FieldT>::value, FieldT>::type field_elem)
 {
     return FieldT::extension_degree();
 }
 
 template<typename FieldT>
 std::size_t soundness_log_of_field_size_helper(
-    typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type field_elem)
+    typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type field_elem)
 {
     /** size in bits is the number of bits needed to represent a field element.
      *  However there isn't perfect alignment between the number of bits and the number of field elements,
@@ -104,21 +104,21 @@ std::size_t soundness_log_of_field_size_helper(
 
 template<typename FieldT>
 std::size_t soundness_log_of_field_size_helper(
-    typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type field_elem)
+    typename enable_if<is_additive<FieldT>::value, FieldT>::type field_elem)
 {
     return FieldT::extension_degree();
 }
 
 template<typename FieldT>
 std::size_t get_word_of_field_elem(
-    typename libiop::enable_if<is_additive<FieldT>::value, FieldT>::type field_elem, size_t word)
+    typename enable_if<is_additive<FieldT>::value, FieldT>::type field_elem, size_t word)
 {
     return field_elem.to_words()[word];
 }
 
 template<typename FieldT>
 std::size_t get_word_of_field_elem(
-    typename libiop::enable_if<is_multiplicative<FieldT>::value, FieldT>::type field_elem, size_t word)
+    typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type field_elem, size_t word)
 {
     return field_elem.as_bigint().data[word];
 }

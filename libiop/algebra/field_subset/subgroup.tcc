@@ -6,7 +6,7 @@
 #include <gmp.h>
 #endif // NDEBUG
 
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 
 namespace libiop {
 

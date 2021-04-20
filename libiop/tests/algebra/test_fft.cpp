@@ -4,10 +4,10 @@
 
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
 
-#include "libiop/algebra/fft.hpp"
 #include <libff/algebra/fields/binary/gf64.hpp>
-#include "libiop/algebra/field_subset/subspace.hpp"
 #include "libiop/algebra/utils.hpp"
+#include "libiop/algebra/fft.hpp"
+#include "libiop/algebra/field_subset/subspace.hpp"
 
 namespace libiop {
 

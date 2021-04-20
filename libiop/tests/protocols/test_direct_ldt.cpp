@@ -9,7 +9,7 @@
 #include <libff/algebra/fields/binary/gf64.hpp>
 #include "libiop/algebra/fft.hpp"
 #include "libiop/algebra/field_subset/subgroup.hpp"
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 #include "libiop/iop/iop.hpp"
 #include "libiop/iop/utilities/batching.hpp"
 #include "libiop/protocols/ldt/direct_ldt/direct_ldt.hpp"

@@ -8,7 +8,7 @@
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/polynomials/vanishing_polynomial.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 #include "libiop/protocols/encoded/lincheck/holographic_lincheck.hpp"
 #include "libiop/relations/examples/r1cs_examples.hpp"
 #include "libiop/relations/r1cs.hpp"
@@ -36,7 +36,7 @@ void run_black_box_multi_lincheck_test(
     size_t index_domain_size = 0;
     for (size_t i = 0; i < matrices.size(); i++)
     {
-        const size_t cur_size = libiop::round_to_next_power_of_2(
+        const size_t cur_size = round_to_next_power_of_2(
             matrices[i].num_nonzero_entries());
         if (cur_size > index_domain_size)
         {

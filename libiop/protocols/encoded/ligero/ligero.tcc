@@ -4,7 +4,7 @@
 #include <libff/common/profiling.hpp>
 #include "libiop/algebra/lagrange.hpp"
 #include "libiop/algebra/fft.hpp"
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 
 namespace libiop {
 

@@ -124,7 +124,7 @@ public:
         const FieldT evaluation_point,
         const std::vector<FieldT> &constituent_oracle_evaluations) const
     {
-        libiop::UNUSED(evaluation_position);
+        UNUSED(evaluation_position);
         /** The input is expected to be of the form: (p, N, D)
          *  where p is the codeword outputted by rational sumcheck,
          *  N is the numerator of the rational function, and D its denominator.

@@ -1,5 +1,5 @@
-#include "libiop/algebra/lagrange.hpp"
 #include "libiop/algebra/utils.hpp"
+#include "libiop/algebra/lagrange.hpp"
 
 namespace libiop {
 
@@ -92,7 +92,7 @@ FieldT rowcheck_ABC_virtual_oracle<FieldT>::evaluation_at_point(
     const FieldT evaluation_point,
     const std::vector<FieldT> &constituent_oracle_evaluations) const
 {
-    libiop::UNUSED(evaluation_position);
+    UNUSED(evaluation_position);
 
     if (constituent_oracle_evaluations.size() != 3)
     {

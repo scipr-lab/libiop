@@ -42,8 +42,8 @@ FieldT combined_denominator<FieldT>::evaluation_at_point(
     const FieldT evaluation_point,
     const std::vector<FieldT> &constituent_oracle_evaluations) const
 {
-    libiop::UNUSED(evaluation_position);
-    libiop::UNUSED(evaluation_point);
+    UNUSED(evaluation_position);
+    UNUSED(evaluation_point);
 
     if (constituent_oracle_evaluations.size() != this->num_rationals_)
     {
@@ -117,8 +117,8 @@ FieldT combined_numerator<FieldT>::evaluation_at_point(
     const FieldT evaluation_point,
     const std::vector<FieldT> &constituent_oracle_evaluations) const
 {
-    libiop::UNUSED(evaluation_position);
-    libiop::UNUSED(evaluation_point);
+    UNUSED(evaluation_position);
+    UNUSED(evaluation_point);
 
     if (constituent_oracle_evaluations.size() != 2*this->num_rationals_)
     {

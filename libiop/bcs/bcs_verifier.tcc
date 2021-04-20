@@ -179,7 +179,7 @@ FieldT bcs_verifier<FieldT, MT_hash_type>::get_oracle_evaluation_at_point(
     const std::size_t evaluation_position,
     const bool record)
 {
-    libiop::UNUSED(record);
+    UNUSED(record);
 
     if (std::dynamic_pointer_cast<virtual_oracle_handle>(handle))
     {
