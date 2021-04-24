@@ -9,19 +9,6 @@
 namespace libiop {
 
 template<typename FieldT>
-FieldT power_naive(const FieldT &base, const std::size_t exponent)
-{
-    FieldT result = FieldT::one();
-
-    for (std::size_t i = 1; i <= exponent; ++i)
-    {
-        result *= base;
-    }
-
-    return result;
-}
-
-template<typename FieldT>
 std::vector<FieldT> domain_element_powers_naive(const field_subset<FieldT> &S,
                                                 const std::size_t exponent)
 {
@@ -35,25 +22,6 @@ std::vector<FieldT> domain_element_powers_naive(const field_subset<FieldT> &S,
     return result;
 }
 
-
-TEST(ExponentiationTest, SimpleTest) {
-    typedef libff::gf64 FieldT;
-
-    const std::size_t max_power = 1000;
-    FieldT X = FieldT::random_element();
-
-    FieldT X_i = FieldT::one();
-    for (std::size_t i = 0 ; i < max_power; ++i)
-    {
-        const FieldT X_i_naive = power_naive<FieldT>(X, i);
-        const FieldT X_i_square_and_multiply = libiop::power<FieldT>(X, i);
-
-        EXPECT_EQ(X_i, X_i_naive);
-        EXPECT_EQ(X_i, X_i_square_and_multiply);
-
-        X_i *= X;
-    }
-}
 
 TEST(ExponentiationTest, SubspaceElementPowersTest) {
     typedef libff::gf64 FieldT;

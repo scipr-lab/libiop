@@ -3,7 +3,6 @@
 
 #include <gtest/gtest.h>
 
-#include "libiop/algebra/exponentiation.hpp"
 #include <libff/algebra/fields/binary/gf64.hpp>
 #include "libiop/algebra/fft.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"
@@ -121,7 +120,7 @@ TEST(IOPTest, SumcheckTest) {
 
     const FieldT f_at_r = f.evaluation_at_point(r);
     const FieldT Z_H_at_r = Z_H.evaluation_at_point(r);
-    const FieldT r_to_H_minus = libiop::power<FieldT>(r, H_size-1);
+    const FieldT r_to_H_minus = libff::power<FieldT>(r, H_size-1);
 
     const FieldT lhs = c * f_at_r;
     const FieldT rhs = c * g_at_r + mu * r_to_H_minus + c * Z_H_at_r * h_at_r;
@@ -249,7 +248,7 @@ TEST(IOPTest, ZeroKnowledgeSumcheckTest) {
     const linearized_polynomial<FieldT> Z_H = vanishing_polynomial_from_subspace(H);
     const FieldT c = (Z_H.num_terms() < 2 ? FieldT(0) : Z_H[1]);
     const FieldT Z_H_at_r = Z_H.evaluation_at_point(r);
-    const FieldT r_to_H_minus = libiop::power<FieldT>(r, H_size-1);
+    const FieldT r_to_H_minus = libff::power<FieldT>(r, H_size-1);
 
     const FieldT lhs = c * virtual_oracle_at_r;
     const FieldT rhs = (c * g_at_r + (pad_sum + challenge_verifier_view[0] * mu) * r_to_H_minus +

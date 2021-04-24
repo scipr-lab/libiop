@@ -12,7 +12,6 @@ random combination of oracles.
 
 #include <algorithm>
 
-#include "libiop/algebra/exponentiation.hpp"
 #include "libiop/iop/iop.hpp"
 #include "libiop/iop/utilities/batching.hpp"
 #include "libiop/protocols/ldt/ldt_reducer_aux.hpp"

@@ -1,6 +1,5 @@
 #include <algorithm>
 
-#include "libiop/algebra/exponentiation.hpp"
 #include "libiop/algebra/field_subset/field_subset.hpp"
 #include "libiop/algebra/field_subset/basis_utils.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"

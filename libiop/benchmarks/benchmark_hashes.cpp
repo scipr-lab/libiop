@@ -3,6 +3,7 @@
 
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
+#include "libiop/algebra/utils.hpp"
 #include "libiop/bcs/hashing/blake2b.hpp"
 #include "libiop/bcs/hashing/algebraic_sponge.hpp"
 #include "libiop/bcs/hashing/poseidon.hpp"

@@ -8,7 +8,6 @@
 #ifndef LIBIOP_ALGEBRA_TRACE_EMBEDDING_BIVARIATE_EMBEDDING_HPP_
 #define LIBIOP_ALGEBRA_TRACE_EMBEDDING_BIVARIATE_EMBEDDING_HPP_
 
-#include "libiop/algebra/exponentiation.hpp"
 #include "libiop/algebra/field_subset/basis_utils.hpp"
 #include "libiop/algebra/field_subset/field_subset.hpp"
 #include "libiop/algebra/polynomials/vanishing_polynomial.hpp"

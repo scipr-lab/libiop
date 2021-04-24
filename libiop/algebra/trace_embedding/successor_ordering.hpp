@@ -8,7 +8,6 @@
 #ifndef LIBIOP_ALGEBRA_TRACE_EMBEDDING_SUCCESSOR_ORDERING_HPP_
 #define LIBIOP_ALGEBRA_TRACE_EMBEDDING_SUCCESSOR_ORDERING_HPP_
 
-#include "libiop/algebra/exponentiation.hpp"
 #include "libiop/algebra/field_subset/field_subset.hpp"
 #include "libiop/algebra/polynomials/lagrange_polynomial.hpp"
 #include "libiop/algebra/polynomials/piecewise_polynomial.hpp"

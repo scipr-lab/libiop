@@ -1,5 +1,4 @@
 #include <libff/algebra/field_utils/field_utils.hpp>
-#include "libiop/algebra/exponentiation.hpp"
 #include "libiop/bcs/hashing/algebraic_sponge.hpp"
 #include <libff/common/profiling.hpp>
 #include <cstring>

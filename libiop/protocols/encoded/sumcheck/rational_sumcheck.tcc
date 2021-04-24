@@ -2,7 +2,6 @@
 #include <stdexcept>
 
 #include <libff/common/profiling.hpp>
-#include "libiop/algebra/exponentiation.hpp"
 #include "libiop/algebra/fft.hpp"
 #include "libiop/algebra/utils.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"

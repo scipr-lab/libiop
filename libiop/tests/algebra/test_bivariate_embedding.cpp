@@ -13,7 +13,6 @@
 #include <libff/algebra/fields/binary/gf192.hpp>
 #include <libff/algebra/fields/binary/gf256.hpp>
 #include "libiop/algebra/fft.hpp"
-#include "libiop/algebra/exponentiation.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/polynomials/vanishing_polynomial.hpp"
 #include "libiop/algebra/trace_embedding/bivariate_embedding.hpp"

@@ -15,12 +15,6 @@
 namespace libiop {
 
 template<typename FieldT>
-FieldT power(const FieldT &base, const std::size_t exponent);
-
-template<typename FieldT>
-FieldT power(const FieldT &base, const std::vector<std::size_t> exponent);
-
-template<typename FieldT>
 std::vector<FieldT> subset_element_powers(const field_subset<FieldT> &S,
                                           const std::size_t exponent);
 
