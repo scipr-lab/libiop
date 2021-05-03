@@ -95,6 +95,7 @@ hash_digest_type pow<FieldT, hash_digest_type>::solve_pow_internal(
     size_t pow_int = 0;
     while (this->verify_pow(node_hasher, challenge, pow) == false)
     {
+        printf("Trying %zx\n", pow[(num_words - 1)*sizeof(size_t)]);
         std::memcpy(&pow[(num_words - 1)*sizeof(size_t)], &pow_int, sizeof(size_t));
         pow_int += 1;
     }
