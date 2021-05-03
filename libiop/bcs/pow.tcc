@@ -76,7 +76,7 @@ hash_digest_type pow<FieldT, hash_digest_type>::solve_pow_internal(
     const typename libff::enable_if<std::is_same<hash_digest_type, FieldT>::value, hash_digest_type>::type challenge) const
 {
     FieldT pow = FieldT::zero();
-    while (this->verify_pow(node_hasher, challenge, pow) == false)
+    while (!this->verify_pow(node_hasher, challenge, pow))
     {
         pow += FieldT::one();
     }
@@ -93,8 +93,9 @@ hash_digest_type pow<FieldT, hash_digest_type>::solve_pow_internal(
 
     size_t num_words = pow.length() / sizeof(size_t);
     size_t pow_int = 0;
-    while (this->verify_pow(node_hasher, challenge, pow) == false)
+    while (!this->verify_pow(node_hasher, challenge, pow))
     {
+        // printf("Trying %zx\n", pow[(num_words - 1)*sizeof(size_t)]);
         std::memcpy(&pow[(num_words - 1)*sizeof(size_t)], &pow_int, sizeof(size_t));
         pow_int += 1;
     }
@@ -147,15 +148,11 @@ bool pow<FieldT, hash_digest_type>::verify_pow_internal(
     size_t least_significant_word;
     std::memcpy(&least_significant_word, &hash[(num_words - 1)*sizeof(size_t)], sizeof(size_t));
     size_t relevant_bits = least_significant_word & ((1 << this->parameters_.pow_bitlen()) - 1);
-    if (relevant_bits <= this->parameters_.pow_upperbound())
-    {    
-        // printf("%d\n", (1 << this->parameters_.pow_bitlen()));
-        // printf("%zu\n", least_significant_word);
-        // printf("%\n", relevant_bits);
-        // print_string_in_hex(hash);
-        return true;
-    }
-    return false;
+    // printf("upper bound: %zx\n", this->parameters_.pow_upperbound());
+    // printf("bit mask: %zx\n", (1 << this->parameters_.pow_bitlen()) - 1);
+    // printf("least significant word: %zx\n", least_significant_word);
+    // printf("relevant bits: %zx\n", relevant_bits);
+    return relevant_bits <= this->parameters_.pow_upperbound();
 }
 
 } // libiop

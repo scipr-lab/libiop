@@ -54,6 +54,8 @@ protected:
     std::size_t digest_len_bytes_;
     bool make_zk_;
     std::size_t num_zk_bytes_;
+    cap_hash_function<hash_digest_type> cap_hasher_;
+    std::size_t cap_size_;
 
     /* Each element will be hashed (individually) to produce a random hash digest. */
     std::vector<zk_salt_type> zk_leaf_randomness_elements_;
@@ -62,14 +64,16 @@ protected:
 public:
     /* Create a merkle tree with the given configuration.
     If make_zk is true, 2 * security parameter random bytes will be appended to each leaf
-    before hashing, to prevent a low entropy leaf value from being inferred
-    from its hash. */
+    before hashing, to prevent a low entropy leaf value from being inferred from its hash.
+    cap_size is the number of children of the root and must be a power of 2. */
     merkle_tree(const std::size_t num_leaves,
                 const std::shared_ptr<leafhash<FieldT, hash_digest_type>> &leaf_hasher,
                 const two_to_one_hash_function<hash_digest_type> &node_hasher,
+                const cap_hash_function<hash_digest_type> &cap_hasher,
                 const std::size_t digest_len_bytes,
                 const bool make_zk,
-                const std::size_t security_parameter);
+                const std::size_t security_parameter,
+                const std::size_t cap_size=2);
 
     /** This treats each leaf as a column.
      * e.g. The ith leaf is the vector formed by leaf_contents[j][i] for all j */

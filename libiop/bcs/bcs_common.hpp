@@ -31,6 +31,7 @@ struct bcs_transformation_parameters {
     std::shared_ptr<hashchain<FieldT, MT_hash_type>> hashchain_;
     std::shared_ptr<leafhash<FieldT, MT_hash_type>> leafhasher_;
     two_to_one_hash_function<MT_hash_type> compression_hasher;
+    cap_hash_function<MT_hash_type> cap_hasher;
 };
 
 template<typename FieldT, typename MT_hash_type>

@@ -471,6 +471,7 @@ void bcs_protocol<FieldT, MT_root_hash>::seal_interaction_registrations()
                 size,
                 this->parameters_.leafhasher_,
                 this->parameters_.compression_hasher,
+                this->parameters_.cap_hasher,
                 this->digest_len_bytes_,
                 make_zk,
                 this->parameters_.security_parameter);
@@ -724,6 +725,7 @@ void print_detailed_transcript_data(
             MT_size,
             params.leafhasher_,
             params.compression_hasher,
+            params.cap_hasher,
             digest_len_bytes,
             false,
             params.security_parameter);

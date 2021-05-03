@@ -147,4 +147,15 @@ FieldT dummy_algebraic_two_to_one_hash(
     return FieldT(2) * first + second;
 }
 
+template<typename FieldT>
+FieldT dummy_algebraic_cap_hash(const std::vector<FieldT> &data, const std::size_t digest_len_bytes)
+{
+    FieldT sum = FieldT::zero();
+    for (size_t i = 0; i < data.size(); i++)
+    {
+        sum += FieldT(i) * data[i];
+    }
+    return sum;
+}
+
 }

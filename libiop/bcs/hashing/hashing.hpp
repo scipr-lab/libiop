@@ -52,6 +52,10 @@ class leafhash
 template<typename hash_type>
 using two_to_one_hash_function = std::function<hash_type(const hash_type&, const hash_type&, const std::size_t)>;
 
+/* Function used for cap hash of merkle tree which takes in a vector of size 2^n. */
+template<typename hash_type>
+using cap_hash_function = std::function<hash_type(const std::vector<hash_type>&, const std::size_t)>;
+
 /* Sizeof algebraic hash */
 template<typename hash_type>
 size_t get_hash_size(const typename libff::enable_if<!std::is_same<hash_type, binary_hash_digest>::value, hash_type>::type h)

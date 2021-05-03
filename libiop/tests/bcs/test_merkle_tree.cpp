@@ -25,6 +25,7 @@ merkle_tree<FieldT, hash_type> new_MT(
         size,
         std::make_shared<blake2b_leafhash<FieldT>>(security_parameter),
         blake2b_two_to_one_hash,
+        blake2b_vector_hash<binary_hash_digest>,
         digest_len_bytes,
         make_zk,
         security_parameter);
@@ -39,6 +40,7 @@ merkle_tree<FieldT, hash_type> new_MT(
         size,
         std::make_shared<dummy_algebraic_leafhash<FieldT>>(),
         dummy_algebraic_two_to_one_hash<FieldT>,
+        dummy_algebraic_cap_hash<FieldT>,
         digest_len_bytes,
         make_zk,
         security_parameter);

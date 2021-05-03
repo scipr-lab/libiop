@@ -73,4 +73,4 @@ std::size_t blake2b_integer_randomness_extractor(const binary_hash_digest &root,
     return result % upper_bound;
 }
 
-}
+} // namespace libiop

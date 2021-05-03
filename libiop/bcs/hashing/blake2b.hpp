@@ -58,6 +58,13 @@ class blake2b_leafhash : public leafhash<FieldT, binary_hash_digest>
         const zk_salt_type &zk_salt);
 };
 
+/* Many-to-one hash which takes in a vector. */
+template<typename hash_type>
+binary_hash_digest blake2b_vector_hash(const std::vector<hash_type> &data,
+                                       const std::size_t digest_len_bytes);
+
+/* This is a separate function from blake2b_vector_hash because we might want
+   to do some special handling on fields. */
 template<typename FieldT>
 binary_hash_digest blake2b_field_element_hash(const std::vector<FieldT> &data,
                                        const std::size_t digest_len_bytes);

@@ -14,20 +14,29 @@ merkle_tree<FieldT, hash_digest_type>::merkle_tree(
     const std::size_t num_leaves,
     const std::shared_ptr<leafhash<FieldT, hash_digest_type>> &leaf_hasher,
     const two_to_one_hash_function<hash_digest_type> &node_hasher,
+    const cap_hash_function<hash_digest_type> &cap_hasher,
     const std::size_t digest_len_bytes,
     const bool make_zk,
-    const std::size_t security_parameter) :
+    const std::size_t security_parameter,
+    const std::size_t cap_size) :
     num_leaves_(num_leaves),
     leaf_hasher_(leaf_hasher),
     node_hasher_(node_hasher),
+    cap_hasher_(cap_hasher),
     digest_len_bytes_(digest_len_bytes),
     make_zk_(make_zk),
-    num_zk_bytes_((security_parameter * 2 + 7) / 8) /* = ceil((2 * security_parameter_bits) / 8) */
+    num_zk_bytes_((security_parameter * 2 + 7) / 8), /* = ceil((2 * security_parameter_bits) / 8) */
+    cap_size_(cap_size)
 {
     if (num_leaves < 2 || !libff::is_power_of_2(num_leaves))
     {
         /* Handling num_leaves-1 Merkle trees adds little complexity but is not really worth it */
         throw std::invalid_argument("Merkle tree size must be a power of two, and at least 2.");
+    }
+
+    if (cap_size < 2 || !libff::is_power_of_2(cap_size))
+    {
+        throw std::invalid_argument("Merkle tree cap size must be a power of two, and at least 2.");
     }
 
     this->constructed_ = false;

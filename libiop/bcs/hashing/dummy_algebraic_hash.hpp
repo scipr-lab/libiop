@@ -63,6 +63,9 @@ FieldT dummy_algebraic_two_to_one_hash(
     const FieldT &second,
     const std::size_t digest_len_bytes);
 
+template<typename FieldT>
+FieldT dummy_algebraic_cap_hash(const std::vector<FieldT> &data, const std::size_t digest_len_bytes);
+
 } // namespace libiop
 
 #include "libiop/bcs/hashing/dummy_algebraic_hash.tcc"

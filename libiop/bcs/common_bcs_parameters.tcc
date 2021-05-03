@@ -15,10 +15,10 @@ bcs_transformation_parameters<FieldT, MT_root_hash> default_bcs_params(
     params.hash_enum = hash_type;
     /* TODO: Push setting leaf hash into internal BCS code. Currently 2 is fine, as leaf size is internally unused. */
     const size_t leaf_size = 2;
-    params.leafhasher_ = get_leafhash<FieldT, MT_root_hash>(hash_type, security_parameter, leaf_size);
+    params.leafhasher_ = get_leafhash<MT_root_hash, FieldT>(hash_type, security_parameter, leaf_size);
     params.compression_hasher = get_two_to_one_hash<MT_root_hash, FieldT>(hash_type, security_parameter);
-    params.hashchain_ =
-        get_hashchain<FieldT, MT_root_hash>(hash_type, security_parameter);
+    params.cap_hasher = get_cap_hash<MT_root_hash, FieldT>(hash_type, security_parameter);
+    params.hashchain_ = get_hashchain<FieldT, MT_root_hash>(hash_type, security_parameter);
 
     // Work per hash. Todo generalize this w/ proper explanations of work amounts
     const size_t work_per_hash = (hash_type == 1) ? 1 : 128;
