@@ -63,9 +63,11 @@ bcs_transformation_parameters<FieldT, MT_root_hash> get_bcs_parameters(bool alge
     if (algebraic_hashchain) {
         bcs_parameters.hashchain_ =
             std::make_shared<dummy_algebraic_hashchain<FieldT, MT_root_hash>>();
+        bcs_parameters.hash_enum = bcs_hash_type::high_alpha_poseidon_type;
     } else {
         bcs_parameters.hashchain_ =
             std::make_shared<blake2b_hashchain<FieldT, MT_root_hash>>(security_parameter);
+        bcs_parameters.hash_enum = bcs_hash_type::blake2b_type;
     }
     set_bcs_parameters_leafhash<FieldT, MT_root_hash>(bcs_parameters);
 
