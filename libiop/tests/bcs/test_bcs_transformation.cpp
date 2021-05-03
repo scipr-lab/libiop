@@ -69,9 +69,9 @@ bcs_transformation_parameters<FieldT, MT_root_hash> get_bcs_parameters(bool alge
             std::make_shared<blake2b_hashchain<FieldT, MT_root_hash>>(security_parameter);
         bcs_parameters.hash_enum = bcs_hash_type::blake2b_type;
     }
-    set_bcs_parameters_leafhash<FieldT, MT_root_hash>(bcs_parameters);
-    bcs_parameters.pow_params_.cost_per_hash_ = 1;
-    bcs_parameters.pow_params_.work_parameter_ = 2;
+    set_bcs_parameters_leafhash<FieldT, MT_root_hash>(bcs_parameters);    // Work per hash. Todo generalize this w/ proper explanations of work amounts
+    const size_t work_per_hash = (bcs_parameters.hash_enum == 1) ? 1 : 128;
+    params.pow_params_ = pow_parameters(4, work_per_hash);
 
     return bcs_parameters;
 }
