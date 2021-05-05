@@ -173,7 +173,7 @@ cap_hash_function<hash_type> get_cap_hash_internal(
 {
     if (hash_enum == blake2b_type)
     {
-        return blake2b_vector_hash<hash_type>;
+        return blake2b_many_to_one_hash;
     }
     throw std::invalid_argument("bcs_hash_type unknown");
 }

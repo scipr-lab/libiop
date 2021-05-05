@@ -12,29 +12,34 @@
 
 namespace libiop {
 
+using std::size_t;
+
 template< bool B, class T = void >
 using enable_if_t = typename libff::enable_if<B,T>::type;
+
 // Binary hash type
 template<typename FieldT, typename hash_type,
     enable_if_t<!std::is_same<FieldT, hash_type>::value, int> = 42>
 merkle_tree<FieldT, hash_type> new_MT(
-    const std::size_t size, const std::size_t digest_len_bytes, const bool make_zk,
-    const std::size_t security_parameter)
+    const size_t size, const size_t digest_len_bytes, const bool make_zk,
+    const size_t security_parameter, const size_t cap_size=2)
 {
     return merkle_tree<FieldT, binary_hash_digest>(
         size,
         std::make_shared<blake2b_leafhash<FieldT>>(security_parameter),
         blake2b_two_to_one_hash,
-        blake2b_vector_hash<binary_hash_digest>,
+        blake2b_many_to_one_hash,
         digest_len_bytes,
         make_zk,
-        security_parameter);
+        security_parameter,
+        cap_size);
 }
+
 template<typename FieldT, typename hash_type,
     enable_if_t<std::is_same<FieldT, hash_type>::value, int> = 42>
 merkle_tree<FieldT, hash_type> new_MT(
-    const std::size_t size, const std::size_t digest_len_bytes, const bool make_zk,
-    const std::size_t security_parameter)
+    const size_t size, const size_t digest_len_bytes, const bool make_zk,
+    const size_t security_parameter, const size_t cap_size=2)
 {
     return merkle_tree<FieldT, FieldT>(
         size,
@@ -43,14 +48,18 @@ merkle_tree<FieldT, hash_type> new_MT(
         dummy_algebraic_cap_hash<FieldT>,
         digest_len_bytes,
         make_zk,
-        security_parameter);
+        security_parameter,
+        cap_size);
 }
 
+/** Constructs a merkle tree with leaf size 2. Generates and verifies membership proofs for
+ *  each leaf individually, and makes sure reversing the contents of each leaf causes the
+ *  verification to fail (unless the leaf contents are symmetric). */
 template<typename FieldT, typename hash_type>
-void run_simple_MT_test(const std::size_t size, const std::size_t digest_len_bytes, const bool make_zk,
-                        const std::size_t security_parameter) {
+void run_simple_MT_test(const size_t size, const size_t digest_len_bytes, const bool make_zk,
+                        const size_t security_parameter, const size_t cap_size) {
     merkle_tree<FieldT, hash_type> tree =
-        new_MT<FieldT, hash_type>(size, digest_len_bytes, make_zk, security_parameter);
+        new_MT<FieldT, hash_type>(size, digest_len_bytes, make_zk, security_parameter, cap_size);
     const std::vector<FieldT> vec1 = random_vector<FieldT>(size);
     const std::vector<FieldT> vec2 = random_vector<FieldT>(size);
 
@@ -58,7 +67,7 @@ void run_simple_MT_test(const std::size_t size, const std::size_t digest_len_byt
 
     const hash_type root = tree.get_root();
 
-    for (std::size_t i = 0; i < size; ++i)
+    for (size_t i = 0; i < size; ++i)
     {
         /* membership proof for the set {i} */
         const std::vector<size_t> set = {i};
@@ -98,30 +107,37 @@ void run_simple_MT_test(const std::size_t size, const std::size_t digest_len_byt
 TEST(MerkleTreeTest, SimpleTest) {
     typedef libff::gf64 FieldT;
 
-    const std::size_t size = 16;
-    const std::size_t digest_len_bytes = 256/8;
-    const std::size_t security_parameter = 128;
-    run_simple_MT_test<FieldT, binary_hash_digest>(size, digest_len_bytes, false, security_parameter);
-    run_simple_MT_test<FieldT, FieldT>(size, digest_len_bytes, false, security_parameter);
+    const size_t size = 16;
+    const size_t cap_size = 2;
+    const size_t digest_len_bytes = 256/8;
+    const size_t security_parameter = 128;
+
+    run_simple_MT_test<FieldT, binary_hash_digest>(size, digest_len_bytes, false,
+                                                   security_parameter, cap_size);
+    run_simple_MT_test<FieldT, FieldT>(size, digest_len_bytes, false,
+                                       security_parameter, cap_size);
 }
 
 TEST(MerkleTreeZKTest, SimpleTest) {
     typedef libff::gf64 FieldT;
 
-    const std::size_t size_small = 16;
-    const std::size_t size_large = 1ull << 18; /* The goal is to test batch randomness logic */
-    const std::size_t digest_len_bytes = 256/8;
-    const std::size_t security_parameter = 128;
-    run_simple_MT_test<FieldT, binary_hash_digest>(size_small, digest_len_bytes, true, security_parameter);
-    run_simple_MT_test<FieldT, FieldT>(size_large, digest_len_bytes, true, security_parameter);
+    const size_t size_small = 16;
+    const size_t size_large = 1ull << 18; /* The goal is to test batch randomness logic */
+    const size_t cap_size = 4;
+    const size_t digest_len_bytes = 256/8;
+    const size_t security_parameter = 128;
+    run_simple_MT_test<FieldT, binary_hash_digest>(size_small, digest_len_bytes, true,
+                                                   security_parameter, cap_size);
+    run_simple_MT_test<FieldT, FieldT>(size_large, digest_len_bytes, true,
+                                       security_parameter, cap_size);
 }
 
 void run_multi_test(const bool make_zk) {
     typedef libff::gf64 FieldT;
 
-    const std::size_t size = 8;
-    const std::size_t security_parameter = 128;
-    const std::size_t digest_len_bytes = 256/8;
+    const size_t size = 8;
+    const size_t security_parameter = 128;
+    const size_t digest_len_bytes = 256/8;
     const bool algebraic_hash = false;
 
     merkle_tree<FieldT, binary_hash_digest> tree = new_MT<FieldT, binary_hash_digest>(
@@ -138,17 +154,17 @@ void run_multi_test(const bool make_zk) {
     const binary_hash_digest root = tree.get_root();
 
     std::vector<std::vector<FieldT>> leafs;
-    for (std::size_t i = 0; i < size; ++i)
+    for (size_t i = 0; i < size; ++i)
     {
         std::vector<FieldT> leaf({ vec1[i], vec2[i] });
         leafs.emplace_back(leaf);
     }
 
-    for (std::size_t subset = 0; subset < (1ull<<size); ++subset)
+    for (size_t subset = 0; subset < (1ull<<size); ++subset)
     {
-        std::vector<std::size_t> subset_elements;
+        std::vector<size_t> subset_elements;
         std::vector<std::vector<FieldT>> subset_leafs;
-        for (std::size_t k = 0; k < size; ++k)
+        for (size_t k = 0; k < size; ++k)
         {
             if (subset & (1ull<<k))
             {
@@ -157,7 +173,8 @@ void run_multi_test(const bool make_zk) {
             }
         }
 
-        const merkle_tree_set_membership_proof<binary_hash_digest> mp = tree.get_set_membership_proof(subset_elements);
+        const merkle_tree_set_membership_proof<binary_hash_digest> mp =
+                tree.get_set_membership_proof(subset_elements);
 
         const bool is_valid = tree.validate_set_membership_proof(root,
                                                                  subset_elements,
@@ -177,7 +194,7 @@ TEST(MerkleTreeZKTest, MultiTest) {
     run_multi_test(make_zk);
 }
 
-TEST(MerkleTreeTwoToOneHashTest, SimpleTest)
+TEST(MerkleTreeHashCountTest, SimpleTest)
 {
     typedef libff::gf64 FieldT;
     bool make_zk = false;

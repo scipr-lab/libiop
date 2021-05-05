@@ -135,33 +135,26 @@ binary_hash_digest blake2b_leafhash<FieldT>::zk_hash(
     return blake2b_two_to_one_hash(leaf_hash, zk_salt, this->digest_len_bytes_);
 }
 
-template<typename hash_type>
-binary_hash_digest blake2b_vector_hash(const std::vector<hash_type> &data,
-                                       const std::size_t digest_len_bytes)
-{
-
-    binary_hash_digest result(digest_len_bytes, 'X');
-
-    /* see https://download.libsodium.org/doc/hashing/generic_hashing.html */
-    const int status = crypto_generichash_blake2b((unsigned char*)&result[0],
-                                                  digest_len_bytes,
-                                                  (result.empty() ? NULL : (unsigned char*)&data[0]),
-                                                  sizeof(hash_type) * data.size(),
-                                                  NULL, 0);
-    if (status != 0)
-    {
-        throw std::runtime_error("Got non-zero status from crypto_generichash_blake2b. (Is digest_len_bytes correct?)");
-    }
-    return result;
-}
-
 // TODO: Consider how this interacts with field elems being in montgomery form
 // don't we need to make them in canonical form first?
 template<typename FieldT>
 binary_hash_digest blake2b_field_element_hash(const std::vector<FieldT> &data,
                                               const std::size_t digest_len_bytes)
 {
-    return blake2b_vector_hash<FieldT>(data, digest_len_bytes);
+    binary_hash_digest result(digest_len_bytes, 'X');
+
+    /* see https://download.libsodium.org/doc/hashing/generic_hashing.html */
+    const int status = crypto_generichash_blake2b((unsigned char*)&result[0],
+                                                  digest_len_bytes,
+                                                  (result.empty() ? NULL : (unsigned char*)&data[0]),
+                                                  sizeof(FieldT) * data.size(),
+                                                  NULL, 0);
+    if (status != 0)
+    {
+        throw std::runtime_error("Got non-zero status from crypto_generichash_blake2b. (Is digest_len_bytes correct?)");
+    }
+
+    return result;
 }
 
 template<typename FieldT>

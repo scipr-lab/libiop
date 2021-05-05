@@ -29,6 +29,8 @@ binary_hash_digest blake2b_two_to_one_hash(const binary_hash_digest &first,
                                            const binary_hash_digest &second,
                                            const std::size_t digest_len_bytes)
 {
+    /* binary_hash_digest is a C++ string pointer so we need to sum them since they are not
+       contiguous in memory. */
     const binary_hash_digest first_plus_second = first + second;
 
     binary_hash_digest result(digest_len_bytes, 'X');
@@ -38,6 +40,33 @@ binary_hash_digest blake2b_two_to_one_hash(const binary_hash_digest &first,
                                                   digest_len_bytes,
                                                   (unsigned char*)&first_plus_second[0],
                                                   first_plus_second.size(),
+                                                  NULL, 0);
+    if (status != 0)
+    {
+        throw std::runtime_error("Got non-zero status from crypto_generichash_blake2b. (Is digest_len_bytes correct?)");
+    }
+
+    return result;
+}
+
+binary_hash_digest blake2b_many_to_one_hash(const std::vector<binary_hash_digest> &data,
+                                            const std::size_t digest_len_bytes)
+{
+    /* binary_hash_digest is a C++ string pointer so we need to sum them since they are not
+       contiguous in memory. */
+    binary_hash_digest input = data[0];
+    for (int i = 1; i < data.size(); i++)
+    {
+        input += data[i];
+    }
+
+    binary_hash_digest result(digest_len_bytes, 'X');
+
+    /* see https://download.libsodium.org/doc/hashing/generic_hashing.html */
+    const int status = crypto_generichash_blake2b((unsigned char*)&result[0],
+                                                  digest_len_bytes,
+                                                  (result.empty() ? NULL : (unsigned char*)&input[0]),
+                                                  input.size(),
                                                   NULL, 0);
     if (status != 0)
     {

@@ -46,6 +46,9 @@ template<typename FieldT, typename hash_digest_type>
 class merkle_tree {
 protected:
     bool constructed_;
+    /* inner_nodes_ is a vector of the (num_leaves - 1) nodes in the tree, with the root at
+       index 0, left child at 1, right child at 2, etc. If cap_size_ is greater than 2, the
+       first (log_2(cap_size_) - 1) layers under the root are empty to make the math easier. */
     std::vector<hash_digest_type> inner_nodes_;
 
     std::size_t num_leaves_;
@@ -54,13 +57,29 @@ protected:
     std::size_t digest_len_bytes_;
     bool make_zk_;
     std::size_t num_zk_bytes_;
+    /* The top log_2(cap_size_) layers are hashed with a single computation to improve efficiency.
+       The root along with its cap_size_ direct children are referred to as the "cap," and the
+       operation that transforms these children to the root is the cap hash.
+       See https://github.com/scipr-lab/libiop/issues/41. */
     cap_hash_function<hash_digest_type> cap_hasher_;
+    /* cap_size_ is the number of direct children the root has. It must be a power of 2 and at
+       least 2. For example if cap_size == 4, the root has 4 children, and in inner_nodes_ the
+       indices 1 and 2 are unused. */
     std::size_t cap_size_;
 
     /* Each element will be hashed (individually) to produce a random hash digest. */
     std::vector<zk_salt_type> zk_leaf_randomness_elements_;
     void sample_leaf_randomness();
     void compute_inner_nodes();
+
+    /* Helper functions for dealing with the tree strucutre. Correctness not guaranteed
+       when out of bounds. */
+    std::size_t parent_of(const std::size_t node_index) const;
+    std::size_t left_child_of(const std::size_t node_index) const;
+    std::size_t right_child_of(const std::size_t node_index) const;
+    bool is_in_cap(const std::size_t node_index) const;
+    std::size_t cap_children_start() const; // Inclusive.
+    std::size_t cap_children_end() const; // Exclusive.
 public:
     /* Create a merkle tree with the given configuration.
     If make_zk is true, 2 * security parameter random bytes will be appended to each leaf
