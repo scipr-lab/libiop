@@ -29,7 +29,7 @@ binary_hash_digest blake2b_two_to_one_hash(const binary_hash_digest &first,
                                            const binary_hash_digest &second,
                                            const std::size_t digest_len_bytes)
 {
-    printf("%s, %s\n", first, second);
+    printf("%s, %s\n", first.c_str(), second.c_str());
     const binary_hash_digest first_plus_second = first + second;
 
     binary_hash_digest result(digest_len_bytes, 'X');
