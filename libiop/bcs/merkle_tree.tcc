@@ -407,6 +407,9 @@ bool merkle_tree<FieldT, hash_digest_type>::validate_set_membership_proof(
     if (this->make_zk_) {
         for (auto &leaf : leaf_contents)
         {
+            /* FIXME: This code is currently incorrect if the given list of positions is not
+               sorted or has duplicates. This could be fixed if both positions and leaf_contents
+               are sorted before the leaf hashes are calculated, which would require refactoring. */
             const zk_salt_type zk_salt = *rand_it++;
             leaf_hashes.emplace_back(this->leaf_hasher_->zk_hash(leaf, zk_salt));
         }
@@ -427,6 +430,7 @@ bool merkle_tree<FieldT, hash_digest_type>::validate_set_membership_proof(
                     return std::make_pair(pos, hash);
                 });
 
+    std::sort(S.begin(), S.end(), compare_first<size_t, hash_digest_type>);
     S.erase(std__unique(S.begin(), S.end()), S.end()); /* remove possible duplicates */
 
     if (std__adjacent_find(S.begin(), S.end(),
@@ -446,7 +450,7 @@ bool merkle_tree<FieldT, hash_digest_type>::validate_set_membership_proof(
         throw std::invalid_argument("All positions must be between 0 and num_leaves-1.");
     }
 
-    /* transform to set of indices */
+    /* transform to sorted set of indices */
     for (auto &pos : S)
     {
         pos.first += this->num_leaves_ - 1;

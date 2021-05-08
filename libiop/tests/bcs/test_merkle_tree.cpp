@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 #include <type_traits>
+#include <random>
 
 #include <libff/algebra/fields/binary/gf64.hpp>
 #include "libiop/algebra/utils.hpp"
@@ -108,14 +109,17 @@ TEST(MerkleTreeTest, SimpleTest) {
     typedef libff::gf64 FieldT;
 
     const size_t size = 16;
-    const size_t cap_size = 2;
+    const std::vector<size_t> cap_sizes = {2, 4, 8, 16}; // Test all possible cap sizes.
     const size_t digest_len_bytes = 256/8;
     const size_t security_parameter = 128;
 
-    run_simple_MT_test<FieldT, binary_hash_digest>(size, digest_len_bytes, false,
-                                                   security_parameter, cap_size);
-    run_simple_MT_test<FieldT, FieldT>(size, digest_len_bytes, false,
-                                       security_parameter, cap_size);
+    for (size_t cap_size : cap_sizes)
+    {
+        run_simple_MT_test<FieldT, binary_hash_digest>(size, digest_len_bytes, false,
+                                                       security_parameter, cap_size);
+        run_simple_MT_test<FieldT, FieldT>(size, digest_len_bytes, false,
+                                           security_parameter, cap_size);
+    }
 }
 
 TEST(MerkleTreeZKTest, SimpleTest) {
@@ -132,10 +136,14 @@ TEST(MerkleTreeZKTest, SimpleTest) {
                                        security_parameter, cap_size);
 }
 
-void run_multi_test(const bool make_zk) {
+/** Constructs a merkle tree with 8 leaves each of size 2, and cap size 4. Generates and verifies
+ *  membership proofs for every possible subset of leaves. */
+void run_fixed_multi_test(const bool make_zk) {
     typedef libff::gf64 FieldT;
 
+    // The size is fixed because large values would quickly cause the program run out of memory.
     const size_t size = 8;
+    const size_t cap_size = 4;
     const size_t security_parameter = 128;
     const size_t digest_len_bytes = 256/8;
     const bool algebraic_hash = false;
@@ -144,7 +152,8 @@ void run_multi_test(const bool make_zk) {
         size,
         digest_len_bytes,
         make_zk,
-        security_parameter);
+        security_parameter,
+        cap_size);
 
     const std::vector<FieldT> vec1 = random_vector<FieldT>(size);
     const std::vector<FieldT> vec2 = random_vector<FieldT>(size);
@@ -153,23 +162,25 @@ void run_multi_test(const bool make_zk) {
 
     const binary_hash_digest root = tree.get_root();
 
-    std::vector<std::vector<FieldT>> leafs;
+    std::vector<std::vector<FieldT>> leaves;
     for (size_t i = 0; i < size; ++i)
     {
         std::vector<FieldT> leaf({ vec1[i], vec2[i] });
-        leafs.emplace_back(leaf);
+        leaves.emplace_back(leaf);
     }
 
+    /* This code generates every possible subset. `subset` is a binary string that encodes for each
+       element, whether it is in this subset. */
     for (size_t subset = 0; subset < (1ull<<size); ++subset)
     {
         std::vector<size_t> subset_elements;
-        std::vector<std::vector<FieldT>> subset_leafs;
+        std::vector<std::vector<FieldT>> subset_leaves;
         for (size_t k = 0; k < size; ++k)
         {
             if (subset & (1ull<<k))
             {
                 subset_elements.emplace_back(k);
-                subset_leafs.emplace_back(leafs[k]);
+                subset_leaves.emplace_back(leaves[k]);
             }
         }
 
@@ -178,20 +189,110 @@ void run_multi_test(const bool make_zk) {
 
         const bool is_valid = tree.validate_set_membership_proof(root,
                                                                  subset_elements,
-                                                                 subset_leafs,
+                                                                 subset_leaves,
                                                                  mp);
         EXPECT_TRUE(is_valid);
     }
 }
 
-TEST(MerkleTreeTest, MultiTest) {
+TEST(MerkleTreeTest, FixedMultiTest) {
     const bool make_zk = false;
-    run_multi_test(make_zk);
+    run_fixed_multi_test(make_zk);
 }
 
-TEST(MerkleTreeZKTest, MultiTest) {
+TEST(MerkleTreeZKTest, FixedMultiTest) {
     const bool make_zk = true;
-    run_multi_test(make_zk);
+    run_fixed_multi_test(make_zk);
+}
+
+/** Constructs a merkle tree with leaf size 2. Generates and verifies membership proofs for some
+ *  randomly generated sorted subset of leaves of specified size, with no duplicates. Queries with
+ *  unsorted, duplicated lists of leaves currently only work when it is not zero knowledge. */
+void run_random_multi_test(const size_t size, const size_t digest_len_bytes, const bool make_zk,
+                          const size_t security_parameter, const size_t cap_size,
+                          const size_t subset_size) {
+    typedef libff::gf64 FieldT;
+
+    const bool algebraic_hash = false;
+    const size_t num_iterations = 1; // The number of randomly generated subsets to test.
+
+    merkle_tree<FieldT, binary_hash_digest> tree = new_MT<FieldT, binary_hash_digest>(
+        size,
+        digest_len_bytes,
+        make_zk,
+        security_parameter,
+        cap_size);
+
+    const std::vector<FieldT> vec1 = random_vector<FieldT>(size);
+    const std::vector<FieldT> vec2 = random_vector<FieldT>(size);
+
+    tree.construct({ vec1, vec2 });
+
+    const binary_hash_digest root = tree.get_root();
+
+    std::vector<std::vector<FieldT>> leaves;
+    leaves.reserve(size);
+    std::vector<size_t> shuffled_leaf_indices;
+    shuffled_leaf_indices.reserve(size);
+    for (size_t i = 0; i < size; ++i)
+    {
+        std::vector<FieldT> leaf({ vec1[i], vec2[i] });
+        leaves.emplace_back(leaf);
+        shuffled_leaf_indices.emplace_back(i);
+    }
+
+    for (size_t i = 0; i < num_iterations; i++)
+    {
+        std::vector<size_t> subset_elements;
+        std::vector<std::vector<FieldT>> subset_leaves;
+        /* The commented-out code generates subsets that are unsorted and may be repeats.
+           They are not used because the code currently cannot handle these cases if it is
+           zero knowledge. */
+        // for (size_t j = 0; j < subset_size; j++)
+        // {
+        //     size_t k = randombytes_uniform(size);
+        //     subset_elements.emplace_back(k);
+        //     subset_leaves.emplace_back(leaves[k]);
+        // }
+
+        // Generate a random sorted subset of indices at the beginning of shuffled_leaf_indices.
+        std::shuffle(shuffled_leaf_indices.begin(), shuffled_leaf_indices.end(),
+                     std::default_random_engine(i));
+        std::sort(shuffled_leaf_indices.begin(), shuffled_leaf_indices.begin() + subset_size);
+        for (size_t j = 0; j < subset_size; j++)
+        {
+            size_t k = shuffled_leaf_indices[j];
+            subset_elements.emplace_back(k);
+            subset_leaves.emplace_back(leaves[k]);
+        }
+
+        const merkle_tree_set_membership_proof<binary_hash_digest> mp =
+                tree.get_set_membership_proof(subset_elements);
+
+        const bool is_valid = tree.validate_set_membership_proof(root,
+                                                                 subset_elements,
+                                                                 subset_leaves,
+                                                                 mp);
+        EXPECT_TRUE(is_valid);
+    }
+}
+
+TEST(MerkleTreeTest, RandomMultiTest) {
+    const size_t security_parameter = 128;
+    const size_t digest_len_bytes = 256/8;
+    const bool make_zk = false;
+    // Test a small and a large tree.
+    run_random_multi_test(16, digest_len_bytes, make_zk, security_parameter, 4, 5);
+    run_random_multi_test(1ull << 16, digest_len_bytes, make_zk, security_parameter, 256, 100);
+}
+
+TEST(MerkleTreeZKTest, RandomMultiTest) {
+    const size_t security_parameter = 128;
+    const size_t digest_len_bytes = 256/8;
+    const bool make_zk = true;
+    // Test a small and a large tree.
+    run_random_multi_test(16, digest_len_bytes, make_zk, security_parameter, 4, 5);
+    run_random_multi_test(1ull << 16, digest_len_bytes, make_zk, security_parameter, 256, 100);
 }
 
 TEST(MerkleTreeHashCountTest, SimpleTest)

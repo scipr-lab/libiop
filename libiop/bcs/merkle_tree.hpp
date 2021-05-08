@@ -126,6 +126,8 @@ public:
 
     hash_digest_type get_root() const;
 
+    /* These two functions do not currently work if the given positions aren't sorted or
+       have duplicates, AND the tree is set to be zero knowledge. */
     merkle_tree_set_membership_proof<hash_digest_type> get_set_membership_proof(
         const std::vector<std::size_t> &positions) const;
     bool validate_set_membership_proof(
