@@ -100,9 +100,8 @@ std::shared_ptr<leafhash<FieldT, leaf_hash_type>> get_leafhash_internal(
         poseidon_params<FieldT> params = get_poseidon_parameters<FieldT>(hash_enum);
         /* security parameter is -1 b/c */
         std::shared_ptr<poseidon<FieldT>> permutation = std::make_shared<poseidon<FieldT>>(params);
-        std::shared_ptr<leafhash<FieldT, leaf_hash_type>> leafhasher = std::make_shared<algebraic_leafhash<FieldT>>(
-            permutation, 
-            security_parameter - 1);
+        std::shared_ptr<leafhash<FieldT, leaf_hash_type>> leafhasher =
+            std::make_shared<algebraic_leafhash<FieldT>>(permutation, security_parameter - 1);
         return leafhasher;
     }
     throw std::invalid_argument("bcs_hash_type unknown (algebraic leaf hash)");
@@ -149,7 +148,7 @@ two_to_one_hash_function<FieldT> get_two_to_one_hash_internal(
            as this reference has to live after the function terminates */
         std::shared_ptr<algebraic_two_to_one_hash<FieldT>> hash_class = 
             std::make_shared<algebraic_two_to_one_hash<FieldT>>(permutation, security_parameter - 1);
-        std::function<FieldT(const FieldT&, const FieldT&, const std::size_t)> f = [permutation, hash_class](const FieldT& left, const FieldT& right, const std::size_t unused) -> FieldT 
+        std::function<FieldT(const FieldT&, const FieldT&, const std::size_t)> f = [permutation, hash_class](const FieldT& left, const FieldT& right, const std::size_t unused) -> FieldT
         {
             return hash_class->hash(left, right);
         };
@@ -185,25 +184,25 @@ cap_hash_function<FieldT> get_cap_hash_internal(
     const bcs_hash_type hash_enum,
     const size_t security_parameter)
 {
-    // if (hash_enum == starkware_poseidon_type || hash_enum == high_alpha_poseidon_type)
-    // {
-    //     if (security_parameter != 128)
-    //     {
-    //         throw std::invalid_argument("Poseidon only supported for 128 bit soundness.");
-    //     }
-    //     poseidon_params<FieldT> params = get_poseidon_parameters<FieldT>(hash_enum);
-    //     /* security parameter is -1 b/c */
-    //     std::shared_ptr<algebraic_sponge<FieldT>> permutation = std::make_shared<poseidon<FieldT>>(params);
-    //     /* We explicitly place this on heap with no destructor,
-    //        as this reference has to live after the function terminates */
-    //     std::shared_ptr<algebraic_two_to_one_hash<FieldT>> hash_class =
-    //         std::make_shared<algebraic_two_to_one_hash<FieldT>>(permutation, security_parameter - 1);
-    //     std::function<FieldT(const FieldT&, const FieldT&, const std::size_t)> f = [permutation, hash_class](const FieldT& left, const FieldT& right, const std::size_t unused) -> FieldT 
-    //     {
-    //         return hash_class->hash(left, right);
-    //     };
-    //     return f;
-    // }
+    if (hash_enum == starkware_poseidon_type || hash_enum == high_alpha_poseidon_type)
+    {
+        if (security_parameter != 128)
+        {
+            throw std::invalid_argument("Poseidon only supported for 128 bit soundness.");
+        }
+        poseidon_params<FieldT> params = get_poseidon_parameters<FieldT>(hash_enum);
+        /* security parameter is -1 b/c */
+        std::shared_ptr<algebraic_sponge<FieldT>> permutation = std::make_shared<poseidon<FieldT>>(params);
+        /* We explicitly place this on heap with no destructor,
+           as this reference has to live after the function terminates */
+        std::shared_ptr<algebraic_vector_hash<FieldT>> hash_class =
+            std::make_shared<algebraic_vector_hash<FieldT>>(permutation, security_parameter - 1);
+        std::function<FieldT(const std::vector<FieldT> &leaf, const std::size_t)> f = [permutation, hash_class](const std::vector<FieldT> &leaf, const std::size_t unused) -> FieldT
+        {
+            return hash_class->hash(leaf);
+        };
+        return f;
+    }
     throw std::invalid_argument("bcs_hash_type unknown (algebraic cap hash)");
 }
 

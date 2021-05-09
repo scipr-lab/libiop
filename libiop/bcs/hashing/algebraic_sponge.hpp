@@ -99,14 +99,15 @@ class algebraic_hashchain : public hashchain<FieldT, MT_root_type>
     void absorb_internal(const typename libff::enable_if<std::is_same<MT_root_type, FieldT>::value, MT_root_type>::type new_input);
 };
 
+/** The algebraic_vector_hash is used for both the algebraic leaf hash and cap hash. */
 template<typename FieldT>
-class algebraic_leafhash : public leafhash<FieldT, FieldT>
+class algebraic_vector_hash : public leafhash<FieldT, FieldT>
 {
     protected:
     std::shared_ptr<algebraic_sponge<FieldT>> sponge_;
 
     public:
-    algebraic_leafhash(
+    algebraic_vector_hash(
         std::shared_ptr<algebraic_sponge<FieldT>> sponge,
         size_t security_parameter);
     FieldT hash(const std::vector<FieldT> &leaf);
@@ -114,6 +115,9 @@ class algebraic_leafhash : public leafhash<FieldT, FieldT>
         const std::vector<FieldT> &leaf,
         const zk_salt_type &zk_salt);
 };
+
+template<typename FieldT>
+using algebraic_leafhash = algebraic_vector_hash<FieldT>;
 
 template<typename FieldT>
 class algebraic_two_to_one_hash
