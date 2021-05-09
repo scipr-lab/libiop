@@ -548,18 +548,20 @@ bool merkle_tree<FieldT, hash_digest_type>::validate_set_membership_proof(
 }
 
 template<typename FieldT, typename hash_digest_type>
-size_t merkle_tree<FieldT, hash_digest_type>::count_hashes_to_verify_set_membership_proof(
+size_t merkle_tree<FieldT, hash_digest_type>::count_internal_hash_complexity_to_verify_set_membership(
     const std::vector<size_t> &positions) const
 {
     /** This goes layer by layer,
      *  and counts the number of hashes needed to be computed.
      *  Essentially when moving up a layer in the verifier,
      *  every unique parent is one hash that has to be computed.  */
-    size_t num_two_to_one_hashes =  0;
+    size_t num_two_to_one_hashes = 0;
     std::vector<size_t> cur_pos_set = positions;
     sort(cur_pos_set.begin(), cur_pos_set.end());
     assert(cur_pos_set[cur_pos_set.size() - 1] < this->num_leaves());
-    for (size_t cur_depth = this->depth(); cur_depth > 0; cur_depth--)
+
+    const size_t cap_depth = libff::log2(this->cap_size_);
+    for (size_t cur_depth = this->depth(); cur_depth > cap_depth; cur_depth--)
     {
         // contains positions in range [0, 2^{cur_depth - 1})
         std::vector<size_t> next_pos_set;
@@ -567,8 +569,7 @@ size_t merkle_tree<FieldT, hash_digest_type>::count_hashes_to_verify_set_members
         {
             size_t parent_pos = cur_pos_set[i] / 2;
             // Check that parent pos isn't already in next pos set
-            if (next_pos_set.size() == 0
-                || next_pos_set[next_pos_set.size() - 1] != parent_pos)
+            if (next_pos_set.size() == 0 || next_pos_set[next_pos_set.size() - 1] != parent_pos)
             {
                 next_pos_set.emplace_back(parent_pos);
             }
@@ -576,7 +577,7 @@ size_t merkle_tree<FieldT, hash_digest_type>::count_hashes_to_verify_set_members
         num_two_to_one_hashes += next_pos_set.size();
         cur_pos_set = next_pos_set;
     }
-    return num_two_to_one_hashes;
+    return 2 * num_two_to_one_hashes + this->cap_size_;
 }
 
 template<typename FieldT, typename hash_digest_type>

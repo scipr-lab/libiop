@@ -136,8 +136,10 @@ public:
         const std::vector<std::vector<FieldT>> &leaf_contents,
         const merkle_tree_set_membership_proof<hash_digest_type> &proof);
 
-    /* Returns number of two to one hashes */
-    size_t count_hashes_to_verify_set_membership_proof(
+    /** Returns a number that is proportional to the hashing runtime of verifying a set membership
+     *  proof. Each two-to-one hash is counted as 2 units, and each input of the cap hash is 1 unit.
+     *  Leaf hashes are not counted. */
+    size_t count_internal_hash_complexity_to_verify_set_membership(
         const std::vector<std::size_t> &positions) const;
 
     std::size_t num_leaves() const;

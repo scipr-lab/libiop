@@ -295,6 +295,8 @@ TEST(MerkleTreeZKTest, RandomMultiTest) {
     run_random_multi_test(1ull << 16, digest_len_bytes, make_zk, security_parameter, 256, 100);
 }
 
+/** Verify that count_internal_hash_complexity_to_verify_set_membership is correct for a fixed tree
+ *  size and query set, for various cap sizes. */
 TEST(MerkleTreeHashCountTest, SimpleTest)
 {
     typedef libff::gf64 FieldT;
@@ -304,16 +306,24 @@ TEST(MerkleTreeHashCountTest, SimpleTest)
     const size_t hash_length = 32;
     const bool algebraic_hash = false;
 
-    merkle_tree<FieldT, binary_hash_digest> tree = new_MT<FieldT, binary_hash_digest>(
-        num_leaves,
-        hash_length,
-        make_zk,
-        security_parameter);
+    const std::vector<size_t> cap_sizes = {2, 4, 8};
+    const std::vector<size_t> expected_num_hashes = {12, 10, 8};
 
-    std::vector<size_t> positions = {1, 3, 6, 7};
-    size_t expected_num_hashes = 6;
-    size_t actual_num_hashes = tree.count_hashes_to_verify_set_membership_proof(positions);
-    ASSERT_EQ(expected_num_hashes, actual_num_hashes);
+    const std::vector<size_t> positions = {1, 3, 6, 7};
+
+    for (size_t i = 0; i < cap_sizes.size(); i++)
+    {
+        merkle_tree<FieldT, binary_hash_digest> tree = new_MT<FieldT, binary_hash_digest>(
+            num_leaves,
+            hash_length,
+            make_zk,
+            security_parameter,
+            cap_sizes[i]);
+
+        size_t actual_num_hashes = tree.count_internal_hash_complexity_to_verify_set_membership(
+            positions);
+        ASSERT_EQ(expected_num_hashes[i], actual_num_hashes);
+    }
 }
 
 }
