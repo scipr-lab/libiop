@@ -474,7 +474,8 @@ void bcs_protocol<FieldT, MT_root_hash>::seal_interaction_registrations()
                 this->parameters_.cap_hasher,
                 this->digest_len_bytes_,
                 make_zk,
-                this->parameters_.security_parameter);
+                this->parameters_.security_parameter,
+                this->parameters_.cap_size);
             this->Merkle_trees_.emplace_back(MT);
         }
     }

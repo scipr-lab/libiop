@@ -72,6 +72,7 @@ bcs_transformation_parameters<FieldT, MT_root_hash> get_bcs_parameters(bool alge
         bcs_parameters.hash_enum = bcs_hash_type::blake2b_type;
     }
     set_bcs_parameters_leafhash<FieldT, MT_root_hash>(bcs_parameters);
+    bcs_parameters.cap_size = 2;
 
     return bcs_parameters;
 }

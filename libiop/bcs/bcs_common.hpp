@@ -25,6 +25,7 @@ template<typename FieldT, typename MT_hash_type>
 struct bcs_transformation_parameters {
     std::size_t security_parameter; /* TODO: possibly revisit in the future */
     bcs_hash_type hash_enum;
+    std::size_t cap_size;
 
     pow_parameters pow_params_;
 
