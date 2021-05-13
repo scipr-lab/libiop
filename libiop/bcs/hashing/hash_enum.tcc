@@ -58,7 +58,7 @@ std::shared_ptr<hashchain<FieldT, MT_root_type>> get_hashchain_internal(
     {
         return std::make_shared<blake2b_hashchain<FieldT, MT_root_type>>(security_parameter);
     }
-    throw std::invalid_argument("bcs_hash_type unknown");
+    throw std::invalid_argument("bcs_hash_type unknown (blake2b hashchain)");
 }
 
 
@@ -80,7 +80,7 @@ std::shared_ptr<leafhash<FieldT, leaf_hash_type>> get_leafhash_internal(
     {
         return std::make_shared<blake2b_leafhash<FieldT>>(security_parameter);
     }
-    throw std::invalid_argument("bcs_hash_type unknown");
+    throw std::invalid_argument("bcs_hash_type unknown (blake2b leaf hash)");
 }
 
 /* Algebraic leafhash case */
@@ -125,7 +125,7 @@ two_to_one_hash_function<hash_type> get_two_to_one_hash_internal(
     {
         return blake2b_two_to_one_hash;
     }
-    throw std::invalid_argument("bcs_hash_type unknown");
+    throw std::invalid_argument("bcs_hash_type unknown (blake2b two to one hash)");
 }
 
 /* algebraic 2->1 hash */
@@ -174,7 +174,7 @@ cap_hash_function<hash_type> get_cap_hash_internal(
     {
         return blake2b_many_to_one_hash;
     }
-    throw std::invalid_argument("bcs_hash_type unknown");
+    throw std::invalid_argument("bcs_hash_type unknown (blake2b cap hash)");
 }
 
 /* Algebraic 2^n->1 hash. */
