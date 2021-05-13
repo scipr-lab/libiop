@@ -13,7 +13,7 @@ Full protocol for R1CS (encoded R1CS + FRI LDT)
 #include <memory>
 #include <vector>
 
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 #include "libiop/iop/iop.hpp"
 #include "libiop/protocols/encoded/r1cs_rs_iop/r1cs_rs_iop.hpp"
 #include "libiop/protocols/encoded/r1cs_rs_iop/fractal_indexer.hpp"

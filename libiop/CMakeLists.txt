@@ -2,7 +2,6 @@ add_library(
   iop
 
   common/common.cpp
-  common/profiling.cpp
   
   bcs/hashing/blake2b.cpp
   protocols/ldt/ldt_reducer.cpp
@@ -97,9 +96,6 @@ target_link_libraries(instrument_algebra iop ${Boost_LIBRARIES})
 include(CTest)
 
 # algebra
-add_executable(test_common tests/algebra/test_common.cpp)
-target_link_libraries(test_common iop gtest_main)
-
 add_executable(test_exponentiation tests/algebra/test_exponentiation.cpp)
 target_link_libraries(test_exponentiation iop gtest_main)
 
@@ -130,10 +126,6 @@ target_link_libraries(test_successor_ordering iop gtest_main)
 add_executable(test_algebra_utils tests/algebra/test_algebra_utils.cpp)
 target_link_libraries(test_algebra_utils iop gtest_main)
 
-add_test(
-  NAME test_common
-  COMMAND test_common
-)
 add_test(
   NAME test_exponentiation
   COMMAND test_exponentiation

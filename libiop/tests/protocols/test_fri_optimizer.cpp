@@ -5,12 +5,12 @@
 #include <libff/algebra/fields/binary/gf64.hpp>
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include "libiop/algebra/utils.hpp"
 #include "libiop/protocols/ldt/fri/fri_aux.hpp"
 #include "libiop/protocols/ldt/fri/argument_size_optimizer.hpp"
 #include "libiop/snark/fri_snark.hpp"
 #include "libiop/algebra/field_subset/field_subset.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"
-#include "libiop/algebra/utils.hpp"
 
 
 namespace libiop {
@@ -19,7 +19,7 @@ namespace libiop {
 TEST(FriOptimizerPredictedProofSizeTest, OptimizerTest)
 {
     typedef binary_hash_digest hash_type;
-    typedef gf192 FieldT;
+    typedef libff::gf192 FieldT;
     const std::vector<size_t> locality_vector = {1};
     const std::vector<size_t> localization_vector = {1, 3, 3};
     const size_t codeword_dim = 18;
@@ -37,7 +37,7 @@ TEST(FriOptimizerPredictedProofSizeTest, OptimizerTest)
     const size_t num_samples = 30;
     size_t total_argument_size = 0;
     FRI_snark_parameters<FieldT> params = {codeword_dim, 128, blake2b_type, RS_extra_dimensions, 0,
-        localization_vector, 1, num_queries, locality_vector[0], additive_field_type};
+        localization_vector, 1, num_queries, locality_vector[0], libff::additive_field_type};
     for (size_t i = 0; i < num_samples; i++)
     {
         FRI_snark_proof<FieldT, hash_type> proof = FRI_snark_prover<FieldT, hash_type>(params);

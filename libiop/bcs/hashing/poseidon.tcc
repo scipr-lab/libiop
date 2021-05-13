@@ -1,13 +1,14 @@
-#include "libiop/algebra/field_utils.hpp"
-#include "libiop/algebra/exponentiation.hpp"
+#include <libff/algebra/field_utils/field_utils.hpp>
 #include "libiop/bcs/hashing/algebraic_sponge.hpp"
-#include "libiop/common/profiling.hpp"
+#include <libff/common/profiling.hpp>
 #include <cstring>
 #include <sstream>
 #include <stdexcept>
 #include <cmath>
 
 namespace libiop {
+
+using libff::bigint;
 
 template<typename FieldT>
 poseidon_params<FieldT>::poseidon_params(
@@ -58,7 +59,7 @@ double poseidon_params<FieldT>::achieved_soundness() const
     /** Because the expressions are comparing if expr(num_rounds) > min(lambda, n),
      *  we set n to be ceil(log_2(|F|)), since that makes it larger.
      */
-    const size_t n = log_of_field_size_helper<FieldT>(FieldT::zero());
+    const size_t n = libff::log_of_field_size_helper<FieldT>(FieldT::zero());
     /* build in the 25% extra full rounds, 7.5% partial rounds. */
     const double effective_full_rounds = ceil(.75 * this->full_rounds_);
     const double effective_partial_rounds = ceil(.925 * this->partial_rounds_);
@@ -68,7 +69,7 @@ double poseidon_params<FieldT>::achieved_soundness() const
      *  and then lower it down with each inequality. 
      *  We use floor(log_2(|F|)) because this is the more conservative estimate. */
     double current_security_level = ((double) this->capacity_) * 
-        ((double) soundness_log_of_field_size_helper<FieldT>(FieldT::zero())) / 2.0;
+        ((double) libff::soundness_log_of_field_size_helper<FieldT>(FieldT::zero())) / 2.0;
 
     /** For the case of Poseidon we implement,
      *  our parameters must not satisfy equations (1) and (2) of section 3. */
@@ -122,14 +123,14 @@ double poseidon_params<FieldT>::achieved_soundness() const
 template<typename FieldT>
 void poseidon_params<FieldT>::print() const
 {
-    libiop::print_indent(); printf("\nPoseidon parameters\n");
-    libiop::print_indent(); printf("* State size = %lu\n", this->state_size_);
-    libiop::print_indent(); printf("* Rate = %lu\n", this->rate_);
-    libiop::print_indent(); printf("* Capacity = %lu\n", this->capacity_);
-    libiop::print_indent(); printf("* Alpha = %lu\n", this->alpha_);
-    libiop::print_indent(); printf("* Full rounds = %lu\n", this->full_rounds_);
-    libiop::print_indent(); printf("* Partial rounds = %lu\n", this->partial_rounds_);
-    libiop::print_indent(); printf("* Achieved security = %f\n", this->achieved_soundness());
+    libff::print_indent(); printf("\nPoseidon parameters\n");
+    libff::print_indent(); printf("* State size = %lu\n", this->state_size_);
+    libff::print_indent(); printf("* Rate = %lu\n", this->rate_);
+    libff::print_indent(); printf("* Capacity = %lu\n", this->capacity_);
+    libff::print_indent(); printf("* Alpha = %lu\n", this->alpha_);
+    libff::print_indent(); printf("* Full rounds = %lu\n", this->full_rounds_);
+    libff::print_indent(); printf("* Partial rounds = %lu\n", this->partial_rounds_);
+    libff::print_indent(); printf("* Achieved security = %f\n", this->achieved_soundness());
 }
 
 template<typename FieldT>

@@ -9,7 +9,7 @@
 #include <libff/algebra/fields/binary/gf64.hpp>
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 #include "libiop/protocols/encoded/ligero/ligero.hpp"
 #include "libiop/relations/examples/r1cs_examples.hpp"
 #include "libiop/relations/r1cs.hpp"
@@ -33,15 +33,15 @@ bool run_test(r1cs_constraint_system<FieldT> constraint_system,
     std::size_t num_vars = constraint_system.num_variables() + 1;
     
     std::size_t systematic_domain_size = (std::size_t) ceil(sqrt(num_vars / height_width_ratio));
-    systematic_domain_size = round_to_next_power_of_2(systematic_domain_size);
+    systematic_domain_size = libff::round_to_next_power_of_2(systematic_domain_size);
     
-    const std::size_t systematic_domain_dim = log2(systematic_domain_size);
+    const std::size_t systematic_domain_dim = libff::log2(systematic_domain_size);
     std::size_t num_oracles_input = (std::size_t) ceil(((float) num_vars) / systematic_domain_size);
 
     const std::size_t codeword_domain_dim = systematic_domain_dim + RS_extra_dimensions;
     const std::size_t codeword_domain_size = 1ull << codeword_domain_dim;
     
-    libiop::print_indent(); printf("codeword subspace dim: %zu\n", codeword_domain_dim);
+    libff::print_indent(); printf("codeword subspace dim: %zu\n", codeword_domain_dim);
     
     const std::size_t matrix_width = systematic_domain_size * num_oracles_input;
     
@@ -54,7 +54,7 @@ bool run_test(r1cs_constraint_system<FieldT> constraint_system,
 
     const std::size_t extended_systematic_domain_size = systematic_domain_size << 1;
     
-    libiop::print_indent(); printf("num oracles for vectors / R1CS constraints (m_2): %zu\n", num_oracles_vectors);
+    libff::print_indent(); printf("num oracles for vectors / R1CS constraints (m_2): %zu\n", num_oracles_vectors);
     
     FieldT shift;
 
@@ -118,7 +118,7 @@ bool run_test(r1cs_constraint_system<FieldT> constraint_system,
 }
 
 TEST(LigeroTrueTest, SimpleTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     std::size_t num_constraints = 16;
     std::size_t num_inputs = 8;
@@ -136,9 +136,9 @@ TEST(LigeroTrueTest, SimpleTest) {
 }
 
 TEST(LigeroTrueMultiplicativeTest, SimpleTest) {
-    edwards_pp::init_public_params();
+    libff::edwards_pp::init_public_params();
 
-    typedef edwards_Fr FieldT;
+    typedef libff::edwards_Fr FieldT;
 
     std::size_t num_constraints = 16;
     std::size_t num_inputs = 8;
@@ -156,7 +156,7 @@ TEST(LigeroTrueMultiplicativeTest, SimpleTest) {
 }
     
 TEST(LigeroWrongPrimaryInputTest, SimpleTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     std::size_t num_constraints = 16;
     std::size_t num_inputs = 8;
@@ -179,9 +179,9 @@ TEST(LigeroWrongPrimaryInputTest, SimpleTest) {
 }
 
 TEST(LigeroWrongPrimaryInputMultiplicativeTest, SimpleTest) {
-    edwards_pp::init_public_params();
+    libff::edwards_pp::init_public_params();
 
-    typedef edwards_Fr FieldT;
+    typedef libff::edwards_Fr FieldT;
 
     std::size_t num_constraints = 16;
     std::size_t num_inputs = 8;
@@ -204,7 +204,7 @@ TEST(LigeroWrongPrimaryInputMultiplicativeTest, SimpleTest) {
 }
     
 TEST(LigeroWrongAuxiliaryInputTest, SimpleTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     std::size_t num_constraints = 16;
     std::size_t num_inputs = 8;
@@ -227,9 +227,9 @@ TEST(LigeroWrongAuxiliaryInputTest, SimpleTest) {
 }
 
 TEST(LigeroWrongAuxiliaryInputMultiplicativeTest, SimpleTest) {
-    edwards_pp::init_public_params();
+    libff::edwards_pp::init_public_params();
 
-    typedef edwards_Fr FieldT;
+    typedef libff::edwards_Fr FieldT;
 
     std::size_t num_constraints = 16;
     std::size_t num_inputs = 8;

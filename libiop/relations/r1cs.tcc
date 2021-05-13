@@ -22,7 +22,7 @@
 #include <cassert>
 #include <set>
 
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 
 namespace libiop {
 
@@ -159,7 +159,7 @@ void r1cs_constraint_system<FieldT>::add_constraint(const r1cs_constraint<FieldT
 #ifdef DEBUG
     constraint_annotations_[constraints_.size()] = annotation;
 #else
-    libiop::UNUSED(annotation);
+    libff::UNUSED(annotation);
 #endif
     constraints_.emplace_back(c);
 }
@@ -280,10 +280,10 @@ std::size_t r1cs_constraint_system<FieldT>::size_in_bytes() const
     /*
       Assume that the most efficient representation spends:
        - 3 bits per constraint (to delineate A, B, and C)
-       - log2(num_variables) + |FieldT| bits per term
+       - libff::log2(num_variables) + |FieldT| bits per term
     */
     const std::size_t size_in_bits = 3 * this->num_constraints() +
-        num_terms * (log2(this->num_variables()) + 8*sizeof(FieldT));
+        num_terms * (libff::log2(this->num_variables()) + 8*sizeof(FieldT));
 
     return size_in_bits / 8;
 }

@@ -10,7 +10,7 @@ direct_LDT_parameters<FieldT>::direct_LDT_parameters(const size_t query_soundnes
     RS_extra_dimensions_(RS_extra_dimensions),
     absolute_proximity_parameter_(absolute_proximity_parameter)
 {
-    this->codeword_domain_dim_ = libiop::log2(this->poly_degree_bound_) + RS_extra_dimensions;
+    this->codeword_domain_dim_ = libff::log2(this->poly_degree_bound_) + RS_extra_dimensions;
     const long double codeword_domain_size = (long double)(1ull << this->codeword_domain_dim_);
     /** query_soundness_error = (1 - fractional_proximity)^{num_queries}]x
      *  Consequently the bits of security is:
@@ -54,15 +54,15 @@ void direct_LDT_parameters<FieldT>::print() const
     printf("\nDirect LDT parameters\n");
     if (this->overrided_num_queries_)
     {
-        libiop::print_indent(); printf("===WARNING=== Direct LDT security parameter was overridden\n");
+        libff::print_indent(); printf("===WARNING=== Direct LDT security parameter was overridden\n");
     }
-    libiop::print_indent(); printf("* target query soundness error (bits): %zu\n", this->query_soundness_bits_);
-    libiop::print_indent(); printf("* achieved query soundness error (bits): %.1Lf\n", this->achieved_query_soundness());
-    libiop::print_indent(); printf("* codeword domain dimension: %zu\n", this->codeword_domain_dim_);
-    libiop::print_indent(); printf("* RS extra dimensions: %zu\n", this->RS_extra_dimensions_);
-    libiop::print_indent(); printf("* absolute proximity parameter: %zu\n", this->absolute_proximity_parameter_);
-    libiop::print_indent(); printf("* fractional proximity parameter: %Lf\n", this->fractional_proximity_parameter_);
-    libiop::print_indent(); printf("* number of queries: %zu\n", this->num_queries_);
+    libff::print_indent(); printf("* target query soundness error (bits): %zu\n", this->query_soundness_bits_);
+    libff::print_indent(); printf("* achieved query soundness error (bits): %.1Lf\n", this->achieved_query_soundness());
+    libff::print_indent(); printf("* codeword domain dimension: %zu\n", this->codeword_domain_dim_);
+    libff::print_indent(); printf("* RS extra dimensions: %zu\n", this->RS_extra_dimensions_);
+    libff::print_indent(); printf("* absolute proximity parameter: %zu\n", this->absolute_proximity_parameter_);
+    libff::print_indent(); printf("* fractional proximity parameter: %Lf\n", this->fractional_proximity_parameter_);
+    libff::print_indent(); printf("* number of queries: %zu\n", this->num_queries_);
 }
 
 template<typename FieldT>

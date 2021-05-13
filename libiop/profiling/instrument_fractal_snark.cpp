@@ -16,7 +16,7 @@
 #include <libff/algebra/fields/binary/gf256.hpp>
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
-#include "libiop/algebra/field_utils.hpp"
+#include <libff/algebra/field_utils/field_utils.hpp>
 
 #include "libiop/snark/fractal_snark.hpp"
 #include "libiop/bcs/bcs_common.hpp"
@@ -99,7 +99,7 @@ void instrument_fractal_snark(options &options,
 
     for (std::size_t log_n = options.log_n_min; log_n <= options.log_n_max; ++log_n)
     {
-        print_separator();
+        libff::print_separator();
 
         const std::size_t n = 1ul << log_n;
         /* k+1 needs to be a power of 2 (proof system artifact) so we just fix it to 15 here */
@@ -149,19 +149,19 @@ void instrument_fractal_snark(options &options,
             parameters.reset_fri_localization_parameters(localization_parameter_array);
         }
 
-        libiop::enter_block("Check satisfiability of R1CS example");
+        libff::enter_block("Check satisfiability of R1CS example");
         const bool is_satisfied = example.constraint_system_.is_satisfied(
             example.primary_input_, example.auxiliary_input_);
         assert(is_satisfied);
-        libiop::leave_block("Check satisfiability of R1CS example");
+        libff::leave_block("Check satisfiability of R1CS example");
         printf("\n");
-        libiop::print_indent(); printf("* R1CS number of constraints: %zu\n", example.constraint_system_.num_constraints());
-        libiop::print_indent(); printf("* R1CS number of variables: %zu\n", example.constraint_system_.num_variables());
-        libiop::print_indent(); printf("* R1CS number of variables for primary input: %zu\n", example.primary_input_.size());
-        libiop::print_indent(); printf("* R1CS number of variables for auxiliary input: %zu\n", example.auxiliary_input_.size());
-        libiop::print_indent(); printf("* R1CS size of constraint system (bytes): %zu\n", example.constraint_system_.size_in_bytes());
-        libiop::print_indent(); printf("* R1CS size of primary input (bytes): %zu\n", example.primary_input_.size() * sizeof(FieldT));
-        libiop::print_indent(); printf("* R1CS size of auxiliary input (bytes): %zu\n", example.auxiliary_input_.size() * sizeof(FieldT));
+        libff::print_indent(); printf("* R1CS number of constraints: %zu\n", example.constraint_system_.num_constraints());
+        libff::print_indent(); printf("* R1CS number of variables: %zu\n", example.constraint_system_.num_variables());
+        libff::print_indent(); printf("* R1CS number of variables for primary input: %zu\n", example.primary_input_.size());
+        libff::print_indent(); printf("* R1CS number of variables for auxiliary input: %zu\n", example.auxiliary_input_.size());
+        libff::print_indent(); printf("* R1CS size of constraint system (bytes): %zu\n", example.constraint_system_.size_in_bytes());
+        libff::print_indent(); printf("* R1CS size of primary input (bytes): %zu\n", example.primary_input_.size() * sizeof(FieldT));
+        libff::print_indent(); printf("* R1CS size of auxiliary input (bytes): %zu\n", example.auxiliary_input_.size() * sizeof(FieldT));
         printf("\n");
 
         std::pair<bcs_prover_index<FieldT, hash_type>, bcs_verifier_index<FieldT, hash_type>> index =
@@ -201,7 +201,7 @@ void instrument_fractal_snark(options &options,
 
         printf("\n\n");
 
-        libiop::print_indent(); printf("* Verifier satisfied: %s\n", bit ? "true" : "false");
+        libff::print_indent(); printf("* Verifier satisfied: %s\n", bit ? "true" : "false");
     }
 }
 
@@ -220,7 +220,7 @@ int main(int argc, const char * argv[])
         printf("There is no argument parsing in CPPDEBUG mode.");
         exit(1);
     }
-    libiop::UNUSED(argv);
+    libff::UNUSED(argv);
 
 #else
     if (!process_prover_command_line(argc, argv, default_vals, heuristic_fri_soundness, optimize_localization))
@@ -238,7 +238,7 @@ int main(int argc, const char * argv[])
     if (heuristic_fri_soundness) {
         fri_soundness_type = FRI_soundness_type::heuristic;
     }
-    libiop::start_profiling();
+    libff::start_profiling();
 
     printf("Selected parameters:\n");
     printf("- log_n_min = %zu\n", default_vals.log_n_min);
@@ -254,8 +254,8 @@ int main(int argc, const char * argv[])
     if (default_vals.is_multiplicative) {
         switch (default_vals.field_size) {
             case 181:
-                edwards_pp::init_public_params();
-                instrument_fractal_snark<edwards_Fr, binary_hash_digest>(
+                libff::edwards_pp::init_public_params();
+                instrument_fractal_snark<libff::edwards_Fr, binary_hash_digest>(
                     default_vals, ldt_reducer_soundness_type, fri_soundness_type, optimize_localization);
                 break;
             case 256:

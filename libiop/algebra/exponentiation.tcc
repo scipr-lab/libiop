@@ -1,58 +1,6 @@
 namespace libiop {
 
 template<typename FieldT>
-FieldT power(const FieldT &base, const std::size_t exponent)
-{
-    FieldT result = FieldT::one();
-
-    bool found_one = false;
-
-    for (long i = 8 * sizeof(exponent) - 1; i >= 0; --i)
-    {
-        if (found_one)
-        {
-            result = result.squared();
-        }
-
-        if (exponent & (1ull << i))
-        {
-            found_one = true;
-            result *= base;
-        }
-    }
-
-    return result;
-}
-
-template<typename FieldT>
-FieldT power(const FieldT &base, const std::vector<std::size_t> exponent)
-{
-    FieldT result = FieldT::one();
-
-    bool found_one = false;
-
-    for (size_t j = 0; j < exponent.size(); j++)
-    {
-        size_t cur_exp = exponent[j];
-        for (long i = 8 * sizeof(cur_exp) - 1; i >= 0; --i)
-        {
-            if (found_one)
-            {
-                result = result.squared();
-            }
-
-            if (cur_exp & (1ull << i))
-            {
-                found_one = true;
-                result *= base;
-            }
-        }
-    }
-
-    return result;
-}
-
-template<typename FieldT>
 std::vector<FieldT> subspace_to_power_of_two(const affine_subspace<FieldT> &S,
                                              const size_t power_of_two)
 {
@@ -81,7 +29,7 @@ std::vector<FieldT> subspace_element_powers(const affine_subspace<FieldT> &S,
      *
      *  In the case where the exponent is a power of two, we skip the multiplications.
      */
-    if (is_power_of_2(exponent))
+    if (libff::is_power_of_2(exponent))
     {
         return subspace_to_power_of_two(S, exponent);
     }

@@ -5,10 +5,10 @@
 #include <libff/algebra/fields/binary/gf64.hpp>
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
+#include "libiop/algebra/utils.hpp"
 #include "libiop/protocols/ldt/fri/fri_aux.hpp"
 #include "libiop/algebra/field_subset/field_subset.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"
-#include "libiop/algebra/utils.hpp"
 
 
 namespace libiop {
@@ -76,9 +76,9 @@ void run_lagrange_test(const field_subset<FieldT> &domain) {
 
 TEST(Test, LagrangeTest) {
     const std::size_t dim = 15;
-    const field_subset<gf64> additive_domain(
-        affine_subspace<gf64>::random_affine_subspace(dim));
-    run_lagrange_test<gf64>(additive_domain);
+    const field_subset<libff::gf64> additive_domain(
+        affine_subspace<libff::gf64>::random_affine_subspace(dim));
+    run_lagrange_test<libff::gf64>(additive_domain);
     libff::edwards_pp::init_public_params();
     const field_subset<libff::edwards_Fr> multiplicative_domain_with_offset(
         1ull << dim, libff::edwards_Fr::multiplicative_generator);
@@ -124,7 +124,7 @@ void run_calculate_next_coset_query_positions_test(
 }
 
 TEST(QueryPositionTest, AdditiveTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     size_t codeword_domain_dim = 10;
     FieldT codeword_domain_offset = FieldT::zero();
     size_t prev_localization_param = 2;
@@ -149,8 +149,8 @@ TEST(QueryPositionTest, AdditiveTest) {
 }
 
 TEST(QueryPositionTest, MultiplicativeTest) {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
 
     size_t codeword_domain_dim = 10;
     FieldT codeword_domain_shift = FieldT::one();

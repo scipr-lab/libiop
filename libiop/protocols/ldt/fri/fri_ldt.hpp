@@ -11,7 +11,7 @@ FRI interfaces.
 #include <algorithm>
 #include <functional>
 
-#include "libiop/algebra/field_utils.hpp"
+#include <libff/algebra/field_utils/field_utils.hpp>
 #include "libiop/algebra/field_subset/subgroup.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
 #include "libiop/algebra/polynomials/vanishing_polynomial.hpp"
@@ -60,7 +60,7 @@ class FRI_protocol_parameters : public multi_LDT_parameter_base<FieldT> {
     size_t poly_degree_bound_;
     size_t codeword_domain_dim_;
     size_t RS_extra_dimensions_;
-    field_type field_type_;
+    libff::field_type field_type_;
     std::vector<size_t> localization_parameters_;
 
     long double effective_proximity_parameter_;
@@ -104,7 +104,7 @@ class FRI_protocol_parameters : public multi_LDT_parameter_base<FieldT> {
     void override_security_parameters(const size_t interactive_repititions, const size_t query_repititions);
     size_t RS_extra_dimensions() const;
     size_t poly_degree_bound() const;
-    field_type get_field_type() const;
+    libff::field_type get_field_type() const;
     std::vector<size_t> get_localization_parameters() const;
     size_t query_repetitions() const;
     size_t interactive_repetitions() const;

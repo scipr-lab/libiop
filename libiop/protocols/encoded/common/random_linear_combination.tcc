@@ -62,8 +62,8 @@ FieldT random_linear_combination_oracle<FieldT>::evaluation_at_point(
     const FieldT evaluation_point,
     const std::vector<FieldT> &constituent_oracle_evaluations) const
 {
-    libiop::UNUSED(evaluation_position);
-    libiop::UNUSED(evaluation_point);
+    libff::UNUSED(evaluation_position);
+    libff::UNUSED(evaluation_point);
 
     if (constituent_oracle_evaluations.size() != this->num_oracles_)
     {

@@ -20,8 +20,8 @@ ligero_iop_parameters<FieldT>::ligero_iop_parameters(const size_t security_param
 {
     size_t num_vars = num_variables + 1;
     size_t systematic_domain_size = (std::size_t) ceil(sqrt(num_vars / this->height_width_ratio_));
-    systematic_domain_size = round_to_next_power_of_2(systematic_domain_size);
-    this->systematic_domain_dim_ = log2(systematic_domain_size);
+    systematic_domain_size = libff::round_to_next_power_of_2(systematic_domain_size);
+    this->systematic_domain_dim_ = libff::log2(systematic_domain_size);
     this->codeword_domain_dim_ = this->systematic_domain_dim_ + this->RS_extra_dimensions_;
     this->set_soundness_parameters();
 }
@@ -82,7 +82,7 @@ void ligero_iop_parameters<FieldT>::set_encoded_ligero_interactions(const size_t
      *  We compute the logarithm using the identity:
      *      log(1 / |F|) = -log(|F|)
      */
-    const long double field_size_bits = (long double)(soundness_log_of_field_size_helper<FieldT>(FieldT::zero()));
+    const long double field_size_bits = (long double)(libff::soundness_log_of_field_size_helper<FieldT>(FieldT::zero()));
     const long double denominator = -field_size_bits;
     const long double num_interactive_repetitions = ceil(-1.0 * interactive_soundness_bits / denominator);
     this->encoded_ligero_params_.num_interaction_phase_repetitions_ =
@@ -237,7 +237,7 @@ field_subset_type ligero_iop_parameters<FieldT>::domain_type() const
 template<typename FieldT>
 long double ligero_iop_parameters<FieldT>::achieved_encoded_ligero_interactive_soundness_error() const
 {
-    const long double field_size_bits = (long double)(soundness_log_of_field_size_helper<FieldT>(FieldT::zero()));
+    const long double field_size_bits = (long double)(libff::soundness_log_of_field_size_helper<FieldT>(FieldT::zero()));
     const long double soundness_bits_per_instance = -field_size_bits;
     const long double casted_num_interactive_repetitions =
         (long double)(this->encoded_ligero_params_.num_interaction_phase_repetitions_);
@@ -278,23 +278,23 @@ template<typename FieldT>
 void ligero_iop_parameters<FieldT>::print() const
 {
     printf("\nLigero IOP parameters\n");
-    libiop::print_indent(); printf("* target security parameter = %zu\n", this->security_parameter_);
-    libiop::print_indent(); printf("* achieved security parameter = %.1Lf\n", this->achieved_soundness());
-    libiop::print_indent(); printf("* encoded ligero interactions = %lu\n",
+    libff::print_indent(); printf("* target security parameter = %zu\n", this->security_parameter_);
+    libff::print_indent(); printf("* achieved security parameter = %.1Lf\n", this->achieved_soundness());
+    libff::print_indent(); printf("* encoded ligero interactions = %lu\n",
         this->encoded_ligero_params_.num_interaction_phase_repetitions_);
-    libiop::print_indent(); printf("* encoded ligero queries = %lu\n",
+    libff::print_indent(); printf("* encoded ligero queries = %lu\n",
         this->encoded_ligero_params_.num_query_phase_repetitions_);
-    libiop::print_indent(); printf("* encoded ligero absolute proximity parameter = %lu\n",
+    libff::print_indent(); printf("* encoded ligero absolute proximity parameter = %lu\n",
         this->absolute_encoded_ligero_proximity_parameter_);
-    libiop::print_indent(); printf("* encoded ligero fractional proximity parameter = %Lf\n",
+    libff::print_indent(); printf("* encoded ligero fractional proximity parameter = %Lf\n",
         this->fractional_encoded_ligero_proximity_parameter_);
-    libiop::print_indent(); printf("* RS extra dimensions = %zu\n", this->RS_extra_dimensions_);
-    libiop::print_indent(); printf("* systematic domain dim = %zu\n", this->systematic_domain_dim_);
-    libiop::print_indent(); printf("* codeword domain dim = %zu\n", this->codeword_domain_dim_);
-    libiop::print_indent(); printf("* num oracles for input = %zu\n", this->num_oracles_input_);
-    libiop::print_indent(); printf("* num oracle vectors = %zu\n", this->num_oracle_vectors_);
-    libiop::print_indent(); printf("* make zk = %s\n", (this->make_zk_ ? "true" : "false"));
-    libiop::print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->domain_type_]);
+    libff::print_indent(); printf("* RS extra dimensions = %zu\n", this->RS_extra_dimensions_);
+    libff::print_indent(); printf("* systematic domain dim = %zu\n", this->systematic_domain_dim_);
+    libff::print_indent(); printf("* codeword domain dim = %zu\n", this->codeword_domain_dim_);
+    libff::print_indent(); printf("* num oracles for input = %zu\n", this->num_oracles_input_);
+    libff::print_indent(); printf("* num oracle vectors = %zu\n", this->num_oracle_vectors_);
+    libff::print_indent(); printf("* make zk = %s\n", (this->make_zk_ ? "true" : "false"));
+    libff::print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->domain_type_]);
     this->ldt_reducer_params_.print();
     this->direct_ldt_params_.print();
 }
@@ -375,13 +375,13 @@ void ligero_iop<FieldT>::produce_proof(const r1cs_primary_input<FieldT> &primary
 template<typename FieldT>
 bool ligero_iop<FieldT>::verifier_predicate(const r1cs_primary_input<FieldT> &primary_input)
 {
-    libiop::enter_block("Check Interleaved R1CS verifier predicate");
+    libff::enter_block("Check Interleaved R1CS verifier predicate");
     bool decision = this->protocol_->verifier_predicate(primary_input);
-    libiop::leave_block("Check Interleaved R1CS verifier predicate");
+    libff::leave_block("Check Interleaved R1CS verifier predicate");
 
-    libiop::enter_block("Check LDT verifier predicate");
+    libff::enter_block("Check LDT verifier predicate");
     decision &= this->LDT_reducer_->verifier_predicate();
-    libiop::leave_block("Check LDT verifier predicate");
+    libff::leave_block("Check LDT verifier predicate");
 
     return decision;
 }

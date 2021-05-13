@@ -3,19 +3,18 @@
 
 #include <gtest/gtest.h>
 
-#include "libiop/algebra/exponentiation.hpp"
 #include <libff/algebra/fields/binary/gf64.hpp>
 #include "libiop/algebra/fft.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/polynomials/vanishing_polynomial.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 #include "libiop/iop/iop.hpp"
 
 namespace libiop {
 
 TEST(IOPTest, OracleRegistration) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const std::size_t L_dim = 10;
     for (size_t i = 0; i < 2; i++)
@@ -27,7 +26,7 @@ TEST(IOPTest, OracleRegistration) {
         const domain_handle L_handle = IOP.register_subspace(L);
 
         const oracle_handle R_handle = IOP.register_oracle("", L_handle, 20, make_zk); /* R \in RS[L,21] */
-        libiop::UNUSED(R_handle);
+        libff::UNUSED(R_handle);
 
         /* registering an overflowing oracle (deg >= elements in subspace)
         should raise an error */
@@ -38,7 +37,7 @@ TEST(IOPTest, OracleRegistration) {
 /* TODO: add more tests for the basic IOP scaffolding */
 
 TEST(IOPTest, SumcheckTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const std::size_t H_dim = 10;
     const std::size_t L_dim = 12;
@@ -92,7 +91,7 @@ TEST(IOPTest, SumcheckTest) {
     EXPECT_EQ(g.num_terms(), H_size);
 
     const FieldT beta = g[H_size-1];
-    libiop::UNUSED(beta);
+    libff::UNUSED(beta);
 
     g.set_degree(H_size-2, true); /* g is now a degree H_size-2 polynomial */
 
@@ -121,7 +120,7 @@ TEST(IOPTest, SumcheckTest) {
 
     const FieldT f_at_r = f.evaluation_at_point(r);
     const FieldT Z_H_at_r = Z_H.evaluation_at_point(r);
-    const FieldT r_to_H_minus = libiop::power<FieldT>(r, H_size-1);
+    const FieldT r_to_H_minus = libff::power<FieldT>(r, H_size-1);
 
     const FieldT lhs = c * f_at_r;
     const FieldT rhs = c * g_at_r + mu * r_to_H_minus + c * Z_H_at_r * h_at_r;
@@ -129,7 +128,7 @@ TEST(IOPTest, SumcheckTest) {
 }
 
 TEST(IOPTest, ZeroKnowledgeSumcheckTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const std::size_t H_dim = 10;
     const std::size_t L_dim = 12;
@@ -212,7 +211,7 @@ TEST(IOPTest, ZeroKnowledgeSumcheckTest) {
     EXPECT_EQ(g.num_terms(), H_size);
 
     const FieldT beta = g[H_size-1];
-    libiop::UNUSED(beta);
+    libff::UNUSED(beta);
 
     g.set_degree(H_size-2, true); /* g is now a degree H_size-2 polynomial */
 
@@ -249,7 +248,7 @@ TEST(IOPTest, ZeroKnowledgeSumcheckTest) {
     const linearized_polynomial<FieldT> Z_H = vanishing_polynomial_from_subspace(H);
     const FieldT c = (Z_H.num_terms() < 2 ? FieldT(0) : Z_H[1]);
     const FieldT Z_H_at_r = Z_H.evaluation_at_point(r);
-    const FieldT r_to_H_minus = libiop::power<FieldT>(r, H_size-1);
+    const FieldT r_to_H_minus = libff::power<FieldT>(r, H_size-1);
 
     const FieldT lhs = c * virtual_oracle_at_r;
     const FieldT rhs = (c * g_at_r + (pad_sum + challenge_verifier_view[0] * mu) * r_to_H_minus +

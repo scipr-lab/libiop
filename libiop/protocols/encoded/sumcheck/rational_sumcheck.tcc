@@ -1,11 +1,10 @@
 #include <memory>
 #include <stdexcept>
 
-#include "libiop/algebra/exponentiation.hpp"
+#include <libff/common/profiling.hpp>
 #include "libiop/algebra/fft.hpp"
 #include "libiop/algebra/utils.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"
-#include "libiop/common/profiling.hpp"
 
 namespace libiop {
 
@@ -124,7 +123,7 @@ public:
         const FieldT evaluation_point,
         const std::vector<FieldT> &constituent_oracle_evaluations) const
     {
-        libiop::UNUSED(evaluation_position);
+        libff::UNUSED(evaluation_position);
         /** The input is expected to be of the form: (p, N, D)
          *  where p is the codeword outputted by rational sumcheck,
          *  N is the numerator of the rational function, and D its denominator.

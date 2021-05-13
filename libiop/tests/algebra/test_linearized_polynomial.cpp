@@ -5,18 +5,17 @@
 
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
 #include <libff/algebra/fields/binary/gf64.hpp>
-#include "libiop/algebra/exponentiation.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/polynomials/linearized_polynomial.hpp"
 #include "libiop/algebra/polynomials/vanishing_polynomial.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 
 namespace libiop {
 
 TEST(PolynomialTest, Initialization) {
-    const linearized_polynomial<gf64> lin_poly =
-        linearized_polynomial<gf64>::random_linearized_polynomial(4);
+    const linearized_polynomial<libff::gf64> lin_poly =
+        linearized_polynomial<libff::gf64>::random_linearized_polynomial(4);
 }
 
 template<typename FieldT>
@@ -44,7 +43,7 @@ void subspace_test_helper(const std::size_t dim,
         EXPECT_EQ(expanded_result, linearized_result);
 
         const FieldT truncated_result = truncated_Z_S_poly.evaluation_at_point(S_elements[i]);
-        const FieldT high_term = highest_coeff * libiop::power<FieldT>(S_elements[i], (1ull<<dim));
+        const FieldT high_term = highest_coeff * libff::power<FieldT>(S_elements[i], (1ull<<dim));
         const FieldT combined_result = truncated_result + high_term;
         EXPECT_EQ(combined_result, expanded_result);
 
@@ -64,7 +63,7 @@ void subspace_test_helper(const std::size_t dim,
 }
 
 TEST(PolynomialTest, SubspaceEval) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const std::size_t dim = 10;
     const affine_subspace<FieldT> S = affine_subspace<FieldT>::random_affine_subspace(dim);
@@ -92,7 +91,7 @@ TEST(PolynomialTest, SubspaceEval) {
 }
 
 TEST(PolynomialTest, LinearizedPolynomialDivisionTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     for (std::size_t deg_P = 0; deg_P < 1000; ++deg_P)
     {

@@ -80,7 +80,7 @@ void run_lagrange_polynomial_tests_for_field(size_t dimension_upperbound, size_t
             non_power_of_2 * (1ull << dim_vp), vp_domain.element_outside_of_subset());
         test_lagrange_polynomial_systematic_relation(vp_domain);
         test_lagrange_polynomial_systematic_relation(vp_domain_coset);
-        for (size_t dim_S = 1; dim_S < dimension_upperbound + log2(non_power_of_2); ++dim_S)
+        for (size_t dim_S = 1; dim_S < dimension_upperbound + libff::log2(non_power_of_2); ++dim_S)
         {
             const FieldT x = FieldT::random_element();
             const field_subset<FieldT> S(1ull << dim_S);
@@ -99,20 +99,20 @@ void run_lagrange_polynomial_tests_for_field(size_t dimension_upperbound, size_t
 
 TEST(PolynomialTest, MultiplicativeLagrangePolynomialTest)
 {
-    edwards_pp::init_public_params();
-    run_lagrange_polynomial_tests_for_field<edwards_Fr>(10, 3);
+    libff::edwards_pp::init_public_params();
+    run_lagrange_polynomial_tests_for_field<libff::edwards_Fr>(10, 3);
 
-    alt_bn128_pp::init_public_params();
-    run_lagrange_polynomial_tests_for_field<alt_bn128_Fr>(10, 3);
+    libff::alt_bn128_pp::init_public_params();
+    run_lagrange_polynomial_tests_for_field<libff::alt_bn128_Fr>(10, 3);
 }
 
 TEST(PolynomialTest, AdditiveLagrangePolynomialTest)
 {
     const size_t dimension = 10;
-    run_lagrange_polynomial_tests_for_field<gf64>(dimension);
-    run_lagrange_polynomial_tests_for_field<gf128>(dimension);
-    run_lagrange_polynomial_tests_for_field<gf192>(dimension);
-    run_lagrange_polynomial_tests_for_field<gf256>(dimension);
+    run_lagrange_polynomial_tests_for_field<libff::gf64>(dimension);
+    run_lagrange_polynomial_tests_for_field<libff::gf128>(dimension);
+    run_lagrange_polynomial_tests_for_field<libff::gf192>(dimension);
+    run_lagrange_polynomial_tests_for_field<libff::gf256>(dimension);
 }
 
 }

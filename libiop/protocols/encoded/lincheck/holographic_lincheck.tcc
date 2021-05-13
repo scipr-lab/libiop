@@ -25,7 +25,7 @@ holographic_lincheck_parameters<FieldT>::holographic_lincheck_parameters(
      *  which is equivalent to:
      *      k = ceil(security parameter / -log_2((2|H| / |F|)) )
      */
-    const long double field_size_bits = (long double)(soundness_log_of_field_size_helper<FieldT>(FieldT::zero()));
+    const long double field_size_bits = (long double)(libff::soundness_log_of_field_size_helper<FieldT>(FieldT::zero()));
     /* log_2(2|H| / |F|) = 1 + log(|H|) - log(|F|)*/
     const long double soundness_per_repetitiion = (long double)(
         1 + this->constraint_domain_dim_) - field_size_bits;
@@ -70,7 +70,7 @@ template<typename FieldT>
 long double holographic_lincheck_parameters<FieldT>::achieved_interactive_soundness() const
 {
     /* Soundness is 2|H| / (|F| - |H|). We assume (|F| - |H|) ~= |F| */
-    const long double field_size_bits = (long double)(soundness_log_of_field_size_helper<FieldT>(FieldT::zero()));
+    const long double field_size_bits = (long double)(libff::soundness_log_of_field_size_helper<FieldT>(FieldT::zero()));
     const long double soundness_per_repetition = (long double)(1 + this->constraint_domain_dim_) - field_size_bits;
     const long double num_repetitions = (long double)this->num_repetitions_;
     return -(num_repetitions) * soundness_per_repetition;
@@ -102,14 +102,14 @@ void holographic_lincheck_parameters<FieldT>::print() const
     printf("\nHolographic Multi lincheck parameters\n");
     if (this->override_security_parameter_)
     {
-        libiop::print_indent(); printf("===WARNING=== Holographic Multi lincheck security parameter was overridden\n");
+        libff::print_indent(); printf("===WARNING=== Holographic Multi lincheck security parameter was overridden\n");
     }
-    libiop::print_indent(); printf("* target interactive soundness error (bits) = %zu\n", this->interactive_security_parameter_);
-    libiop::print_indent(); printf("* achieved interactive soundness error (bits) = %.1Lf\n", this->achieved_interactive_soundness());
-    libiop::print_indent(); printf("* interactive repetitions = %zu\n", this->num_repetitions_);
-    libiop::print_indent(); printf("* constraint domain dim = %zu\n", this->constraint_domain_dim_);
-    libiop::print_indent(); printf("* make zk = %s\n", (this->make_zk_ ? "true" : "false"));
-    libiop::print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->domain_type_]);
+    libff::print_indent(); printf("* target interactive soundness error (bits) = %zu\n", this->interactive_security_parameter_);
+    libff::print_indent(); printf("* achieved interactive soundness error (bits) = %.1Lf\n", this->achieved_interactive_soundness());
+    libff::print_indent(); printf("* interactive repetitions = %zu\n", this->num_repetitions_);
+    libff::print_indent(); printf("* constraint domain dim = %zu\n", this->constraint_domain_dim_);
+    libff::print_indent(); printf("* make zk = %s\n", (this->make_zk_ ? "true" : "false"));
+    libff::print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->domain_type_]);
 }
 
 template<typename FieldT>
@@ -389,7 +389,7 @@ void holographic_multi_lincheck<FieldT>::calculate_response_alpha()
     this->p_alpha_M_poly_.resize(this->params_.num_repetitions());
     for (size_t repetition = 0; repetition < this->params_.num_repetitions(); repetition++)
     {
-        libiop::enter_block("Calculate alpha_summation_oracle");
+        libff::enter_block("Calculate alpha_summation_oracle");
         const FieldT alpha = this->IOP_.obtain_verifier_random_message(this->alpha_handle_[repetition])[0];
         this->r_Mz_[repetition] = this->IOP_.obtain_verifier_random_message(this->random_coefficient_handle_[repetition]);
         /** Unnormalized,
@@ -401,21 +401,21 @@ void holographic_multi_lincheck<FieldT>::calculate_response_alpha()
         this->p_alpha_over_H_[repetition] =
             this->p_alpha_[repetition].evaluations_over_field_subset(this->summation_domain_);
 
-        libiop::enter_block("multi_lincheck compute p_alpha_M");
+        libff::enter_block("multi_lincheck compute p_alpha_M");
         std::vector<FieldT> p_alpha_M = compute_p_alpha_M(
             this->input_variable_dim_, this->summation_domain_,
             this->p_alpha_over_H_[repetition], this->r_Mz_[repetition],
             this->matrices_);
         std::vector<FieldT> p_alpha_M_over_L =
             FFT_over_field_subset<FieldT>(p_alpha_M, this->codeword_domain_);
-        libiop::leave_block("multi_lincheck compute p_alpha_M");
+        libff::leave_block("multi_lincheck compute p_alpha_M");
         /* t is the provers alleged commitment to p_alpha_M */
         this->IOP_.submit_oracle(this->t_oracle_handle_[repetition], std::move(p_alpha_M_over_L));
         this->p_alpha_M_poly_[repetition] = polynomial<FieldT>(std::move(p_alpha_M));
 
         this->multi_lincheck_virtual_oracle_[repetition]->set_challenge(alpha, this->r_Mz_[repetition]);
 
-        libiop::leave_block("Calculate alpha_summation_oracle");
+        libff::leave_block("Calculate alpha_summation_oracle");
     }
 }
 
@@ -440,14 +440,14 @@ void holographic_multi_lincheck<FieldT>::calculate_response_beta()
 
     for (size_t repetition = 0; repetition < this->params_.num_repetitions(); repetition++)
     {
-        libiop::enter_block("Calculate beta_summation_oracle");
+        libff::enter_block("Calculate beta_summation_oracle");
         const FieldT beta = this->IOP_.obtain_verifier_random_message(
             this->beta_handle_[repetition])[0];
         /** We have to compute the combined rational function over K,
          *  to pass into rational sumcheck.    */
         std::vector<std::shared_ptr<std::vector<FieldT>>> numerator_oracles_over_K;
         std::vector<std::shared_ptr<std::vector<FieldT>>> denominator_oracles_over_K;
-        libiop::enter_block("Compute rational function over K");
+        libff::enter_block("Compute rational function over K");
         for (size_t i = 0; i < this->num_matrices_; i++)
         {
             /** TODO: Also index evals over K instead of Re-IFFTing here */
@@ -469,7 +469,7 @@ void holographic_multi_lincheck<FieldT>::calculate_response_beta()
         std::vector<FieldT> combined_rational_over_K =
             this->rational_linear_combination_[repetition]->evaluated_contents(
                 numerator_oracles_over_K, denominator_oracles_over_K);
-        libiop::leave_block("Compute rational function over K");
+        libff::leave_block("Compute rational function over K");
 
         this->sumcheck_K_[repetition]->calculate_and_submit_proof(combined_rational_over_K);
         const FieldT M_at_alpha_beta = this->sumcheck_K_[repetition]->get_claimed_sum();
@@ -479,7 +479,7 @@ void holographic_multi_lincheck<FieldT>::calculate_response_beta()
 
         this->sumcheck_H_[repetition]->calculate_and_submit_proof();
 
-        libiop::leave_block("Calculate beta_summation_oracle");
+        libff::leave_block("Calculate beta_summation_oracle");
     }
 }
 

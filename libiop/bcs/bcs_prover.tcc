@@ -23,7 +23,7 @@ bcs_prover<FieldT, MT_hash_type>::bcs_prover(
 template<typename FieldT, typename MT_hash_type>
 void bcs_prover<FieldT, MT_hash_type>::signal_prover_round_done()
 {
-    libiop::enter_block("Finish prover round");
+    libff::enter_block("Finish prover round");
     iop_protocol<FieldT>::signal_prover_round_done();
     std::size_t ended_round = this->num_prover_rounds_done_-1;
     const domain_to_oracles_map mapping = this->oracles_in_round_by_domain(ended_round);
@@ -40,23 +40,23 @@ void bcs_prover<FieldT, MT_hash_type>::signal_prover_round_done()
         {
             all_oracle_evaluated_contents.emplace_back(this->oracles_[v.id()].evaluated_contents());
         }
-        libiop::enter_block("Construct Merkle tree");
+        libff::enter_block("Construct Merkle tree");
         this->Merkle_trees_[this->processed_MTs_].construct_with_leaves_serialized_by_cosets(
             all_oracle_evaluated_contents, round_params.quotient_map_size_);
-        libiop::leave_block("Construct Merkle tree");
+        libff::leave_block("Construct Merkle tree");
     }
 
     this->run_hashchain_for_round();
 
-    libiop::leave_block("Finish prover round");
-    libiop::enter_block("pow");
+    libff::leave_block("Finish prover round");
+    libff::enter_block("pow");
     // If we are in the last round, do a proof of work
     if (this->num_prover_rounds_done_ == this->num_interaction_rounds_)
     {
         MT_hash_type pow_challenge = this->hashchain_->squeeze_root_type();
         this->pow_answer_ = this->pow_.solve_pow(this->parameters_.compression_hasher, pow_challenge);
     }
-    libiop::leave_block("pow");
+    libff::leave_block("pow");
 }
 
 template<typename FieldT, typename MT_hash_type>
@@ -253,9 +253,9 @@ std::size_t bcs_prover<FieldT, MT_hash_type>::state_size() const
 template<typename FieldT, typename MT_hash_type>
 void bcs_prover<FieldT, MT_hash_type>::describe_sizes() const
 {
-    libiop::print_indent(); printf("* Total size of proof oracles (bytes): %zu\n", this->num_bytes_across_all_oracles());
-    libiop::print_indent(); printf("* Total size of Merkle tree (bytes): %zu\n", this->MT_size());
-    libiop::print_indent(); printf("* Total size of prover state (bytes): %zu\n", this->state_size());
+    libff::print_indent(); printf("* Total size of proof oracles (bytes): %zu\n", this->num_bytes_across_all_oracles());
+    libff::print_indent(); printf("* Total size of Merkle tree (bytes): %zu\n", this->MT_size());
+    libff::print_indent(); printf("* Total size of prover state (bytes): %zu\n", this->state_size());
 }
 
 } // namespace libiop

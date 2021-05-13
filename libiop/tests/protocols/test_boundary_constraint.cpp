@@ -7,7 +7,7 @@
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/polynomials/vanishing_polynomial.hpp"
 #include "libiop/algebra/field_subset/field_subset.hpp"
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 #include "libiop/protocols/encoded/common/boundary_constraint.hpp"
 #include "libiop/tests/protocols/utilities.cpp"
 
@@ -50,7 +50,7 @@ void run_test(const field_subset<FieldT> codeword_domain,
 
 template<typename FieldT>
 void run_random_test(const size_t poly_degree, const bool expect_pass) {
-    const size_t codeword_domain_dim = log2(poly_degree) + 2;
+    const size_t codeword_domain_dim = libff::log2(poly_degree) + 2;
     const field_subset<FieldT> unshifted_codeword_domain(1ull << codeword_domain_dim);
     const FieldT codeword_domain_shift = unshifted_codeword_domain.element_outside_of_subset();
 
@@ -75,7 +75,7 @@ void run_random_test(const size_t poly_degree, const bool expect_pass) {
 }
 
 TEST(AdditiveSucceedingTests, BoundaryConstraintTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     bool passing_tests = true;
     for (std::size_t log2_poly_degree = 6; log2_poly_degree < 12; log2_poly_degree++) {
         size_t poly_degree = 1ull << log2_poly_degree;
@@ -86,8 +86,8 @@ TEST(AdditiveSucceedingTests, BoundaryConstraintTest) {
 }
 
 TEST(MultiplicativeSucceedingTests, BoundaryConstraintTest) {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
     bool passing_tests = true;
     for (std::size_t log2_poly_degree = 6; log2_poly_degree < 12; log2_poly_degree++) {
         size_t poly_degree = 1ull << log2_poly_degree;
@@ -98,7 +98,7 @@ TEST(MultiplicativeSucceedingTests, BoundaryConstraintTest) {
 }
 
 TEST(AdditiveFailingTests, BoundaryConstraintTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     bool failing_tests = false;
     for (std::size_t log2_poly_degree = 6; log2_poly_degree < 12; log2_poly_degree++) {
         size_t poly_degree = 1ull << log2_poly_degree;
@@ -109,8 +109,8 @@ TEST(AdditiveFailingTests, BoundaryConstraintTest) {
 }
 
 TEST(MultiplicativeFailingTests, BoundaryConstraintTest) {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
     bool failing_tests = false;
     for (std::size_t log2_poly_degree = 6; log2_poly_degree < 12; log2_poly_degree++) {
         size_t poly_degree = 1ull << log2_poly_degree;

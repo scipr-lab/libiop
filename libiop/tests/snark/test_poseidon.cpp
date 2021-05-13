@@ -43,8 +43,8 @@ poseidon_params<FieldT> default_params()
 }
 
 TEST(PermutationTest, PoseidonTest) {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
 
     poseidon_params<FieldT> params = default_params<FieldT>();
     poseidon<FieldT> poseidon_sponge(params);
@@ -67,8 +67,8 @@ TEST(PermutationTest, PoseidonTest) {
 }
 
 TEST(LeafTest, PoseidonTest) {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
 
     poseidon_params<FieldT> params = default_params<FieldT>();
     poseidon<FieldT> poseidon_sponge(params);
@@ -101,8 +101,8 @@ TEST(LeafTest, PoseidonTest) {
 }
 
 TEST(TwoToOneTest, PoseidonTest) {
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
 
     std::shared_ptr<leafhash<FieldT, FieldT>> leafhasher = get_leafhash<FieldT, FieldT>(starkware_poseidon_type, 128, 2);
     two_to_one_hash_function<FieldT> twoToOneHash = get_two_to_one_hash<FieldT, FieldT>(starkware_poseidon_type, 128);

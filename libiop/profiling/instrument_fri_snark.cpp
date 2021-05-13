@@ -13,7 +13,7 @@
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
 #include <libff/algebra/curves/alt_bn128/alt_bn128_pp.hpp>
 
-#include "libiop/algebra/field_utils.hpp"
+#include <libff/algebra/field_utils/field_utils.hpp>
 #include <libff/algebra/fields/binary/gf64.hpp>
 #include <libff/algebra/fields/binary/gf256.hpp>
 #include <libff/algebra/fields/binary/gf192.hpp>
@@ -22,7 +22,7 @@
 #include "libiop/algebra/field_subset/subgroup.hpp"
 #include "libiop/algebra/fft.hpp"
 
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 #include "libiop/iop/iop.hpp"
 #include "libiop/protocols/ldt/fri/fri_ldt.hpp"
 #include "libiop/snark/fri_snark.hpp"
@@ -80,7 +80,7 @@ void instrument_FRI(options &options,
 {
     for (std::size_t log_n = options.log_n_min; log_n <= options.log_n_max; ++log_n)
     {
-        print_separator();
+        libff::print_separator();
         const std::size_t poly_degree_bound = 1ull << log_n;
         const std::size_t RS_extra_dimensions = 2; /* \rho = 2^{-RS_extra_dimensions} */
         const std::size_t codeword_domain_dim = log_n + RS_extra_dimensions;
@@ -116,24 +116,24 @@ void instrument_FRI(options &options,
         params.localization_parameter_ = localization_parameter;
         params.num_interactive_repetitions_ = num_interactive_repetitions;
         params.num_query_repetitions_ = num_query_repetitions;
-        params.field_type_ = get_field_type<FieldT>(FieldT::zero());
+        params.field_type_ = libff::get_field_type<FieldT>(FieldT::zero());
         params.num_oracles_ = num_oracles;
 
         const FRI_snark_proof<FieldT, hash_type> proof = FRI_snark_prover<FieldT, hash_type>(params);
         printf("\n");
-        libiop::print_indent(); printf("* Argument size in bytes (IOP): %zu\n", proof.IOP_size_in_bytes());
-        libiop::print_indent(); printf("* Argument size in bytes (BCS): %zu\n", proof.BCS_size_in_bytes());
-        libiop::print_indent(); printf("* Argument size in bytes (total): %zu\n", proof.size_in_bytes());
+        libff::print_indent(); printf("* Argument size in bytes (IOP): %zu\n", proof.IOP_size_in_bytes());
+        libff::print_indent(); printf("* Argument size in bytes (BCS): %zu\n", proof.BCS_size_in_bytes());
+        libff::print_indent(); printf("* Argument size in bytes (total): %zu\n", proof.size_in_bytes());
 
         printf("\nIf we were to remove the pruning of BCS merkle tree paths feature,\n"
                "the argument would have the following sizes:\n");
-        libiop::print_indent(); printf("* Argument size in bytes (BCS, no pruning): %zu\n", proof.BCS_size_in_bytes_without_pruning());
-        libiop::print_indent(); printf("* Argument size in bytes (total, no pruning): %zu\n", proof.size_in_bytes_without_pruning());
+        libff::print_indent(); printf("* Argument size in bytes (BCS, no pruning): %zu\n", proof.BCS_size_in_bytes_without_pruning());
+        libff::print_indent(); printf("* Argument size in bytes (total, no pruning): %zu\n", proof.size_in_bytes_without_pruning());
         printf("\n");
 
         const bool bit = FRI_snark_verifier<FieldT, hash_type>(proof, params);
 
-        libiop::print_indent(); printf("* Verifier satisfied: %s\n", bit ? "true" : "false");
+        libff::print_indent(); printf("* Verifier satisfied: %s\n", bit ? "true" : "false");
     }
 }
 
@@ -154,7 +154,7 @@ int main(int argc, const char * argv[])
         printf("There is no argument parsing in CPPDEBUG mode.");
         exit(1);
     }
-    libiop::UNUSED(argv);
+    libff::UNUSED(argv);
 
 #else
     if (!process_prover_command_line(argc, argv, default_vals, localization_parameter,
@@ -166,7 +166,7 @@ int main(int argc, const char * argv[])
 
 #endif
 
-    libiop::start_profiling();
+    libff::start_profiling();
 
     printf("Selected parameters:\n");
     printf("* log_n_min = %zu\n", default_vals.log_n_min);
@@ -176,14 +176,14 @@ int main(int argc, const char * argv[])
     if (default_vals.is_multiplicative) {
         switch (default_vals.field_size) {
             case 181:
-                edwards_pp::init_public_params();
-                instrument_FRI<edwards_Fr, binary_hash_digest>(default_vals, localization_parameter,
+                libff::edwards_pp::init_public_params();
+                instrument_FRI<libff::edwards_Fr, binary_hash_digest>(default_vals, localization_parameter,
                                      num_interactive_repetitions, num_query_repetitions,
                                      num_localization_steps, num_oracles);
                 break;
             case 256:
                 libff::alt_bn128_pp::init_public_params();
-                instrument_FRI<alt_bn128_Fr, binary_hash_digest>(default_vals, localization_parameter,
+                instrument_FRI<libff::alt_bn128_Fr, binary_hash_digest>(default_vals, localization_parameter,
                                      num_interactive_repetitions, num_query_repetitions,
                                      num_localization_steps, num_oracles);
                 break;
@@ -194,22 +194,22 @@ int main(int argc, const char * argv[])
         switch (default_vals.field_size)
         {
             case 64:
-                instrument_FRI<gf64, binary_hash_digest>(default_vals, localization_parameter,
+                instrument_FRI<libff::gf64, binary_hash_digest>(default_vals, localization_parameter,
                                      num_interactive_repetitions, num_query_repetitions,
                                      num_localization_steps, num_oracles);
                 break;
             case 128:
-                instrument_FRI<gf128, binary_hash_digest>(default_vals, localization_parameter,
+                instrument_FRI<libff::gf128, binary_hash_digest>(default_vals, localization_parameter,
                                      num_interactive_repetitions, num_query_repetitions,
                                      num_localization_steps, num_oracles);
                 break;
             case 192:
-                instrument_FRI<gf192, binary_hash_digest>(default_vals, localization_parameter,
+                instrument_FRI<libff::gf192, binary_hash_digest>(default_vals, localization_parameter,
                                      num_interactive_repetitions, num_query_repetitions,
                                      num_localization_steps, num_oracles);
                 break;
             case 256:
-                instrument_FRI<gf256, binary_hash_digest>(default_vals, localization_parameter,
+                instrument_FRI<libff::gf256, binary_hash_digest>(default_vals, localization_parameter,
                                      num_interactive_repetitions, num_query_repetitions,
                                      num_localization_steps, num_oracles);
                 break;

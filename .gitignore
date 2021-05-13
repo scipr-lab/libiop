@@ -37,3 +37,6 @@ gtest_main.pc
 gtest.pc
 DartConfiguration.tcl
 .DartConfiguration.tcl.swp
+.ninja_deps
+.ninja_log
+build.ninja

@@ -12,7 +12,7 @@ namespace libiop {
 
 TEST(FractalSnarkTest, SimpleTest) {
     /* Set up R1CS */
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     typedef binary_hash_digest hash_type;
 
     const std::size_t num_constraints = 1 << 10;
@@ -70,8 +70,8 @@ TEST(FractalSnarkTest, SimpleTest) {
 
 TEST(FractalSnarkMultiplicativeTest, SimpleTest) {
     /* Set up R1CS */
-    edwards_pp::init_public_params();
-    typedef edwards_Fr FieldT;
+    libff::edwards_pp::init_public_params();
+    typedef libff::edwards_Fr FieldT;
     typedef binary_hash_digest hash_type;
 
     const size_t num_constraints = 1 << 10;
@@ -129,8 +129,8 @@ TEST(FractalSnarkMultiplicativeTest, SimpleTest) {
 
 TEST(FractalAlgeraicHashTest, SimpleTest) {
     /* Set up R1CS */
-    alt_bn128_pp::init_public_params();
-    typedef alt_bn128_Fr FieldT;
+    libff::alt_bn128_pp::init_public_params();
+    typedef libff::alt_bn128_Fr FieldT;
     typedef FieldT hash_type;
 
     const size_t num_constraints = 1 << 10;

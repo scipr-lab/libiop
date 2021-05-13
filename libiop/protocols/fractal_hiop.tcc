@@ -14,7 +14,7 @@ fractal_iop_parameters<FieldT>::fractal_iop_parameters(
     constraint_system_(constraint_system)
 {
     /** We require the matrices to be square, and have size that is a power of 2 */
-    if (!is_power_of_2(this->constraint_system_->num_constraints()))
+    if (!libff::is_power_of_2(this->constraint_system_->num_constraints()))
     {
         throw std::invalid_argument(
             "Fractal requires the number of constraints to be a power of two");
@@ -30,13 +30,13 @@ fractal_iop_parameters<FieldT>::fractal_iop_parameters(
         r1cs_sparse_matrix<FieldT>(this->constraint_system_, r1cs_sparse_matrix_B).num_nonzero_entries(),
         r1cs_sparse_matrix<FieldT>(this->constraint_system_, r1cs_sparse_matrix_C).num_nonzero_entries(),
     });
-    const size_t index_domain_dim = log2(max_num_nonzero_entries_per_matrix);
+    const size_t index_domain_dim = libff::log2(max_num_nonzero_entries_per_matrix);
     this->index_domain_ = field_subset<FieldT>(1ull << index_domain_dim);
     this->matrix_domain_ = field_subset<FieldT>(this->constraint_system_->num_constraints());
     /** TODO: Calculate max tested degree / constraint degree precisely.
      *  TODO: Make decision w.r.t. rational linear combination */
     const size_t max_tested_degree = 4 * this->index_domain_.num_elements();
-    this->codeword_domain_dim_ = log2(max_tested_degree) + this->RS_extra_dimensions_;
+    this->codeword_domain_dim_ = libff::log2(max_tested_degree) + this->RS_extra_dimensions_;
 
     const field_subset<FieldT> unshifted_codeword_domain(1ull << this->codeword_domain_dim_);
     const FieldT codeword_domain_shift = unshifted_codeword_domain.element_outside_of_subset();
@@ -200,15 +200,15 @@ template<typename FieldT>
 void fractal_iop_parameters<FieldT>::print() const
 {
     printf("\nFractal hIOP parameters\n");
-    libiop::print_indent(); printf("* target security parameter = %zu\n", this->security_parameter_);
-    libiop::print_indent(); printf("* achieved security parameter = %.1Lf\n", this->achieved_soundness());
-    libiop::print_indent(); printf("* RS extra dimensions = %zu\n", this->RS_extra_dimensions_);
-    libiop::print_indent(); printf("* matrix domain dim = %zu\n", this->matrix_domain_.dimension());
-    libiop::print_indent(); printf("* index domain dim = %zu\n", this->index_domain_.dimension());
-    libiop::print_indent(); printf("* codeword domain dim = %zu\n", this->codeword_domain_dim_);
-    libiop::print_indent(); printf("* query bound = %zu\n", this->query_bound_);
-    libiop::print_indent(); printf("* make zk = %s\n", (this->make_zk_ ? "true" : "false"));
-    libiop::print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->matrix_domain_.type()]);
+    libff::print_indent(); printf("* target security parameter = %zu\n", this->security_parameter_);
+    libff::print_indent(); printf("* achieved security parameter = %.1Lf\n", this->achieved_soundness());
+    libff::print_indent(); printf("* RS extra dimensions = %zu\n", this->RS_extra_dimensions_);
+    libff::print_indent(); printf("* matrix domain dim = %zu\n", this->matrix_domain_.dimension());
+    libff::print_indent(); printf("* index domain dim = %zu\n", this->index_domain_.dimension());
+    libff::print_indent(); printf("* codeword domain dim = %zu\n", this->codeword_domain_dim_);
+    libff::print_indent(); printf("* query bound = %zu\n", this->query_bound_);
+    libff::print_indent(); printf("* make zk = %s\n", (this->make_zk_ ? "true" : "false"));
+    libff::print_indent(); printf("* domain type = %s\n", field_subset_type_names[this->matrix_domain_.type()]);
 
     this->encoded_aurora_params_.holographic_lincheck_params_.print();
     this->LDT_reducer_params_.print();
@@ -251,7 +251,7 @@ fractal_iop<FieldT>::fractal_iop(
 template<typename FieldT>
 void fractal_iop<FieldT>::register_index_oracles()
 {
-    const size_t input_variable_dim = log2(this->parameters_.constraint_system()->num_inputs());
+    const size_t input_variable_dim = libff::log2(this->parameters_.constraint_system()->num_inputs());
     for (size_t i = 0; i < 3; i++)
     {
         std::shared_ptr<sparse_matrix<FieldT>> M
@@ -331,13 +331,13 @@ void fractal_iop<FieldT>::produce_proof(
 template<typename FieldT>
 bool fractal_iop<FieldT>::verifier_predicate(const r1cs_primary_input<FieldT> &primary_input)
 {
-    libiop::enter_block("Construct R1CS verifier state");
+    libff::enter_block("Construct R1CS verifier state");
     this->protocol_->construct_verifier_state(primary_input);
-    libiop::leave_block("Construct R1CS verifier state");
+    libff::leave_block("Construct R1CS verifier state");
 
-    libiop::enter_block("Check LDT verifier predicate");
+    libff::enter_block("Check LDT verifier predicate");
     const bool decision = this->LDT_reducer_->verifier_predicate();
-    libiop::leave_block("Check LDT verifier predicate");
+    libff::leave_block("Check LDT verifier predicate");
 
     return decision;
 }

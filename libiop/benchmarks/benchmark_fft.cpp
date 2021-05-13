@@ -6,7 +6,7 @@
 #include "libiop/algebra/fft.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
 #include "libiop/algebra/utils.hpp"
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 
 
 namespace libiop {
@@ -17,10 +17,10 @@ namespace libiop {
    for the other fft's. */
 static void BM_naive_FFT(benchmark::State &state)
 {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const size_t sz = state.range(0);
-    const size_t log_sz = log2(sz);
+    const size_t log_sz = libff::log2(sz);
 
     const std::vector<FieldT> v = random_vector<FieldT>(sz);
 
@@ -39,10 +39,10 @@ BENCHMARK(BM_naive_FFT)->Range(1ull<<4, 1ull<<15)->Unit(benchmark::kMicrosecond)
 
 static void BM_additive_FFT(benchmark::State &state)
 {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const size_t sz = state.range(0);
-    const size_t log_sz = log2(sz);
+    const size_t log_sz = libff::log2(sz);
 
     const std::vector<FieldT> poly_coeffs = random_vector<FieldT>(sz);
 
@@ -61,10 +61,10 @@ BENCHMARK(BM_additive_FFT)->Range(1ull<<4, 1ull<<20)->Unit(benchmark::kMicroseco
 
 static void BM_additive_IFFT(benchmark::State &state)
 {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const size_t sz = state.range(0);
-    const size_t log_sz = log2(sz);
+    const size_t log_sz = libff::log2(sz);
 
     const std::vector<FieldT> evals = random_vector<FieldT>(sz);
 
@@ -83,11 +83,11 @@ BENCHMARK(BM_additive_IFFT)->Range(1ull<<4, 1ull<<20)->Unit(benchmark::kMicrosec
 
 static void BM_multiplicative_subgroup_FFT(benchmark::State &state)
 {
-    edwards_pp::init_public_params();
-    typedef edwards_Fr FieldT;
+    libff::edwards_pp::init_public_params();
+    typedef libff::edwards_Fr FieldT;
 
     const size_t sz = state.range(0);
-    const size_t log_sz = log2(sz);
+    const size_t log_sz = libff::log2(sz);
 
     const std::vector<FieldT> poly_coeffs = random_vector<FieldT>(sz);
 
@@ -107,11 +107,11 @@ BENCHMARK(BM_multiplicative_subgroup_FFT)->Range(1ull<<4, 1ull<<20)->Unit(benchm
 
 static void BM_multiplicative_subgroup_IFFT(benchmark::State &state)
 {
-    edwards_pp::init_public_params();
-    typedef edwards_Fr FieldT;
+    libff::edwards_pp::init_public_params();
+    typedef libff::edwards_Fr FieldT;
 
     const size_t sz = state.range(0);
-    const size_t log_sz = log2(sz);
+    const size_t log_sz = libff::log2(sz);
 
     const std::vector<FieldT> poly_coeffs = random_vector<FieldT>(sz);
 
@@ -130,11 +130,11 @@ BENCHMARK(BM_multiplicative_subgroup_IFFT)->Range(1ull<<4, 1ull<<20)->Unit(bench
 
 static void BM_multiplicative_coset_FFT(benchmark::State &state)
 {
-    edwards_pp::init_public_params();
-    typedef edwards_Fr FieldT;
+    libff::edwards_pp::init_public_params();
+    typedef libff::edwards_Fr FieldT;
 
     const size_t sz = state.range(0);
-    const size_t log_sz = log2(sz);
+    const size_t log_sz = libff::log2(sz);
 
     const std::vector<FieldT> poly_coeffs = random_vector<FieldT>(sz);
 
@@ -153,11 +153,11 @@ BENCHMARK(BM_multiplicative_coset_FFT)->Range(1ull<<4, 1ull<<20)->Unit(benchmark
 
 static void BM_multiplicative_coset_IFFT(benchmark::State &state)
 {
-    edwards_pp::init_public_params();
-    typedef edwards_Fr FieldT;
+    libff::edwards_pp::init_public_params();
+    typedef libff::edwards_Fr FieldT;
 
     const size_t sz = state.range(0);
-    const size_t log_sz = log2(sz);
+    const size_t log_sz = libff::log2(sz);
 
     const std::vector<FieldT> poly_coeffs = random_vector<FieldT>(sz);
 

@@ -12,7 +12,7 @@
 #include <cstddef>
 #include <iostream>
 
-#include "libiop/algebra/field_utils.hpp"
+#include <libff/algebra/field_utils/field_utils.hpp>
 #include "libiop/protocols/ligero_iop.hpp"
 #include "libiop/relations/r1cs.hpp"
 #include "libiop/bcs/bcs_common.hpp"

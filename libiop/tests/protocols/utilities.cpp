@@ -33,9 +33,9 @@ FieldT sum_over_default_field_subset(const polynomial<FieldT> &P,
     // This assumes that S was created over the default basis.
     // It then creates an extended domain, and does an FFT to convert P to evaluations
     // in that extended domain.
-    const std::size_t dim = std::max(log2(P.num_terms()), log2(S.num_elements()));
+    const std::size_t dim = std::max(libff::log2(P.num_terms()), libff::log2(S.num_elements()));
     FieldT sum = FieldT::zero();
-    if (is_power_of_2(S.num_elements()))
+    if (libff::is_power_of_2(S.num_elements()))
     {
         const field_subset<FieldT> extended_subset(1ull << dim);
         const std::vector<FieldT> evals = FFT_over_field_subset(P.coefficients(), extended_subset);

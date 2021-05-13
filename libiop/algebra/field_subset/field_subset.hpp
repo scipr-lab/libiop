@@ -71,9 +71,9 @@ public:
     bool operator!=(const field_subset<FieldT> &other) const;
 protected:
     void construct_internal(const std::size_t num_elements,
-                            const typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type coset_shift);
+                            const typename libff::enable_if<libff::is_multiplicative<FieldT>::value, FieldT>::type coset_shift);
     void construct_internal(const std::size_t num_elements,
-                            const typename enable_if<is_additive<FieldT>::value, FieldT>::type coset_shift);
+                            const typename libff::enable_if<libff::is_additive<FieldT>::value, FieldT>::type coset_shift);
 };
 
 } // namespace libiop

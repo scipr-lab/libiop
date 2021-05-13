@@ -14,7 +14,7 @@
 #include <libfqfft/evaluation_domain/get_evaluation_domain.hpp>
 #include <libfqfft/evaluation_domain/domains/basic_radix2_domain.hpp>
 
-#include "libiop/algebra/field_utils.hpp"
+#include <libff/algebra/field_utils/field_utils.hpp>
 
 namespace libiop {
 
@@ -61,9 +61,9 @@ public:
     bool operator!=(const multiplicative_subgroup_base<FieldT> &other) const;
 
 protected:
-    void construct_internal(typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type order,
+    void construct_internal(typename libff::enable_if<libff::is_multiplicative<FieldT>::value, FieldT>::type order,
         const FieldT generator = FieldT::zero());
-    void construct_internal(typename enable_if<is_additive<FieldT>::value, FieldT>::type order,
+    void construct_internal(typename libff::enable_if<libff::is_additive<FieldT>::value, FieldT>::type order,
         const FieldT generator = FieldT::zero());
 };
 

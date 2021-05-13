@@ -10,14 +10,14 @@
 #include <boost/program_options.hpp>
 #endif
 
-#include "boost_profile.cpp"
-#include "libiop/algebra/fft.hpp"
 #include <libff/algebra/fields/binary/gf64.hpp>
 #include <libff/algebra/fields/binary/gf256.hpp>
 #include <libff/algebra/fields/binary/gf192.hpp>
 #include <libff/algebra/fields/binary/gf256.hpp>
+#include <libff/common/profiling.hpp>
+#include "boost_profile.cpp"
+#include "libiop/algebra/fft.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
-#include "libiop/common/profiling.hpp"
 
 #ifndef CPPDEBUG
 bool process_prover_command_line(const int argc, const char** argv,
@@ -74,40 +74,40 @@ void instrument_algebra(std::size_t log_n_min,
 
     for (std::size_t log_n = log_n_min; log_n <= log_n_max; log_n += 2)
     {
-        print_separator();
+        libff::print_separator();
         const std::size_t n = 1ul << log_n;
-        libiop::print_indent(); printf("* size of n: %zu\n", n);
+        libff::print_indent(); printf("* size of n: %zu\n", n);
         const std::size_t sqrt_n = 1ul << (log_n / 2);
-        libiop::print_indent(); printf("* size of sqrt(n): %zu\n", sqrt_n);
+        libff::print_indent(); printf("* size of sqrt(n): %zu\n", sqrt_n);
 
         /* FFT(n) */
         std::vector<FieldT> n_vec;
-        libiop::enter_block("n");
+        libff::enter_block("n");
         for (size_t i = 0; i < n; ++i)
         {
             n_vec.push_back(FieldT::random_element());
         }
-        libiop::leave_block("n");
-        affine_subspace<FieldT> n_subspace = linear_subspace<FieldT>::standard_basis(libiop::log2(n));
-        libiop::enter_block("FFT(n)");
+        libff::leave_block("n");
+        affine_subspace<FieldT> n_subspace = linear_subspace<FieldT>::standard_basis(libff::log2(n));
+        libff::enter_block("FFT(n)");
         std::vector<FieldT> fft_results = additive_FFT<FieldT>(n_vec, n_subspace);
-        libiop::leave_block("FFT(n)");
+        libff::leave_block("FFT(n)");
 
         /* sqrt(n) * FFT(sqrt(n)) */
         std::vector<FieldT> sqrt_n_vec;
-        libiop::enter_block("sqrt(n)");
+        libff::enter_block("sqrt(n)");
         for (size_t i = 0; i < sqrt_n; ++i)
         {
             sqrt_n_vec.push_back(FieldT::random_element());
         }
-        libiop::leave_block("sqrt(n)");
-        affine_subspace<FieldT> sqrt_n_subspace = linear_subspace<FieldT>::standard_basis(libiop::log2(sqrt_n));
-        libiop::enter_block("sqrt(n) * FFT(sqrt(n))");
+        libff::leave_block("sqrt(n)");
+        affine_subspace<FieldT> sqrt_n_subspace = linear_subspace<FieldT>::standard_basis(libff::log2(sqrt_n));
+        libff::enter_block("sqrt(n) * FFT(sqrt(n))");
         for (size_t i = 0; i < sqrt_n; ++i)
         {
             std::vector<FieldT> sqrt_results = additive_FFT<FieldT>(sqrt_n_vec, sqrt_n_subspace);
         }
-        libiop::leave_block("sqrt(n) * FFT(sqrt(n))");
+        libff::leave_block("sqrt(n) * FFT(sqrt(n))");
     }
 }
 
@@ -124,7 +124,7 @@ int main(int argc, const char * argv[])
         printf("There is no argument parsing in CPPDEBUG mode.");
         exit(1);
     }
-    libiop::UNUSED(argv);
+    libff::UNUSED(argv);
 
     log_n_min = 8;
     log_n_max = 20;
@@ -143,16 +143,16 @@ int main(int argc, const char * argv[])
     switch (field_size)
     {
         case 64:
-            instrument_algebra<gf64>(log_n_min, log_n_max);
+            instrument_algebra<libff::gf64>(log_n_min, log_n_max);
             break;
         case 128:
-            instrument_algebra<gf128>(log_n_min, log_n_max);
+            instrument_algebra<libff::gf128>(log_n_min, log_n_max);
             break;
         case 192:
-            instrument_algebra<gf192>(log_n_min, log_n_max);
+            instrument_algebra<libff::gf192>(log_n_min, log_n_max);
             break;
         case 256:
-            instrument_algebra<gf256>(log_n_min, log_n_max);
+            instrument_algebra<libff::gf256>(log_n_min, log_n_max);
             break;
         default:
             throw std::invalid_argument("Field size not supported.");

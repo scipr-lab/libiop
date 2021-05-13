@@ -35,7 +35,7 @@ bcs_verifier<FieldT, MT_hash_type>::bcs_verifier(
 template<typename FieldT, typename hash_digest_type>
 void bcs_verifier<FieldT, hash_digest_type>::seal_interaction_registrations()
 {
-    libiop::enter_block("verifier_seal_interaction_registrations");
+    libff::enter_block("verifier_seal_interaction_registrations");
     bcs_protocol<FieldT, hash_digest_type>::seal_interaction_registrations();
 
     this->transcript_is_valid_ = true;
@@ -102,7 +102,7 @@ void bcs_verifier<FieldT, hash_digest_type>::seal_interaction_registrations()
 
     /* Finally populate things for obtaining query responses */
     this->parse_query_responses_from_transcript();
-    libiop::leave_block("verifier_seal_interaction_registrations");
+    libff::leave_block("verifier_seal_interaction_registrations");
 }
 
 template<typename FieldT, typename MT_hash_type>
@@ -179,7 +179,7 @@ FieldT bcs_verifier<FieldT, MT_hash_type>::get_oracle_evaluation_at_point(
     const std::size_t evaluation_position,
     const bool record)
 {
-    libiop::UNUSED(record);
+    libff::UNUSED(record);
 
     if (std::dynamic_pointer_cast<virtual_oracle_handle>(handle))
     {

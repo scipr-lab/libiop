@@ -13,10 +13,10 @@ namespace libiop {
 static void BM_gf192_mul_vec(benchmark::State &state)
 {
     const size_t sz = state.range(0);
-    const std::vector<gf192> avec = random_vector<gf192>(sz);
-    const std::vector<gf192> bvec = random_vector<gf192>(sz);
+    const std::vector<libff::gf192> avec = random_vector<libff::gf192>(sz);
+    const std::vector<libff::gf192> bvec = random_vector<libff::gf192>(sz);
 
-    std::vector<gf192> cvec(sz);
+    std::vector<libff::gf192> cvec(sz);
 
     for (auto _ : state)
     {
@@ -34,9 +34,9 @@ BENCHMARK(BM_gf192_mul_vec)->Range(1<<10, 1<<20)->Unit(benchmark::kMicrosecond);
 static void BM_gf192_inverse_vec(benchmark::State& state)
 {
     const size_t sz = state.range(0);
-    const std::vector<gf192> vec = random_vector<gf192>(sz);
+    const std::vector<libff::gf192> vec = random_vector<libff::gf192>(sz);
 
-    std::vector<gf192> result(sz);
+    std::vector<libff::gf192> result(sz);
 
     for (auto _ : state)
     {

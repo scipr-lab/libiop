@@ -1,9 +1,9 @@
 #include <algorithm>
 #include <stdexcept>
 
+#include <libff/common/profiling.hpp>
 #include "libiop/common/cpp17_bits.hpp"
-#include "libiop/common/common.hpp"
-#include "libiop/common/profiling.hpp"
+#include <libff/common/utils.hpp>
 
 #include <sodium/randombytes.h>
 
@@ -24,7 +24,7 @@ merkle_tree<FieldT, hash_digest_type>::merkle_tree(
     make_zk_(make_zk),
     num_zk_bytes_((security_parameter * 2 + 7) / 8) /* = ceil((2 * security_parameter_bits) / 8) */
 {
-    if (num_leaves < 2 || !is_power_of_2(num_leaves))
+    if (num_leaves < 2 || !libff::is_power_of_2(num_leaves))
     {
         /* Handling num_leaves-1 Merkle trees adds little complexity but is not really worth it */
         throw std::invalid_argument("Merkle tree size must be a power of two, and at least 2.");
@@ -36,7 +36,7 @@ merkle_tree<FieldT, hash_digest_type>::merkle_tree(
 template<typename FieldT, typename hash_digest_type>
 void merkle_tree<FieldT, hash_digest_type>::sample_leaf_randomness()
 {
-    libiop::enter_block("BCS: Sample randomness");
+    libff::enter_block("BCS: Sample randomness");
     assert(this->zk_leaf_randomness_elements_.size() == 0);
     this->zk_leaf_randomness_elements_.reserve(this->num_leaves_);
 
@@ -68,7 +68,7 @@ void merkle_tree<FieldT, hash_digest_type>::sample_leaf_randomness()
         std::string rand_str(rand_leaf.begin(), rand_leaf.end());
         this->zk_leaf_randomness_elements_.push_back(rand_str);
     }
-    libiop::leave_block("BCS: Sample randomness");
+    libff::leave_block("BCS: Sample randomness");
 }
 
 template<typename FieldT, typename hash_digest_type>
@@ -523,7 +523,7 @@ std::size_t merkle_tree<FieldT, hash_digest_type>::num_leaves() const
 template<typename FieldT, typename hash_digest_type>
 std::size_t merkle_tree<FieldT, hash_digest_type>::depth() const
 {
-    return log2(this->num_leaves_);
+    return libff::log2(this->num_leaves_);
 }
 
 template<typename FieldT, typename hash_digest_type>

@@ -1,12 +1,12 @@
 #include <cmath>
 
+#include <libff/common/profiling.hpp>
+#include <libff/common/utils.hpp>
 #include "libiop/algebra/fft.hpp"
 #include "libiop/algebra/lagrange.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/polynomials/vanishing_polynomial.hpp"
 #include "libiop/algebra/utils.hpp"
-#include "libiop/common/common.hpp"
-#include "libiop/common/profiling.hpp"
 
 namespace libiop {
 
@@ -181,7 +181,7 @@ public:
     virtual std::shared_ptr<std::vector<FieldT>> evaluated_contents(
         const std::vector<std::shared_ptr<std::vector<FieldT>>> &constituent_oracle_evaluations) const
     {
-        libiop::enter_block("fz evaluated contents");
+        libff::enter_block("fz evaluated contents");
         if (constituent_oracle_evaluations.size() != 1)
         {
             throw std::invalid_argument("fz_virtual_oracle has one constituent oracle.");
@@ -220,7 +220,7 @@ public:
             result->emplace_back(
                 fw->operator[](i) * input_vp_over_codeword_domain[i] + f_1v_over_codeword_domain[i]);
         }
-        libiop::leave_block("fz evaluated contents");
+        libff::leave_block("fz evaluated contents");
 
         return result;
     }
@@ -230,7 +230,7 @@ public:
         const FieldT evaluation_point,
         const std::vector<FieldT> &constituent_oracle_evaluations) const
     {
-        libiop::UNUSED(evaluation_position);
+        libff::UNUSED(evaluation_position);
 
         if (constituent_oracle_evaluations.size() != 1)
         {
@@ -282,7 +282,7 @@ encoded_aurora_protocol<FieldT>::encoded_aurora_protocol(
      * polynomial if the degree of f is a power of two. Hence we require that
      * k + 1 be a power of two to enable this faster interpolation.
      */
-    if (!is_power_of_2(this->constraint_system_->num_inputs() + 1))
+    if (!libff::is_power_of_2(this->constraint_system_->num_inputs() + 1))
     {
         throw std::invalid_argument("number of inputs in the constraint system must be one less than a power of two."
             "Perhaps pad your number of inputs");
@@ -300,8 +300,8 @@ void encoded_aurora_protocol<FieldT>::register_witness_oracles()
      *  and virtual oracles that only depend on oracles sent thus far.
      *  In particular, this is f_w, f_Az, f_Bz, f_Cz, rowcheck, and oracles due to lincheck.
      */
-    const std::size_t m = round_to_next_power_of_2(this->constraint_system_->num_constraints());
-    const std::size_t n = round_to_next_power_of_2(this->constraint_system_->num_variables());
+    const std::size_t m = libff::round_to_next_power_of_2(this->constraint_system_->num_constraints());
+    const std::size_t n = libff::round_to_next_power_of_2(this->constraint_system_->num_variables());
     const std::size_t k = this->constraint_system_->num_inputs();
     const std::size_t b = this->params_.query_bound();
 
@@ -430,7 +430,7 @@ std::vector<FieldT> create_fw_prime_evals(
      *  at the corresponding input variable locations. */
     std::vector<FieldT> fw_prime_evals;
     fw_prime_evals.resize(variable_domain.num_elements(), FieldT::zero());
-    const std::size_t input_variable_dim = log2(primary_input_size + 1);
+    const std::size_t input_variable_dim = libff::log2(primary_input_size + 1);
     /** Evaluations at the input variable locations are already initialized to zero.
      *  Evaluations of \hat{f}_w(X) are then placed at the witness locations */
     for (std::size_t i = 0; i < auxiliary_input.size(); ++i)
@@ -485,7 +485,7 @@ void encoded_aurora_protocol<FieldT>::submit_witness_oracles(
 {
     this->fz_oracle_->set_primary_input(primary_input);
 
-    libiop::enter_block("Submit witness oracles");
+    libff::enter_block("Submit witness oracles");
     if (this->params_.holographic())
     {
         this->holographic_multi_lincheck_->submit_sumcheck_masking_polynomials();
@@ -495,7 +495,7 @@ void encoded_aurora_protocol<FieldT>::submit_witness_oracles(
         this->multi_lincheck_->submit_sumcheck_masking_polynomials();
     }
 
-    libiop::enter_block("Compute randomized f_w");
+    libff::enter_block("Compute randomized f_w");
     /* Randomization polynomials for the top-level R1CS protocol */
     if (this->params_.make_zk()) {
         this->R_Az_ = polynomial<FieldT>::random_polynomial(this->params_.query_bound());
@@ -567,7 +567,7 @@ void encoded_aurora_protocol<FieldT>::submit_witness_oracles(
     this->fw_over_codeword_domain_ =
         FFT_over_field_subset<FieldT>(fw_prime.coefficients(), this->codeword_domain_);
 
-    libiop::leave_block("Compute randomized f_w");
+    libff::leave_block("Compute randomized f_w");
 
     /**  2) Calculate f_{Az}, f_{Bz}, f_{Cz} over the constraint domain
      *   i)   Construct z, and compute Az, Bz, Cz
@@ -575,7 +575,7 @@ void encoded_aurora_protocol<FieldT>::submit_witness_oracles(
      *   iii) Adds Z_{constraint domain} * R_{A/B/Cz} to each of the corresponding codewords
      *   iv)  FFT this into the codeword domain
     */
-    libiop::enter_block("Compute A/B/Cz");
+    libff::enter_block("Compute A/B/Cz");
 
     std::vector<FieldT> variable_assignment({ FieldT::one() });
     variable_assignment.insert(variable_assignment.end(),
@@ -592,14 +592,14 @@ void encoded_aurora_protocol<FieldT>::submit_witness_oracles(
     this->constraint_system_->create_Az_Bz_Cz_from_variable_assignment(
         variable_assignment, Az, Bz, Cz);
 
-    libiop::leave_block("Compute A/B/Cz");
+    libff::leave_block("Compute A/B/Cz");
 
-    libiop::enter_block("Compute f_{A/B/Cz} over codeword domain");
+    libff::enter_block("Compute f_{A/B/Cz} over codeword domain");
     this->compute_fprime_ABCz_over_codeword_domain(Az, Bz, Cz);
-    libiop::leave_block("Compute f_{A/B/Cz} over codeword domain");
+    libff::leave_block("Compute f_{A/B/Cz} over codeword domain");
 
     /** 3) Submit all the oracles */
-    libiop::enter_block("Call IOP oracle submission routines");
+    libff::enter_block("Call IOP oracle submission routines");
     this->IOP_.submit_oracle(this->fw_handle_, std::move(this->fw_over_codeword_domain_));
     this->IOP_.submit_oracle(this->fAz_handle_, std::move(this->fprime_Az_over_codeword_domain_));
     this->IOP_.submit_oracle(this->fBz_handle_, std::move(this->fprime_Bz_over_codeword_domain_));
@@ -609,9 +609,9 @@ void encoded_aurora_protocol<FieldT>::submit_witness_oracles(
     std::vector<FieldT>().swap(this->fprime_Az_over_codeword_domain_);
     std::vector<FieldT>().swap(this->fprime_Bz_over_codeword_domain_);
     std::vector<FieldT>().swap(this->fprime_Cz_over_codeword_domain_);
-    libiop::leave_block("Call IOP oracle submission routines");
+    libff::leave_block("Call IOP oracle submission routines");
 
-    libiop::leave_block("Submit witness oracles");
+    libff::leave_block("Submit witness oracles");
 }
 
 template<typename FieldT>

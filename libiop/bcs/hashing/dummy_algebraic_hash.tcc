@@ -1,5 +1,5 @@
 #include "sodium/crypto_generichash_blake2b.h"
-#include "libiop/algebra/field_utils.hpp"
+#include <libff/algebra/field_utils/field_utils.hpp>
 #include "libiop/bcs/hashing/hashing.hpp"
 #include <cstring>
 #include <sstream>
@@ -30,14 +30,14 @@ void dummy_algebraic_hashchain<FieldT, hash_data_type>::absorb(const hash_data_t
 
 template<typename FieldT, typename hash_data_type>
 void dummy_algebraic_hashchain<FieldT, hash_data_type>::absorb_internal(
-    const typename enable_if<std::is_same<hash_data_type, FieldT>::value, hash_data_type>::type new_input)
+    const typename libff::enable_if<std::is_same<hash_data_type, FieldT>::value, hash_data_type>::type new_input)
 {
     this->internal_state += new_input;
 }
 
 template<typename FieldT, typename hash_data_type>
 void dummy_algebraic_hashchain<FieldT, hash_data_type>::absorb_internal(
-    const typename enable_if<std::is_same<hash_data_type, binary_hash_digest>::value, hash_data_type>::type new_input)
+    const typename libff::enable_if<std::is_same<hash_data_type, binary_hash_digest>::value, hash_data_type>::type new_input)
 {
     std::stringstream ss(new_input);
     int64_t x = 0;
@@ -94,14 +94,14 @@ hash_data_type dummy_algebraic_hashchain<FieldT, hash_data_type>::squeeze_root_t
 
 template<typename FieldT, typename hash_data_type>
 hash_data_type dummy_algebraic_hashchain<FieldT, hash_data_type>::squeeze_root_type_internal(
-    const typename enable_if<std::is_same<hash_data_type, FieldT>::value, hash_data_type>::type dummy)
+    const typename libff::enable_if<std::is_same<hash_data_type, FieldT>::value, hash_data_type>::type dummy)
 {
     return this->squeeze(1)[0];
 }
 
 template<typename FieldT, typename hash_data_type>
 hash_data_type dummy_algebraic_hashchain<FieldT, hash_data_type>::squeeze_root_type_internal(
-    const typename enable_if<std::is_same<hash_data_type, binary_hash_digest>::value, hash_data_type>::type dummy)
+    const typename libff::enable_if<std::is_same<hash_data_type, binary_hash_digest>::value, hash_data_type>::type dummy)
 {
     FieldT h = this->squeeze(1)[0];
     std::stringstream ss;

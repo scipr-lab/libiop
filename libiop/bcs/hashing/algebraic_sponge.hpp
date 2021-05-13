@@ -15,7 +15,7 @@
 #include <vector>
 
 #include "libiop/bcs/hashing/hashing.hpp"
-#include "libiop/algebra/field_utils.hpp"
+#include <libff/algebra/field_utils/field_utils.hpp>
 
 namespace libiop {
 
@@ -63,10 +63,10 @@ class algebraic_sponge
 };
 
 template<typename FieldT>
-FieldT string_to_field_elem(typename enable_if<is_multiplicative<FieldT>::value, FieldT>::type dummy_field_elem,
+FieldT string_to_field_elem(typename libff::enable_if<libff::is_multiplicative<FieldT>::value, FieldT>::type dummy_field_elem,
     const zk_salt_type &zk_salt);
 template<typename FieldT>
-FieldT string_to_field_elem(typename enable_if<is_additive<FieldT>::value, FieldT>::type dummy_field_elem,
+FieldT string_to_field_elem(typename libff::enable_if<libff::is_additive<FieldT>::value, FieldT>::type dummy_field_elem,
     const zk_salt_type &zk_salt);
 
 template<typename FieldT, typename MT_root_type>
@@ -95,8 +95,8 @@ class algebraic_hashchain : public hashchain<FieldT, MT_root_type>
             this->sponge_->new_sponge(), security_parameter_);
     };
     protected:
-    void absorb_internal(const typename enable_if<std::is_same<MT_root_type, binary_hash_digest>::value, MT_root_type>::type new_input);
-    void absorb_internal(const typename enable_if<std::is_same<MT_root_type, FieldT>::value, MT_root_type>::type new_input);
+    void absorb_internal(const typename libff::enable_if<std::is_same<MT_root_type, binary_hash_digest>::value, MT_root_type>::type new_input);
+    void absorb_internal(const typename libff::enable_if<std::is_same<MT_root_type, FieldT>::value, MT_root_type>::type new_input);
 };
 
 template<typename FieldT>

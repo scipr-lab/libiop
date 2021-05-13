@@ -1,10 +1,10 @@
 #include <cmath>
 #include <stdexcept>
 
+#include <libff/common/profiling.hpp>
 #include "libiop/algebra/lagrange.hpp"
 #include "libiop/algebra/fft.hpp"
-#include "libiop/common/common.hpp"
-#include "libiop/common/profiling.hpp"
+#include <libff/common/utils.hpp>
 
 namespace libiop {
 
@@ -48,7 +48,7 @@ interleaved_r1cs_protocol<FieldT>::interleaved_r1cs_protocol(
     //       We plan on addressing this soon, however we wanted to get the library online.
     this->encoding_independence_ = 3;
 
-    libiop::print_indent(); printf("num oracles for vectors / R1CS constraints (m_2): %zu\n", this->num_oracles_vectors_);
+    libff::print_indent(); printf("num oracles for vectors / R1CS constraints (m_2): %zu\n", this->num_oracles_vectors_);
 
     /* Get R1CS matrices */
     this->A_matrix_ = this->constraint_system_.A_matrix();
@@ -218,9 +218,9 @@ template<typename FieldT>
 void interleaved_r1cs_protocol<FieldT>::submit_witness_oracles(const r1cs_primary_input<FieldT> &primary_input,
                                                                const r1cs_auxiliary_input<FieldT> &auxiliary_input)
 {
-    libiop::enter_block("Submit witness oracles");
+    libff::enter_block("Submit witness oracles");
 
-    libiop::enter_block("Generate extended witness and auxiliary witness");
+    libff::enter_block("Generate extended witness and auxiliary witness");
     /* construct z = (1, v, w) */
     std::vector<FieldT> extended_witness = std::vector<FieldT>(1, FieldT(1));
     extended_witness.insert(extended_witness.end(),
@@ -241,9 +241,9 @@ void interleaved_r1cs_protocol<FieldT>::submit_witness_oracles(const r1cs_primar
     auxiliary_only_witness.insert(auxiliary_only_witness.end(),
                                   auxiliary_input.begin(),
                                   auxiliary_input.end());
-    libiop::leave_block("Generate extended witness and auxiliary witness");
+    libff::leave_block("Generate extended witness and auxiliary witness");
 
-    libiop::enter_block("Perform matrix multiplications");
+    libff::enter_block("Perform matrix multiplications");
     std::vector<FieldT> a_result_vector;
     for (size_t i = 0; i < this->matrix_height_; ++i)
     {
@@ -288,9 +288,9 @@ void interleaved_r1cs_protocol<FieldT>::submit_witness_oracles(const r1cs_primar
         }
         c_result_vector.push_back(sum);
     }
-    libiop::leave_block("Perform matrix multiplications");
+    libff::leave_block("Perform matrix multiplications");
 
-    libiop::enter_block("Submit input oracles");
+    libff::enter_block("Submit input oracles");
     for (size_t i = 0; i < this->num_oracles_input_; ++i)
     {
         const std::size_t start = i * this->systematic_domain_size_;
@@ -302,9 +302,9 @@ void interleaved_r1cs_protocol<FieldT>::submit_witness_oracles(const r1cs_primar
         oracle<FieldT> w_row_oracle(FFT_over_field_subset(w_row_coefficients, this->codeword_domain_));
         this->IOP_.submit_oracle(this->w_vector_handles_[i], std::move(w_row_oracle));
     }
-    libiop::leave_block("Submit input oracles");
+    libff::leave_block("Submit input oracles");
 
-    libiop::enter_block("Submit vector oracles");
+    libff::enter_block("Submit vector oracles");
     for (size_t i = 0; i < this->num_oracles_vectors_; ++i)
     {
         const std::size_t start = i * this->systematic_domain_size_;
@@ -328,8 +328,8 @@ void interleaved_r1cs_protocol<FieldT>::submit_witness_oracles(const r1cs_primar
         oracle<FieldT> c_row_oracle(FFT_over_field_subset(c_row_coefficients, this->codeword_domain_));
         this->IOP_.submit_oracle(this->c_vector_handles_[i], std::move(c_row_oracle));
     }
-    libiop::leave_block("Submit vector oracles");
-    libiop::leave_block("Submit witness oracles");
+    libff::leave_block("Submit vector oracles");
+    libff::leave_block("Submit witness oracles");
 }
 
 template<typename FieldT>
@@ -385,7 +385,7 @@ void interleaved_r1cs_protocol<FieldT>::submit_blinding_vector_oracles()
 template<typename FieldT>
 void interleaved_r1cs_protocol<FieldT>::calculate_and_submit_proof(const r1cs_primary_input<FieldT> &primary_input)
 {
-    libiop::enter_block("Calculating and submitting proof");
+    libff::enter_block("Calculating and submitting proof");
 
     /* construct additional input as (1,v,0) */
     const std::size_t input_size = this->num_oracles_input_ * this->systematic_domain_size_;
@@ -401,20 +401,20 @@ void interleaved_r1cs_protocol<FieldT>::calculate_and_submit_proof(const r1cs_pr
     std::vector<FieldT> additional_target = std::vector<FieldT>(target_size, FieldT(0));
 
     std::vector<std::vector<FieldT>> random_linear_combinations = this->lincheck_A_->all_random_linear_combinations();
-    libiop::enter_block("Calculating and submitting response: Lincheck A");
+    libff::enter_block("Calculating and submitting response: Lincheck A");
     this->lincheck_A_->calculate_and_submit_responses(additional_input, additional_input_size, additional_target, 0, random_linear_combinations);
-    libiop::leave_block("Calculating and submitting response: Lincheck A");
-    libiop::enter_block("Calculating and submitting response: Lincheck B");
+    libff::leave_block("Calculating and submitting response: Lincheck A");
+    libff::enter_block("Calculating and submitting response: Lincheck B");
     this->lincheck_B_->calculate_and_submit_responses(additional_input, additional_input_size, additional_target, 0, random_linear_combinations);
-    libiop::leave_block("Calculating and submitting response: Lincheck B");
-    libiop::enter_block("Calculating and submitting response: Lincheck C");
+    libff::leave_block("Calculating and submitting response: Lincheck B");
+    libff::enter_block("Calculating and submitting response: Lincheck C");
     this->lincheck_C_->calculate_and_submit_responses(additional_input, additional_input_size, additional_target, 0, random_linear_combinations);
-    libiop::leave_block("Calculating and submitting response: Lincheck C");
+    libff::leave_block("Calculating and submitting response: Lincheck C");
 
-    libiop::enter_block("Calculating and submitting response: Rowcheck");
+    libff::enter_block("Calculating and submitting response: Rowcheck");
     this->rowcheck_->calculate_and_submit_responses();
-    libiop::leave_block("Calculating and submitting response: Rowcheck");
-    libiop::leave_block("Calculating and submitting proof");
+    libff::leave_block("Calculating and submitting response: Rowcheck");
+    libff::leave_block("Calculating and submitting proof");
 }
 
 /* Verification */
@@ -433,7 +433,7 @@ bool interleaved_r1cs_protocol<FieldT>::verifier_predicate(const r1cs_primary_in
     const std::size_t target_size = this->num_oracles_vectors_ * this->systematic_domain_size_;
     std::vector<FieldT> additional_target = std::vector<FieldT>(target_size, FieldT(0));
 
-    libiop::enter_block("Getting Lagrange coefficients for Lincheck tests");
+    libff::enter_block("Getting Lagrange coefficients for Lincheck tests");
     const std::vector<FieldT> query_points = this->lincheck_A_->all_query_points();
     std::vector<std::vector<FieldT>> lagrange_coefficients;
     if (this->field_subset_type_ == affine_subspace_type)
@@ -441,40 +441,40 @@ bool interleaved_r1cs_protocol<FieldT>::verifier_predicate(const r1cs_primary_in
         lagrange_coefficients =
             this->lincheck_A_->lagrange_coefficients_for_query_points(query_points);
     }
-    libiop::leave_block("Getting Lagrange coefficients for Lincheck tests");
+    libff::leave_block("Getting Lagrange coefficients for Lincheck tests");
 
     const std::vector<std::vector<FieldT>> random_linear_combinations = this->lincheck_A_->all_random_linear_combinations();
-    libiop::enter_block("Checking predicate for Lincheck A");
+    libff::enter_block("Checking predicate for Lincheck A");
     if (!this->lincheck_A_->verifier_predicate(additional_input, additional_input_size, additional_target, 0, random_linear_combinations, lagrange_coefficients))
     {
-        libiop::print_indent(); printf("Interleaved Lincheck for A matrix failed\n");
+        libff::print_indent(); printf("Interleaved Lincheck for A matrix failed\n");
         return false;
     }
-    libiop::leave_block("Checking predicate for Lincheck A");
+    libff::leave_block("Checking predicate for Lincheck A");
 
-    libiop::enter_block("Checking predicate for Lincheck B");
+    libff::enter_block("Checking predicate for Lincheck B");
     if (!this->lincheck_B_->verifier_predicate(additional_input, additional_input_size, additional_target, 0, random_linear_combinations, lagrange_coefficients))
     {
-        libiop::print_indent(); printf("Interleaved Lincheck for B matrix failed\n");
+        libff::print_indent(); printf("Interleaved Lincheck for B matrix failed\n");
         return false;
     }
-    libiop::leave_block("Checking predicate for Lincheck B");
+    libff::leave_block("Checking predicate for Lincheck B");
 
-    libiop::enter_block("Checking predicate for Lincheck C");
+    libff::enter_block("Checking predicate for Lincheck C");
     if (!this->lincheck_C_->verifier_predicate(additional_input, additional_input_size, additional_target, 0, random_linear_combinations, lagrange_coefficients))
     {
-        libiop::print_indent(); printf("Interleaved Lincheck for C matrix failed\n");
+        libff::print_indent(); printf("Interleaved Lincheck for C matrix failed\n");
         return false;
     }
-    libiop::leave_block("Checking predicate for Lincheck C");
+    libff::leave_block("Checking predicate for Lincheck C");
 
-    libiop::enter_block("Checking predicate for Rowcheck");
+    libff::enter_block("Checking predicate for Rowcheck");
     if (!this->rowcheck_->verifier_predicate())
     {
-        libiop::print_indent(); printf("Interleaved Rowcheck failed\n");
+        libff::print_indent(); printf("Interleaved Rowcheck failed\n");
         return false;
     }
-    libiop::leave_block("Checking predicate for Rowcheck");
+    libff::leave_block("Checking predicate for Rowcheck");
 
     return true;
 }

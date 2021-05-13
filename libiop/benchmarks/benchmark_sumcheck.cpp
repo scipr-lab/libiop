@@ -1,12 +1,12 @@
 #include <vector>
 #include <benchmark/benchmark.h>
 
+#include <libff/algebra/fields/binary/gf64.hpp>
+#include <libff/common/utils.hpp>
+#include "libiop/algebra/utils.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/fft.hpp"
-#include <libff/algebra/fields/binary/gf64.hpp>
 #include "libiop/algebra/field_subset/subspace.hpp"
-#include "libiop/algebra/utils.hpp"
-#include "libiop/common/common.hpp"
 #include "libiop/iop/iop.hpp"
 #include "libiop/protocols/encoded/sumcheck/sumcheck.hpp"
 #include "libiop/relations/examples/r1cs_examples.hpp"
@@ -37,7 +37,7 @@ FieldT sum_over_default_field_subset(const polynomial<FieldT> &P,
     // This assumes that S was created over the default basis.
     // It then creates an extended domain, and does an FFT to convert P to evaluations
     // in that extended domain.
-    const std::size_t dim = std::max(log2(P.num_terms()), S.dimension());
+    const std::size_t dim = std::max(libff::log2(P.num_terms()), S.dimension());
     const field_subset<FieldT> extended_subset(1ull << dim);
     const std::vector<FieldT> evals = FFT_over_field_subset(P.coefficients(), extended_subset);
     FieldT sum = FieldT::zero();
@@ -49,10 +49,10 @@ FieldT sum_over_default_field_subset(const polynomial<FieldT> &P,
 }
 
 static void BM_sumcheck_additive_eval_at_point(benchmark::State &state) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     const bool make_zk = false;
     const size_t sz = state.range(0);
-    const size_t summation_domain_dim = log2(sz);
+    const size_t summation_domain_dim = libff::log2(sz);
     const std::size_t RS_extra_dimensions = 2; /* \rho = 1/4 */
     const size_t codeword_domain_dim = RS_extra_dimensions + 2 + summation_domain_dim;
     FieldT shift = FieldT(1ull << codeword_domain_dim);

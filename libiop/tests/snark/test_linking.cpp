@@ -13,7 +13,7 @@ namespace libiop {
 
 TEST(LinkTest, SimpleTest) {
     /* Set up R1CS */
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     typedef binary_hash_digest hash_type;
 
     const std::size_t num_constraints = 1 << 8;

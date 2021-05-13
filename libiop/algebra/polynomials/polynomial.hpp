@@ -11,7 +11,6 @@
 #include <cstddef>
 #include <vector>
 
-#include "libiop/algebra/exponentiation.hpp"
 #include "libiop/algebra/field_subset/field_subset.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
 #include "libiop/algebra/field_subset/subgroup.hpp"

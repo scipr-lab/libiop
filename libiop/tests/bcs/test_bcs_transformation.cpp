@@ -18,7 +18,7 @@
 namespace libiop {
 
 template< bool B, class T = void >
-using enable_if_t = typename enable_if<B,T>::type;
+using enable_if_t = typename libff::enable_if<B,T>::type;
 
 const size_t security_parameter = 40;
 const size_t zk_salt_size = security_parameter * 2 / 8;
@@ -138,7 +138,7 @@ void run_test(const field_subset<FieldT> codeword_domain,
                 {
                     bool record = true;
                     FieldT eval = prover_IOP.get_oracle_evaluation_at_point(handle, query_positions[r][i], record);
-                    libiop::UNUSED(eval);
+                    libff::UNUSED(eval);
                 }
             }
         }
@@ -200,7 +200,7 @@ void run_single_round_test(const field_subset<FieldT> codeword_domain,
 
 TEST(BasicOneRoundTests, BCSTest) {
     /* Theres no special casing within the code between additive and multiplicative at default round params. */
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     typedef binary_hash_digest MT_root_hash;
     size_t dim = 6;
     field_subset<FieldT> codeword_domain(1ull << dim);
@@ -240,7 +240,7 @@ TEST(BasicOneRoundTests, BCSTest) {
 TEST(BasicTwoRoundTests, BCSTest) {
     /* Theres no special casing within the code between additive and multiplicative at default round params. */
     const size_t num_rounds = 2;
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     size_t dim = 7;
     field_subset<FieldT> codeword_domain(1ull << dim);
     size_t num_oracles_per_round = 3;
@@ -277,7 +277,7 @@ TEST(BasicTwoRoundTests, BCSTest) {
 TEST(HolographicTwoRoundTests, BCSTest) {
     /* Theres no special casing within the code between additive and multiplicative at default round params. */
     const size_t num_rounds = 2;
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     size_t dim = 7;
     field_subset<FieldT> codeword_domain(1ull << dim);
     size_t num_oracles_per_round = 3;
@@ -312,7 +312,7 @@ TEST(HolographicTwoRoundTests, BCSTest) {
 }
 
 TEST(AdditiveHolographicTests, BCSTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     size_t dim = 6;
     const size_t num_rounds = 2;
     size_t num_oracles = 1;
@@ -370,7 +370,7 @@ TEST(MultiplicativeHolographicTests, BCSTest) {
 
 TEST(AdditiveSingleOracleTest, BCSTest) {
     /* TODO: Add more complex test cases */
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     size_t dim = 6;
     field_subset<FieldT> codeword_domain(1ull << dim);
     size_t num_oracles = 1;
@@ -391,7 +391,7 @@ TEST(AdditiveSingleOracleTest, BCSTest) {
 
 TEST(AdditiveMultiOracleTest, BCSTest) {
     /* TODO: Add more complex test cases */
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     size_t dim = 6;
     field_subset<FieldT> codeword_domain(1ull << dim);
     size_t num_oracles = 4;
@@ -456,7 +456,7 @@ TEST(MultiplicativeMultiOracleTest, BCSTest) {
 
 TEST(DifferentRoundParameters, BCSTest) {
     const size_t num_rounds = 2;
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     size_t dim = 7;
     field_subset<FieldT> codeword_domain(1ull << dim);
     size_t num_oracles_per_round = 3;

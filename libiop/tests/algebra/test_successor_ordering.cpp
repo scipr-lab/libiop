@@ -12,12 +12,11 @@
 #include <libff/algebra/fields/binary/gf192.hpp>
 #include <libff/algebra/fields/binary/gf256.hpp>
 #include "libiop/algebra/fft.hpp"
-#include "libiop/algebra/exponentiation.hpp"
 #include "libiop/algebra/polynomials/polynomial.hpp"
 #include "libiop/algebra/polynomials/vanishing_polynomial.hpp"
 #include "libiop/algebra/trace_embedding/successor_ordering.hpp"
 #include "libiop/algebra/field_subset/subspace.hpp"
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 
 namespace libiop {
 
@@ -97,20 +96,20 @@ void successor_ordering_tests_for_field(const size_t dimension)
 TEST(MultiplicativeSuccessorOrdering, TestOrdering)
 {
     size_t dimension = 12;
-    edwards_pp::init_public_params();
-    successor_ordering_tests_for_field<edwards_Fr>(dimension);
+    libff::edwards_pp::init_public_params();
+    successor_ordering_tests_for_field<libff::edwards_Fr>(dimension);
 
-    alt_bn128_pp::init_public_params();
-    successor_ordering_tests_for_field<alt_bn128_Fr>(dimension);
+    libff::alt_bn128_pp::init_public_params();
+    successor_ordering_tests_for_field<libff::alt_bn128_Fr>(dimension);
 }
 
 TEST(AdditiveSuccessorOrdering, TestOrdering)
 {
     const size_t dimension = 10;
-    successor_ordering_tests_for_field<gf64>(dimension);
-    successor_ordering_tests_for_field<gf128>(dimension);
-    successor_ordering_tests_for_field<gf192>(dimension);
-    successor_ordering_tests_for_field<gf256>(dimension);
+    successor_ordering_tests_for_field<libff::gf64>(dimension);
+    successor_ordering_tests_for_field<libff::gf128>(dimension);
+    successor_ordering_tests_for_field<libff::gf192>(dimension);
+    successor_ordering_tests_for_field<libff::gf256>(dimension);
 }
 
 }

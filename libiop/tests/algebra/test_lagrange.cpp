@@ -43,21 +43,21 @@ void run_lagrange_test(const field_subset<FieldT> &domain) {
 
 TEST(Test, LagrangeTest) {
     const std::size_t dim = 10;
-    const field_subset<gf64> additive_domain(
-        affine_subspace<gf64>::random_affine_subspace(dim));
-    run_lagrange_test<gf64>(additive_domain);
-    edwards_pp::init_public_params();
-    const field_subset<edwards_Fr> multiplicative_domain(
-        1ull << dim, edwards_Fr::one());
-    run_lagrange_test<edwards_Fr>(multiplicative_domain);
-    const field_subset<edwards_Fr> multiplicative_domain_with_offset(
-        1ull << dim, edwards_Fr::multiplicative_generator);
-    run_lagrange_test<edwards_Fr>(multiplicative_domain_with_offset);
+    const field_subset<libff::gf64> additive_domain(
+        affine_subspace<libff::gf64>::random_affine_subspace(dim));
+    run_lagrange_test<libff::gf64>(additive_domain);
+    libff::edwards_pp::init_public_params();
+    const field_subset<libff::edwards_Fr> multiplicative_domain(
+        1ull << dim, libff::edwards_Fr::one());
+    run_lagrange_test<libff::edwards_Fr>(multiplicative_domain);
+    const field_subset<libff::edwards_Fr> multiplicative_domain_with_offset(
+        1ull << dim, libff::edwards_Fr::multiplicative_generator);
+    run_lagrange_test<libff::edwards_Fr>(multiplicative_domain_with_offset);
 
     libff::alt_bn128_pp::init_public_params();
-    const field_subset<alt_bn128_Fr> altbn_domain(
-        1ull << dim, alt_bn128_Fr::one());
-    run_lagrange_test<alt_bn128_Fr>(altbn_domain);
+    const field_subset<libff::alt_bn128_Fr> altbn_domain(
+        1ull << dim, libff::alt_bn128_Fr::one());
+    run_lagrange_test<libff::alt_bn128_Fr>(altbn_domain);
 }
 
 template<typename FieldT>
@@ -81,26 +81,26 @@ void run_intersecting_lagrange_test(const field_subset<FieldT> &domain) {
 
 TEST(InterpolationDomainIntersects, LagrangeTest) {
     const std::size_t dim = 10;
-    const field_subset<gf64> additive_domain(
-        affine_subspace<gf64>::random_affine_subspace(dim));
-    run_intersecting_lagrange_test<gf64>(additive_domain);
-    edwards_pp::init_public_params();
-    const field_subset<edwards_Fr> multiplicative_domain(
-        1ull << dim, edwards_Fr::one());
-    run_intersecting_lagrange_test<edwards_Fr>(multiplicative_domain);
-    const field_subset<edwards_Fr> multiplicative_domain_with_offset(
-        1ull << dim, edwards_Fr::multiplicative_generator);
-    run_intersecting_lagrange_test<edwards_Fr>(multiplicative_domain_with_offset);
+    const field_subset<libff::gf64> additive_domain(
+        affine_subspace<libff::gf64>::random_affine_subspace(dim));
+    run_intersecting_lagrange_test<libff::gf64>(additive_domain);
+    libff::edwards_pp::init_public_params();
+    const field_subset<libff::edwards_Fr> multiplicative_domain(
+        1ull << dim, libff::edwards_Fr::one());
+    run_intersecting_lagrange_test<libff::edwards_Fr>(multiplicative_domain);
+    const field_subset<libff::edwards_Fr> multiplicative_domain_with_offset(
+        1ull << dim, libff::edwards_Fr::multiplicative_generator);
+    run_intersecting_lagrange_test<libff::edwards_Fr>(multiplicative_domain_with_offset);
 
     libff::alt_bn128_pp::init_public_params();
-    const field_subset<alt_bn128_Fr> altbn_domain(
-        1ull << dim, alt_bn128_Fr::one());
-    run_intersecting_lagrange_test<alt_bn128_Fr>(altbn_domain);
+    const field_subset<libff::alt_bn128_Fr> altbn_domain(
+        1ull << dim, libff::alt_bn128_Fr::one());
+    run_intersecting_lagrange_test<libff::alt_bn128_Fr>(altbn_domain);
 }
 
 TEST(CacheTest, LagrangeTest) {
     // This ensures that the lagrange cache correctly caches the previous evaluation
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const std::size_t dim = 17;
     const field_subset<FieldT> domain(

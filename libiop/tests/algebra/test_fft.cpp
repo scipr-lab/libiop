@@ -4,10 +4,10 @@
 
 #include <libff/algebra/curves/edwards/edwards_pp.hpp>
 
-#include "libiop/algebra/fft.hpp"
 #include <libff/algebra/fields/binary/gf64.hpp>
-#include "libiop/algebra/field_subset/subspace.hpp"
 #include "libiop/algebra/utils.hpp"
+#include "libiop/algebra/fft.hpp"
+#include "libiop/algebra/field_subset/subspace.hpp"
 
 namespace libiop {
 
@@ -25,7 +25,7 @@ std::vector<FieldT> elementwise_random_vector(const std::size_t count)
 }
 
 TEST(AdditiveTest, SimpleTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     for (size_t m = 1; m <= 11; ++m)
     {
@@ -52,8 +52,8 @@ TEST(AdditiveTest, SimpleTest) {
 }
 
 TEST(MultiplicativeSubgroupTest, SimpleTest) {
-    edwards_pp::init_public_params();
-    typedef edwards_Fr FieldT;
+    libff::edwards_pp::init_public_params();
+    typedef libff::edwards_Fr FieldT;
 
     for (size_t domain_dim = 1; domain_dim < 10; domain_dim++)
     {
@@ -86,9 +86,9 @@ TEST(MultiplicativeSubgroupTest, SimpleTest) {
 }
 
 TEST(MultiplicativeCosetTest, SimpleTest) {
-    edwards_pp::init_public_params();
+    libff::edwards_pp::init_public_params();
 
-    typedef edwards_Fr FieldT;
+    typedef libff::edwards_Fr FieldT;
 
     for (size_t m = 1; m <= 11; ++m)
     {
@@ -121,7 +121,7 @@ TEST(MultiplicativeCosetTest, SimpleTest) {
 }
 
 TEST(ExtendedRangeTest, SimpleTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     for (size_t m = 1; m <= 21; ++m)
     {

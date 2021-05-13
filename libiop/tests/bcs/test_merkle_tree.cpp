@@ -13,7 +13,7 @@
 namespace libiop {
 
 template< bool B, class T = void >
-using enable_if_t = typename enable_if<B,T>::type;
+using enable_if_t = typename libff::enable_if<B,T>::type;
 // Binary hash type
 template<typename FieldT, typename hash_type,
     enable_if_t<!std::is_same<FieldT, hash_type>::value, int> = 42>
@@ -94,7 +94,7 @@ void run_simple_MT_test(const std::size_t size, const std::size_t digest_len_byt
 }
 
 TEST(MerkleTreeTest, SimpleTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const std::size_t size = 16;
     const std::size_t digest_len_bytes = 256/8;
@@ -104,7 +104,7 @@ TEST(MerkleTreeTest, SimpleTest) {
 }
 
 TEST(MerkleTreeZKTest, SimpleTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const std::size_t size_small = 16;
     const std::size_t size_large = 1ull << 18; /* The goal is to test batch randomness logic */
@@ -115,7 +115,7 @@ TEST(MerkleTreeZKTest, SimpleTest) {
 }
 
 void run_multi_test(const bool make_zk) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     const std::size_t size = 8;
     const std::size_t security_parameter = 128;
@@ -177,7 +177,7 @@ TEST(MerkleTreeZKTest, MultiTest) {
 
 TEST(MerkleTreeTwoToOneHashTest, SimpleTest)
 {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
     bool make_zk = false;
     const size_t num_leaves = 8;
     const size_t security_parameter = 128;

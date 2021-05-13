@@ -7,7 +7,7 @@
 
 #include "libiop/algebra/fft.hpp"
 #include <libff/algebra/fields/binary/gf64.hpp>
-#include "libiop/common/common.hpp"
+#include <libff/common/utils.hpp>
 #include "libiop/iop/iop.hpp"
 #include "libiop/protocols/encoded/ligero/interleaved_rowcheck.hpp"
 
@@ -48,7 +48,7 @@ bool run_test(std::vector<FieldT> x_vector,
               bool make_zk,
               field_subset_type domain_type)
 {
-    const std::size_t codeword_domain_dim = log2(codeword_domain_size);
+    const std::size_t codeword_domain_dim = libff::log2(codeword_domain_size);
     const std::size_t systematic_domain_dim = codeword_domain_dim - 2;
     
     const FieldT shift(3);
@@ -176,7 +176,7 @@ bool run_test(std::vector<FieldT> x_vector,
 }
 
 TEST(InterleavedRowcheckTrueTest, SimpleTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     for (size_t vector_size = 16; vector_size <= 128; vector_size *= 2)
     {
@@ -196,9 +196,9 @@ TEST(InterleavedRowcheckTrueTest, SimpleTest) {
 }
 
 TEST(InterleavedRowcheckTrueMultiplicativeTest, SimpleTest) {
-    edwards_pp::init_public_params();
+    libff::edwards_pp::init_public_params();
 
-    typedef edwards_Fr FieldT;
+    typedef libff::edwards_Fr FieldT;
 
     for (size_t vector_size = 16; vector_size <= 128; vector_size *= 2)
     {
@@ -218,7 +218,7 @@ TEST(InterleavedRowcheckTrueMultiplicativeTest, SimpleTest) {
 }
 
 TEST(InterleavedRowcheckBadXTest, SimpleTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     for (size_t vector_size = 16; vector_size <= 128; vector_size *= 2)
     {
@@ -240,9 +240,9 @@ TEST(InterleavedRowcheckBadXTest, SimpleTest) {
 }
 
 TEST(InterleavedRowcheckBadXMultiplicativeTest, SimpleTest) {
-    edwards_pp::init_public_params();
+    libff::edwards_pp::init_public_params();
 
-    typedef edwards_Fr FieldT;
+    typedef libff::edwards_Fr FieldT;
 
     for (size_t vector_size = 16; vector_size <= 128; vector_size *= 2)
     {
@@ -264,7 +264,7 @@ TEST(InterleavedRowcheckBadXMultiplicativeTest, SimpleTest) {
 }
 
 TEST(InterleavedRowcheckBadYTest, SimpleTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     for (size_t vector_size = 16; vector_size <= 128; vector_size *= 2)
     {
@@ -286,9 +286,9 @@ TEST(InterleavedRowcheckBadYTest, SimpleTest) {
 }
 
 TEST(InterleavedRowcheckBadYMultiplicativeTest, SimpleTest) {
-    edwards_pp::init_public_params();
+    libff::edwards_pp::init_public_params();
 
-    typedef edwards_Fr FieldT;
+    typedef libff::edwards_Fr FieldT;
 
     for (size_t vector_size = 16; vector_size <= 128; vector_size *= 2)
     {
@@ -310,7 +310,7 @@ TEST(InterleavedRowcheckBadYMultiplicativeTest, SimpleTest) {
 }
 
 TEST(InterleavedRowcheckBadZTest, SimpleTest) {
-    typedef gf64 FieldT;
+    typedef libff::gf64 FieldT;
 
     for (size_t vector_size = 16; vector_size <= 128; vector_size *= 2)
     {
@@ -332,9 +332,9 @@ TEST(InterleavedRowcheckBadZTest, SimpleTest) {
 }
 
 TEST(InterleavedRowcheckBadZMultiplicativeTest, SimpleTest) {
-    edwards_pp::init_public_params();
+    libff::edwards_pp::init_public_params();
 
-    typedef edwards_Fr FieldT;
+    typedef libff::edwards_Fr FieldT;
 
     for (size_t vector_size = 16; vector_size <= 128; vector_size *= 2)
     {

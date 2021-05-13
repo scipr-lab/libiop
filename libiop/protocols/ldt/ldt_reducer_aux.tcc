@@ -134,7 +134,7 @@ FieldT combined_LDT_virtual_oracle<FieldT>::evaluation_at_point(
     const FieldT evaluation_point,
     const std::vector<FieldT> &constituent_oracle_evaluations) const
 {
-    libiop::UNUSED(evaluation_position);
+    libff::UNUSED(evaluation_position);
 
     if (constituent_oracle_evaluations.size() != this->input_oracle_degrees_.size())
     {
