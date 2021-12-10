@@ -8,6 +8,7 @@
 #ifndef LIBIOP_ALGEBRA_UTILS_HPP_
 #define LIBIOP_ALGEBRA_UTILS_HPP_
 
+#include <cstddef>
 #include <cstdint>
 #include <vector>
 
