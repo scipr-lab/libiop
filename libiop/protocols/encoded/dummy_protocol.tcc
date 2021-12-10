@@ -22,8 +22,9 @@ std::shared_ptr<std::vector<FieldT>> dummy_oracle<FieldT>::evaluated_contents(
     }
 
     std::shared_ptr<std::vector<FieldT>> result = std::make_shared<std::vector<FieldT>>();
-    result->reserve(constituent_oracle_evaluations[0]->size());
-    for (size_t i = 0; i < result->size(); ++i)
+    const auto result_size = constituent_oracle_evaluations[0]->size();
+    result->reserve(result_size);
+    for (size_t i = 0; i < result_size; ++i)
     {
         result->emplace_back(FieldT::zero());
     }
