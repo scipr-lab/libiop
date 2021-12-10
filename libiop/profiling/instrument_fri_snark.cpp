@@ -29,11 +29,11 @@
 
 #ifndef CPPDEBUG
 bool process_prover_command_line(const int argc, const char** argv, options &options,
-                                 std::size_t localization_parameter,
-                                 std::size_t num_localization_steps,
-                                 std::size_t num_oracles,
-                                 std::size_t num_interactive_repetitions,
-                                 std::size_t num_query_repetitions)
+                                 std::size_t *localization_parameter,
+                                 std::size_t *num_localization_steps,
+                                 std::size_t *num_oracles,
+                                 std::size_t *num_interactive_repetitions,
+                                 std::size_t *num_query_repetitions)
 {
     namespace po = boost::program_options;
 
@@ -41,11 +41,11 @@ bool process_prover_command_line(const int argc, const char** argv, options &opt
     {
         po::options_description desc = gen_options(options);
         desc.add_options()
-            ("localization_parameter", po::value<std::size_t>(&localization_parameter)->default_value(2), "Only used when num_localization_steps is 0")
-            ("num_localization_steps", po::value<std::size_t>(&num_localization_steps)->default_value(0))
-            ("num_oracles", po::value<std::size_t>(&num_oracles)->default_value(1))
-            ("num_interactive_repetitions", po::value<std::size_t>(&num_interactive_repetitions)->default_value(1))
-            ("num_query_repetitions", po::value<std::size_t>(&num_query_repetitions)->default_value(64));
+            ("localization_parameter", po::value<std::size_t>(localization_parameter)->default_value(2), "Only used when num_localization_steps is 0")
+            ("num_localization_steps", po::value<std::size_t>(num_localization_steps)->default_value(0))
+            ("num_oracles", po::value<std::size_t>(num_oracles)->default_value(1))
+            ("num_interactive_repetitions", po::value<std::size_t>(num_interactive_repetitions)->default_value(1))
+            ("num_query_repetitions", po::value<std::size_t>(num_query_repetitions)->default_value(64));
 
         po::variables_map vm;
         po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -157,9 +157,9 @@ int main(int argc, const char * argv[])
     libff::UNUSED(argv);
 
 #else
-    if (!process_prover_command_line(argc, argv, default_vals, localization_parameter,
-                                     num_interactive_repetitions, num_query_repetitions,
-                                     num_localization_steps, num_oracles))
+    if (!process_prover_command_line(argc, argv, default_vals, &localization_parameter,
+                                     &num_interactive_repetitions, &num_query_repetitions,
+                                     &num_localization_steps, &num_oracles))
     {
         return 1;
     }
