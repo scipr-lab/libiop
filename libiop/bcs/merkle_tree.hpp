@@ -13,7 +13,6 @@
 #include <cstddef>
 #include <numeric>
 #include <vector>
-#include <bits/stdc++.h>
 
 #include "libiop/algebra/field_subset/field_subset.hpp"
 #include "libiop/bcs/hashing/hashing.hpp"
