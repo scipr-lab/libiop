@@ -65,7 +65,7 @@ binary_hash_digest blake2b_many_to_one_hash(const std::vector<binary_hash_digest
     /* see https://download.libsodium.org/doc/hashing/generic_hashing.html */
     const int status = crypto_generichash_blake2b((unsigned char*)&result[0],
                                                   digest_len_bytes,
-                                                  (result.empty() ? NULL : (unsigned char*)&input[0]),
+                                                  (input.empty() ? NULL : (unsigned char*)&input[0]),
                                                   input.size(),
                                                   NULL, 0);
     if (status != 0)

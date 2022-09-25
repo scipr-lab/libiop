@@ -245,7 +245,7 @@ void run_random_multi_test(const size_t size, const size_t digest_len_bytes, con
     {
         std::vector<size_t> subset_elements;
         std::vector<std::vector<FieldT>> subset_leaves;
-        /* The commented-out code generates subsets that are unsorted and may be repeats.
+        /* TODO: The commented-out code generates subsets that are unsorted and may be repeats.
            They are not used because the code currently cannot handle these cases if it is
            zero knowledge. */
         // for (size_t j = 0; j < subset_size; j++)

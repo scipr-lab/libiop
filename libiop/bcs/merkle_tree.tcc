@@ -211,8 +211,9 @@ std::vector<std::vector<FieldT>> merkle_tree<FieldT, hash_digest_type>::serializ
 template<typename FieldT, typename hash_digest_type>
 void merkle_tree<FieldT, hash_digest_type>::compute_inner_nodes()
 {
-    /* n is the first index of the layer we're about to compute. It starts at the bottom layer.
-       This hack works because num_leaves is the index of the right child of the bottom-left node. */
+    /* n is the first index of the layer we're about to compute. It starts at the bottom-left most
+       inner node. This hack works because num_leaves is the index of the right child of the
+       bottom-left inner node. */
     size_t n = this->parent_of(this->num_leaves_);
     while (true)
     {
@@ -349,8 +350,8 @@ merkle_tree_set_membership_proof<hash_digest_type>
         std::swap(S, new_S);
     }
 
-    // Add the cap, including the root's direct children and the root.
-    // The only elements should be the cap (not including the root).
+    // Add the cap, i.e. the root's direct children.
+    // The only elements should be the cap.
     assert(S.size() <= this->cap_size_);
     auto it = S.begin();
     // Iterate over every direct child of the root, and add the ones not obtainable from positions.
@@ -497,8 +498,10 @@ bool merkle_tree<FieldT, hash_digest_type>::validate_set_membership_proof(
                 }
                 else
                 {
-                    /* b) Our right sibling is in S. So don't need auxiliary and skip over the
-                       right sibling The parent will be obtained) next iteration. */
+                    /* b) Our right sibling is in S. So don't need
+                       auxiliary and skip over the right sibling.
+                       (Note that only one parent will be processed.)
+                    */
                     right_hash = next_it->second;
                     ++next_it;
                 }
