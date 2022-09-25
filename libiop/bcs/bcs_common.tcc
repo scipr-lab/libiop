@@ -471,9 +471,11 @@ void bcs_protocol<FieldT, MT_root_hash>::seal_interaction_registrations()
                 size,
                 this->parameters_.leafhasher_,
                 this->parameters_.compression_hasher,
+                this->parameters_.cap_hasher,
                 this->digest_len_bytes_,
                 make_zk,
-                this->parameters_.security_parameter);
+                this->parameters_.security_parameter,
+                this->parameters_.cap_size);
             this->Merkle_trees_.emplace_back(MT);
         }
     }
@@ -710,7 +712,7 @@ void print_detailed_transcript_data(
 
     const size_t digest_len_bytes = 2 * (params.security_parameter / 8);
     const size_t field_size = (libff::log_of_field_size_helper<FieldT>(FieldT::zero()) + 7) / 8;
-    std::vector<size_t> two_to_one_hashes_by_round;
+    std::vector<size_t> internal_hash_complexity_by_round;
     std::vector<size_t> leaf_hashes_by_round;
     std::vector<size_t> zk_hashes_by_round;
     std::vector<size_t> IOP_size_by_round;
@@ -724,6 +726,7 @@ void print_detailed_transcript_data(
             MT_size,
             params.leafhasher_,
             params.compression_hasher,
+            params.cap_hasher,
             digest_len_bytes,
             false,
             params.security_parameter);
@@ -741,10 +744,9 @@ void print_detailed_transcript_data(
                 query_positions.emplace_back(MT_position);
             }
         }
-        size_t num_two_to_one_hashes_in_round =
-            MT.count_hashes_to_verify_set_membership_proof(
-            query_positions);
-        two_to_one_hashes_by_round.emplace_back(num_two_to_one_hashes_in_round);
+        size_t internal_hash_complexity_in_round =
+            MT.count_internal_hash_complexity_to_verify_set_membership(query_positions);
+        internal_hash_complexity_by_round.emplace_back(internal_hash_complexity_in_round);
         const size_t num_values_per_leaf = transcript.query_responses_[round][0].size();
         const size_t num_leaves = transcript.query_responses_[round].size();
         leaf_hashes_by_round.emplace_back(num_values_per_leaf * num_leaves);
@@ -788,14 +790,17 @@ void print_detailed_transcript_data(
 
     printf("\n");
     printf("total prover messages size: %lu\n", total_prover_message_size);
-    const size_t total_two_to_one_hashes = std::accumulate(
-        two_to_one_hashes_by_round.begin(), two_to_one_hashes_by_round.end(), 0);
+    const size_t total_internal_hash_complexity = std::accumulate(
+        internal_hash_complexity_by_round.begin(), internal_hash_complexity_by_round.end(), 0);
     const size_t total_leaves_hashed = std::accumulate(
         leaf_hashes_by_round.begin(), leaf_hashes_by_round.end(), 0);
     const size_t total_zk_hashes = std::accumulate(
         zk_hashes_by_round.begin(), zk_hashes_by_round.end(), 0);
-    const size_t total_hashes = total_two_to_one_hashes + total_leaves_hashed + total_zk_hashes;
-    printf("total two to one hashes: %lu\n", total_two_to_one_hashes);
+    /* Since each two-to-one hash is counted as two units, we divide by 2 here to make it consistent.
+       It would be nice to take into account how many leaves are hashed, but we are unfortunately
+       not provided this information. */
+    const size_t total_hashes = total_internal_hash_complexity / 2 + total_leaves_hashed + total_zk_hashes;
+    printf("total internal hash complexity: %lu\n", total_internal_hash_complexity);
     printf("total leaves hashed: %lu\n", total_leaves_hashed);
     printf("total hashes: %lu\n", total_hashes);
     printf("\n");
@@ -808,7 +813,7 @@ void print_detailed_transcript_data(
         printf("MT_depth %lu\n", MT_depths[round]);
         printf("IOP size: %lu bytes\n", IOP_size_by_round[round]);
         printf("BCS size: %lu bytes\n", BCS_size_by_round[round]);
-        printf("number of two to one hashes: %lu\n", two_to_one_hashes_by_round[round]);
+        printf("internal hash complexity: %lu\n", internal_hash_complexity_by_round[round]);
         printf("number of leaves hashed: %lu\n", leaf_hashes_by_round[round]);
         if (make_zk[round])
         {

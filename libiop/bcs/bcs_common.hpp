@@ -25,12 +25,14 @@ template<typename FieldT, typename MT_hash_type>
 struct bcs_transformation_parameters {
     std::size_t security_parameter; /* TODO: possibly revisit in the future */
     bcs_hash_type hash_enum;
+    std::size_t cap_size;
 
     pow_parameters pow_params_;
 
     std::shared_ptr<hashchain<FieldT, MT_hash_type>> hashchain_;
     std::shared_ptr<leafhash<FieldT, MT_hash_type>> leafhasher_;
     two_to_one_hash_function<MT_hash_type> compression_hasher;
+    cap_hash_function<MT_hash_type> cap_hasher;
 };
 
 template<typename FieldT, typename MT_hash_type>

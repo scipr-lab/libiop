@@ -139,9 +139,8 @@ binary_hash_digest blake2b_leafhash<FieldT>::zk_hash(
 // don't we need to make them in canonical form first?
 template<typename FieldT>
 binary_hash_digest blake2b_field_element_hash(const std::vector<FieldT> &data,
-                                       const std::size_t digest_len_bytes)
+                                              const std::size_t digest_len_bytes)
 {
-
     binary_hash_digest result(digest_len_bytes, 'X');
 
     /* see https://download.libsodium.org/doc/hashing/generic_hashing.html */
@@ -154,7 +153,6 @@ binary_hash_digest blake2b_field_element_hash(const std::vector<FieldT> &data,
     {
         throw std::runtime_error("Got non-zero status from crypto_generichash_blake2b. (Is digest_len_bytes correct?)");
     }
-
 
     return result;
 }
@@ -256,4 +254,4 @@ std::vector<FieldT> blake2b_FieldT_randomness_extractor(const binary_hash_digest
     return result;
 }
 
-}
+} // namespace libiop

@@ -19,6 +19,9 @@ void bitreverse_vector(std::vector<T> &a);
 template<typename T>
 std::vector<T> random_vector(const std::size_t count);
 
+template<typename T, typename U>
+bool compare_first(const std::pair<T, U> &a, const std::pair<T, U> &b);
+
 template<typename T>
 std::vector<T> all_subset_sums(const std::vector<T> &basis, const T& shift = 0)
 #if defined(__clang__)

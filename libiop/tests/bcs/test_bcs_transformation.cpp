@@ -44,6 +44,7 @@ void set_bcs_parameters_leafhash(bcs_transformation_parameters<FieldT, MT_root_h
 {
     params.leafhasher_ = std::make_shared<blake2b_leafhash<FieldT>>(security_parameter);
     params.compression_hasher = blake2b_two_to_one_hash;
+    params.cap_hasher = blake2b_many_to_one_hash;
 }
 
 // Algebraic case
@@ -52,7 +53,8 @@ template<typename FieldT, typename MT_root_hash,
 void set_bcs_parameters_leafhash(bcs_transformation_parameters<FieldT, MT_root_hash> &params)
 {
     params.leafhasher_ = std::make_shared<dummy_algebraic_leafhash<FieldT>>();
-    params.compression_hasher = dummy_algebraic_two_to_one_hash<MT_root_hash>;
+    params.compression_hasher = dummy_algebraic_two_to_one_hash<FieldT>;
+    params.cap_hasher = dummy_algebraic_cap_hash<FieldT>;
 }
 
 template<typename FieldT, typename MT_root_hash>
@@ -70,6 +72,7 @@ bcs_transformation_parameters<FieldT, MT_root_hash> get_bcs_parameters(bool alge
         bcs_parameters.hash_enum = bcs_hash_type::blake2b_type;
     }
     set_bcs_parameters_leafhash<FieldT, MT_root_hash>(bcs_parameters);
+    bcs_parameters.cap_size = 2;
 
     return bcs_parameters;
 }

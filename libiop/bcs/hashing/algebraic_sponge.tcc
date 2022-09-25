@@ -206,7 +206,7 @@ MT_root_type algebraic_hashchain<FieldT, MT_root_type>::squeeze_root_type()
 }
 
 template<typename FieldT>
-algebraic_leafhash<FieldT>::algebraic_leafhash(
+algebraic_vector_hash<FieldT>::algebraic_vector_hash(
     std::shared_ptr<algebraic_sponge<FieldT>> sponge,
     size_t security_parameter) :
     sponge_(sponge->new_sponge())
@@ -218,7 +218,7 @@ algebraic_leafhash<FieldT>::algebraic_leafhash(
 }
 
 template<typename FieldT>
-FieldT algebraic_leafhash<FieldT>::hash(
+FieldT algebraic_vector_hash<FieldT>::hash(
     const std::vector<FieldT> &leaf)
 {
     this->sponge_->absorb(leaf);
@@ -228,7 +228,7 @@ FieldT algebraic_leafhash<FieldT>::hash(
 }
 
 template<typename FieldT>
-FieldT algebraic_leafhash<FieldT>::zk_hash(
+FieldT algebraic_vector_hash<FieldT>::zk_hash(
     const std::vector<FieldT> &leaf,
     const zk_salt_type &zk_salt)
 {

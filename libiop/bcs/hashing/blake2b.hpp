@@ -58,6 +58,8 @@ class blake2b_leafhash : public leafhash<FieldT, binary_hash_digest>
         const zk_salt_type &zk_salt);
 };
 
+/* Many-to-one hash which takes in a vector of field elements.
+   Behavior undefined when data is empty. */
 template<typename FieldT>
 binary_hash_digest blake2b_field_element_hash(const std::vector<FieldT> &data,
                                        const std::size_t digest_len_bytes);
@@ -73,11 +75,16 @@ std::size_t blake2b_integer_randomness_extractor(const binary_hash_digest &root,
                                                  const std::size_t upper_bound);
 
 binary_hash_digest blake2b_zk_element_hash(const std::vector<uint8_t> &first,
-                                    const std::size_t digest_len_bytes);
+                                           const std::size_t digest_len_bytes);
 
 binary_hash_digest blake2b_two_to_one_hash(const binary_hash_digest &first,
-                                    const binary_hash_digest &second,
-                                    const std::size_t digest_len_bytes);
+                                           const binary_hash_digest &second,
+                                           const std::size_t digest_len_bytes);
+
+/* Many-to-one hash which takes in a vector of binary_hash_digest.
+   Behavior undefined when data is empty. */
+binary_hash_digest blake2b_many_to_one_hash(const std::vector<binary_hash_digest> &data,
+                                            const std::size_t digest_len_bytes);
 
 } // namespace libiop
 

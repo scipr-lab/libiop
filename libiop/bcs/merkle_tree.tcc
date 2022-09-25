@@ -9,25 +9,36 @@
 
 namespace libiop {
 
+using std::size_t;
+
 template<typename FieldT, typename hash_digest_type>
 merkle_tree<FieldT, hash_digest_type>::merkle_tree(
-    const std::size_t num_leaves,
+    const size_t num_leaves,
     const std::shared_ptr<leafhash<FieldT, hash_digest_type>> &leaf_hasher,
     const two_to_one_hash_function<hash_digest_type> &node_hasher,
-    const std::size_t digest_len_bytes,
+    const cap_hash_function<hash_digest_type> &cap_hasher,
+    const size_t digest_len_bytes,
     const bool make_zk,
-    const std::size_t security_parameter) :
+    const size_t security_parameter,
+    const size_t cap_size) :
     num_leaves_(num_leaves),
     leaf_hasher_(leaf_hasher),
     node_hasher_(node_hasher),
+    cap_hasher_(cap_hasher),
     digest_len_bytes_(digest_len_bytes),
     make_zk_(make_zk),
-    num_zk_bytes_((security_parameter * 2 + 7) / 8) /* = ceil((2 * security_parameter_bits) / 8) */
+    num_zk_bytes_((security_parameter * 2 + 7) / 8), /* = ceil((2 * security_parameter_bits) / 8) */
+    cap_size_(cap_size)
 {
     if (num_leaves < 2 || !libff::is_power_of_2(num_leaves))
     {
         /* Handling num_leaves-1 Merkle trees adds little complexity but is not really worth it */
         throw std::invalid_argument("Merkle tree size must be a power of two, and at least 2.");
+    }
+
+    if (cap_size < 2 || !libff::is_power_of_2(cap_size))
+    {
+        throw std::invalid_argument("Merkle tree cap size must be a power of two, and at least 2.");
     }
 
     this->constructed_ = false;
@@ -120,7 +131,7 @@ void merkle_tree<FieldT, hash_digest_type>::construct_with_leaves_serialized_by_
      * our slice is of size num_input_oracles * coset_size */
     std::vector<FieldT> slice(leaf_contents.size() * coset_serialization_size,
         FieldT::zero());
-    for (std::size_t i = 0; i < this->num_leaves_; ++i)
+    for (size_t i = 0; i < this->num_leaves_; ++i)
     {
         std::vector<size_t> positions_in_this_slice =
             leaf_domain.all_positions_in_coset_i(i, coset_serialization_size);
@@ -200,32 +211,40 @@ std::vector<std::vector<FieldT>> merkle_tree<FieldT, hash_digest_type>::serializ
 template<typename FieldT, typename hash_digest_type>
 void merkle_tree<FieldT, hash_digest_type>::compute_inner_nodes()
 {
-    // TODO: Better document this function, its hashing layer by layer.
-    std::size_t n = (this->num_leaves_ - 1) / 2;
+    /* n is the first index of the layer we're about to compute. It starts at the bottom-left most
+       inner node. This hack works because num_leaves is the index of the right child of the
+       bottom-left inner node. */
+    size_t n = this->parent_of(this->num_leaves_);
     while (true)
     {
         // TODO: Evaluate how much time is spent in hashing vs memory access.
         // For better memory efficiency, we could hash sub-tree by sub-tree
         // in an unrolled recursive fashion.
-        for (std::size_t j = n; j <= 2*n; ++j)
+        for (size_t j = n; j <= 2*n; ++j)
         {
             // TODO: Can we rely on left and right to be placed sequentially in memory,
             // for better performance in node hasher?
-            const hash_digest_type& left = this->inner_nodes_[2*j + 1];
-            const hash_digest_type& right = this->inner_nodes_[2*j + 2];
+            const hash_digest_type& left = this->inner_nodes_[this->left_child_of(j)];
+            const hash_digest_type& right = this->inner_nodes_[this->right_child_of(j)];
             const hash_digest_type digest = this->node_hasher_(left, right, this->digest_len_bytes_);
 
             this->inner_nodes_[j] = digest;
         }
-        if (n > 0)
+        if (this->is_in_cap(n))
         {
-            n /= 2;
-        }
-        else
-        {
+            /* We are done with the main portion after the cap layer is filled out.
+               There is one edge case where the entire tree is the cap, and in that case we
+               will do some extra work, but it will still correctly compute everything. */
             break;
         }
+        n /= 2; // Go to the layer obove this one.
     }
+
+    // Now compute the cap hash.
+    auto cap_children_start = this->inner_nodes_.begin() + this->cap_children_start();
+    auto cap_children_end = this->inner_nodes_.begin() + this->cap_children_end();
+    std::vector<hash_digest_type> cap_children(cap_children_start, cap_children_end);
+    this->inner_nodes_[0] = this->cap_hasher_(cap_children, this->digest_len_bytes_);
 }
 
 template<typename FieldT, typename hash_digest_type>
@@ -242,7 +261,7 @@ hash_digest_type merkle_tree<FieldT, hash_digest_type>::get_root() const
 template<typename FieldT, typename hash_digest_type>
 merkle_tree_set_membership_proof<hash_digest_type>
     merkle_tree<FieldT, hash_digest_type>::get_set_membership_proof(
-    const std::vector<std::size_t> &positions) const
+        const std::vector<size_t> &positions) const
 {
     if (!this->constructed_)
     {
@@ -255,12 +274,12 @@ merkle_tree_set_membership_proof<hash_digest_type>
         return result;
     }
 
-    std::vector<std::size_t> S = positions; /* sorted set of positions */
+    std::vector<size_t> S = positions; /* sorted set of positions */
     std::sort(S.begin(), S.end());
     S.erase(std__unique(S.begin(), S.end()), S.end()); /* remove possible duplicates */
 
     if (std::any_of(S.begin(), S.end(),
-                    [this](const std::size_t pos) { return pos >= this->num_leaves_; }))
+                    [this](const size_t pos) { return pos >= this->num_leaves_; }))
     {
         throw std::invalid_argument("All positions must be between 0 and num_leaves-1.");
     }
@@ -280,37 +299,37 @@ merkle_tree_set_membership_proof<hash_digest_type>
     /* transform leaf positions to indices in this->inner_nodes_ */
     for (auto &pos : S)
     {
-        pos += (this->num_leaves_ - 1);
+        pos += this->num_leaves_ - 1;
     }
 
-    while (true) /* for every layer */
+    // Each iteration adds the hashes for one layer, up until the layer below the cap.
+    while (true)
     {
         auto it = S.begin();
-        if (*it == 0 && it == --S.end())
-        {
-            /* we have arrived at the root */
+        if (is_in_cap(*it))
+        { // We have arrived at the cap, which will be handled differently.
             break;
         }
 
-        std::vector<std::size_t> new_S;
+        // new_S contains the hash indices we need in the layer above this one.
+        std::vector<size_t> new_S;
         while (it != S.end())
         {
-            const std::size_t it_pos = *it;
+            const size_t it_pos = *it;
             auto next_it = ++it;
 
             /* Always process parent. */
-            new_S.emplace_back((it_pos - 1)/2);
+            new_S.emplace_back(this->parent_of(it_pos));
 
-            if ((it_pos & 1) == 0)
+            if (it_pos % 2 == 0)
             {
-                /* We are the right node, so there was no left node
-                   (o.w. would have been processed in b)
-                   below). Insert it as auxiliary */
+                /* it_pos is a right node, so there was no left node (otherwise it would have been
+                   processed already). Insert left node as auxiliary */
                 result.auxiliary_hashes.emplace_back(this->inner_nodes_[it_pos - 1]);
             }
             else
             {
-                /* We are the left node. Two cases: */
+                /* it_pos is a left node. Two cases: */
                 if (next_it == S.end() || *next_it != it_pos + 1)
                 {
                     /* a) Our right sibling is not in S, so we must
@@ -321,8 +340,7 @@ merkle_tree_set_membership_proof<hash_digest_type>
                 {
                     /* b) Our right sibling is in S. So don't need
                        auxiliary and skip over the right sibling.
-                       (Note that only one parent will be processed.)
-                    */
+                       (Note that only one parent will be processed.) */
                     ++next_it;
                 }
             }
@@ -332,13 +350,33 @@ merkle_tree_set_membership_proof<hash_digest_type>
         std::swap(S, new_S);
     }
 
+    // Add the cap, i.e. the root's direct children.
+    // The only elements should be the cap.
+    assert(S.size() <= this->cap_size_);
+    auto it = S.begin();
+    // Iterate over every direct child of the root, and add the ones not obtainable from positions.
+    for (size_t j = this->cap_children_start(); j < this->cap_children_end(); j++)
+    {
+        // Since S is sorted, we can just compare to the next element of S.
+        if (j == *it)
+        {
+            it++;
+        }
+        else
+        {
+            result.auxiliary_hashes.emplace_back(this->inner_nodes_[j]);
+        }
+    }
+
     return result;
 }
 
+/* Large portions of this code is duplicated from get_set_membership_proof, but it's just
+   different enough that I can't extract them into a single function. */
 template<typename FieldT, typename hash_digest_type>
 bool merkle_tree<FieldT, hash_digest_type>::validate_set_membership_proof(
     const hash_digest_type &root,
-    const std::vector<std::size_t> &positions,
+    const std::vector<size_t> &positions,
     const std::vector<std::vector<FieldT>> &leaf_contents,
     const merkle_tree_set_membership_proof<hash_digest_type> &proof)
 {
@@ -362,7 +400,7 @@ bool merkle_tree<FieldT, hash_digest_type>::validate_set_membership_proof(
     auto rand_it = proof.randomness_hashes.begin();
     auto aux_it = proof.auxiliary_hashes.begin();
 
-    typedef std::pair<std::size_t, hash_digest_type> pos_and_digest_t;
+    typedef std::pair<size_t, hash_digest_type> pos_and_digest_t;
     std::vector<pos_and_digest_t> S;
     S.reserve(positions.size());
 
@@ -370,10 +408,15 @@ bool merkle_tree<FieldT, hash_digest_type>::validate_set_membership_proof(
     if (this->make_zk_) {
         for (auto &leaf : leaf_contents)
         {
+            /* FIXME: This code is currently incorrect if the given list of positions is not
+               sorted or has duplicates. This could be fixed if both positions and leaf_contents
+               are sorted before the leaf hashes are calculated, which would require refactoring. */
             const zk_salt_type zk_salt = *rand_it++;
             leaf_hashes.emplace_back(this->leaf_hasher_->zk_hash(leaf, zk_salt));
         }
-    } else {
+    }
+    else
+    {
         for (auto &leaf : leaf_contents)
         {
             leaf_hashes.emplace_back(this->leaf_hasher_->hash(leaf));
@@ -384,10 +427,11 @@ bool merkle_tree<FieldT, hash_digest_type>::validate_set_membership_proof(
     // with a single transform at the bottom.
     std::transform(positions.begin(), positions.end(), leaf_hashes.begin(),
                 std::back_inserter(S),
-                [](const std::size_t pos, const hash_digest_type &hash) {
+                [](const size_t pos, const hash_digest_type &hash) {
                     return std::make_pair(pos, hash);
                 });
 
+    std::sort(S.begin(), S.end(), compare_first<size_t, hash_digest_type>);
     S.erase(std__unique(S.begin(), S.end()), S.end()); /* remove possible duplicates */
 
     if (std__adjacent_find(S.begin(), S.end(),
@@ -410,22 +454,23 @@ bool merkle_tree<FieldT, hash_digest_type>::validate_set_membership_proof(
     /* transform to sorted set of indices */
     for (auto &pos : S)
     {
-        pos.first += (this->num_leaves_ - 1);
+        pos.first += this->num_leaves_ - 1;
     }
 
-    while (true) /* for every layer */
+    // Each iteration calculates the hashes for one layer, up until the layer below the cap.
+    while (true)
     {
         auto it = S.begin();
-        if (it->first == 0 && it == --S.end())
-        {
-            /* we have arrived at the root */
+        if (is_in_cap(it->first))
+        { // We have arrived at the cap. The cap is hashed differently, so we stop here.
             break;
         }
 
-        std::vector<std::pair<std::size_t, hash_digest_type> > new_S;
+        // new_S contains the indices and hashes we calculate in the layer above this one.
+        std::vector<std::pair<size_t, hash_digest_type> > new_S;
         while (it != S.end())
         {
-            const std::size_t it_pos = it->first;
+            const size_t it_pos = it->first;
             const hash_digest_type it_hash = it->second;
 
             auto next_it = ++it;
@@ -433,17 +478,16 @@ bool merkle_tree<FieldT, hash_digest_type>::validate_set_membership_proof(
             hash_digest_type left_hash;
             hash_digest_type right_hash;
 
-            if ((it_pos & 1) == 0)
+            if (it_pos % 2 == 0)
             {
-                /* We are the right node, so there was no left node
-                   (o.w. would have been processed in b)
-                   below). Take it from the auxiliary. */
+                /* it_pos is a right node, so there was no left node (otherwise it would have been
+                   processed already). Take left node from the auxiliary. */
                 left_hash = *aux_it++;
                 right_hash = it_hash;
             }
             else
             {
-                /* We are the left node. Two cases: */
+                /* it_pos is a left node. Two cases: */
                 left_hash = it_hash;
 
                 if (next_it == S.end() || next_it->first != it_pos + 1)
@@ -463,7 +507,7 @@ bool merkle_tree<FieldT, hash_digest_type>::validate_set_membership_proof(
                 }
             }
 
-            const std::size_t parent_pos = (it_pos - 1)/2;
+            const size_t parent_pos = this->parent_of(it_pos);
             const hash_digest_type parent_hash = this->node_hasher_(left_hash, right_hash,
                                                                     this->digest_len_bytes_);
             new_S.emplace_back(std::make_pair(parent_pos, parent_hash));
@@ -474,27 +518,53 @@ bool merkle_tree<FieldT, hash_digest_type>::validate_set_membership_proof(
         std::swap(S, new_S);
     }
 
+    // Add the cap, including the root's direct children and the root.
+    // The only elements should be the cap (not including the root).
+    assert(S.size() <= this->cap_size_);
+
+    auto it = S.begin();
+    std::vector<hash_digest_type> cap_children;
+    cap_children.reserve(this->cap_size_);
+    /* Iterate over every direct child of the root, choosing either the calculated hash or
+       auxiliary hash. */
+    for (size_t j = this->cap_children_start(); j < this->cap_children_end(); j++)
+    {
+        // Since S is sorted, we can just compare to the next element of S.
+        if (it != S.end() && j == it->first)
+        {
+            cap_children.emplace_back(it->second);
+            it++;
+        }
+        else
+        {
+            cap_children.emplace_back(*aux_it);
+            aux_it++;
+        }
+    }
+
     if (aux_it != proof.auxiliary_hashes.end())
     {
         throw std::logic_error("Validation did not consume the entire proof.");
     }
 
-    return (S.begin()->second == root);
+    return this->cap_hasher_(cap_children, this->digest_len_bytes_) == root;
 }
 
 template<typename FieldT, typename hash_digest_type>
-size_t merkle_tree<FieldT, hash_digest_type>::count_hashes_to_verify_set_membership_proof(
-    const std::vector<std::size_t> &positions) const
+size_t merkle_tree<FieldT, hash_digest_type>::count_internal_hash_complexity_to_verify_set_membership(
+    const std::vector<size_t> &positions) const
 {
     /** This goes layer by layer,
      *  and counts the number of hashes needed to be computed.
      *  Essentially when moving up a layer in the verifier,
      *  every unique parent is one hash that has to be computed.  */
-    size_t num_two_to_one_hashes =  0;
+    size_t num_two_to_one_hashes = 0;
     std::vector<size_t> cur_pos_set = positions;
     sort(cur_pos_set.begin(), cur_pos_set.end());
     assert(cur_pos_set[cur_pos_set.size() - 1] < this->num_leaves());
-    for (size_t cur_depth = this->depth(); cur_depth > 0; cur_depth--)
+
+    const size_t cap_depth = libff::log2(this->cap_size_);
+    for (size_t cur_depth = this->depth(); cur_depth > cap_depth; cur_depth--)
     {
         // contains positions in range [0, 2^{cur_depth - 1})
         std::vector<size_t> next_pos_set;
@@ -502,8 +572,7 @@ size_t merkle_tree<FieldT, hash_digest_type>::count_hashes_to_verify_set_members
         {
             size_t parent_pos = cur_pos_set[i] / 2;
             // Check that parent pos isn't already in next pos set
-            if (next_pos_set.size() == 0
-                || next_pos_set[next_pos_set.size() - 1] != parent_pos)
+            if (next_pos_set.size() == 0 || next_pos_set[next_pos_set.size() - 1] != parent_pos)
             {
                 next_pos_set.emplace_back(parent_pos);
             }
@@ -511,17 +580,17 @@ size_t merkle_tree<FieldT, hash_digest_type>::count_hashes_to_verify_set_members
         num_two_to_one_hashes += next_pos_set.size();
         cur_pos_set = next_pos_set;
     }
-    return num_two_to_one_hashes;
+    return 2 * num_two_to_one_hashes + this->cap_size_;
 }
 
 template<typename FieldT, typename hash_digest_type>
-std::size_t merkle_tree<FieldT, hash_digest_type>::num_leaves() const
+size_t merkle_tree<FieldT, hash_digest_type>::num_leaves() const
 {
     return (this->num_leaves_);
 }
 
 template<typename FieldT, typename hash_digest_type>
-std::size_t merkle_tree<FieldT, hash_digest_type>::depth() const
+size_t merkle_tree<FieldT, hash_digest_type>::depth() const
 {
     return libff::log2(this->num_leaves_);
 }
@@ -533,10 +602,45 @@ bool merkle_tree<FieldT, hash_digest_type>::zk() const
 }
 
 template<typename FieldT, typename hash_digest_type>
-std::size_t merkle_tree<FieldT, hash_digest_type>::num_total_bytes() const
+size_t merkle_tree<FieldT, hash_digest_type>::num_total_bytes() const
 {
     return (this->digest_len_bytes_ * (2 * this->num_leaves() - 1));
 }
 
+template<typename FieldT, typename hash_digest_type>
+size_t merkle_tree<FieldT, hash_digest_type>::parent_of(const std::size_t node_index) const
+{
+    return (node_index - 1) / 2;
+}
+
+template<typename FieldT, typename hash_digest_type>
+size_t merkle_tree<FieldT, hash_digest_type>::left_child_of(const std::size_t node_index) const
+{
+    return 2 * node_index + 1;
+}
+
+template<typename FieldT, typename hash_digest_type>
+size_t merkle_tree<FieldT, hash_digest_type>::right_child_of(const std::size_t node_index) const
+{
+    return 2 * node_index + 2;
+}
+
+template<typename FieldT, typename hash_digest_type>
+bool merkle_tree<FieldT, hash_digest_type>::is_in_cap(const std::size_t node_index) const
+{
+    return node_index < this->cap_children_end();
+}
+
+template<typename FieldT, typename hash_digest_type>
+size_t merkle_tree<FieldT, hash_digest_type>::cap_children_start() const
+{
+    return this->cap_size_ - 1;
+}
+
+template<typename FieldT, typename hash_digest_type>
+size_t merkle_tree<FieldT, hash_digest_type>::cap_children_end() const
+{
+    return this->cap_size_ * 2 - 1;
+}
 
 } // libiop

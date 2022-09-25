@@ -117,7 +117,7 @@ FieldT dummy_algebraic_leafhash<FieldT>::hash(const std::vector<FieldT> &leaf)
     FieldT sum = FieldT::zero();
     for (size_t i = 0; i < leaf.size(); i++)
     {
-        sum += FieldT(i) * leaf[i];
+        sum += FieldT(i + 1) * leaf[i]; // Add one, otherwise the 0th index is unused.
     }
     return sum;
 }
@@ -145,6 +145,18 @@ FieldT dummy_algebraic_two_to_one_hash(
 {
     // Need it to be non commutative for tests
     return FieldT(2) * first + second;
+}
+
+template<typename FieldT>
+FieldT dummy_algebraic_cap_hash(const std::vector<FieldT> &data, const std::size_t digest_len_bytes)
+{
+    FieldT sum = FieldT::zero();
+    for (size_t i = 0; i < data.size(); i++)
+    {
+        sum += FieldT(i + 1) * data[i]; // Add one, otherwise the 0th index is unused.
+    }
+
+    return sum;
 }
 
 }

@@ -168,6 +168,12 @@ std::vector<T> random_vector(const std::size_t count)
     return result;
 }
 
+template<typename T, typename U>
+bool compare_first(const std::pair<T, U> &a, const std::pair<T, U> &b)
+{
+    return a.first < b.first;
+}
+
 template<typename FieldT>
 std::vector<FieldT> random_FieldT_vector(const std::size_t count)
 {

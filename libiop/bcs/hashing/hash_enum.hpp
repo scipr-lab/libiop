@@ -30,14 +30,17 @@ static const char* bcs_hash_type_names[] = {"", "blake2b", "poseidon with Starkw
 template<typename FieldT, typename MT_root_type>
 std::shared_ptr<hashchain<FieldT, MT_root_type>> get_hashchain(bcs_hash_type hash_type, size_t security_parameter);
 
-template<typename FieldT, typename leaf_hash_type>
+template<typename leaf_hash_type, typename FieldT>
 std::shared_ptr<leafhash<FieldT, leaf_hash_type>> get_leafhash(
-    const bcs_hash_type hash_type, 
-    const size_t security_parameter, 
+    const bcs_hash_type hash_type,
+    const size_t security_parameter,
     const size_t leaf_size);
 
 template<typename hash_type, typename FieldT>
 two_to_one_hash_function<hash_type> get_two_to_one_hash(const bcs_hash_type hash_enum, const size_t security_parameter);
+
+template<typename hash_type, typename FieldT>
+cap_hash_function<hash_type> get_cap_hash(const bcs_hash_type hash_enum, const size_t security_parameter);
 
 }
 #include "libiop/bcs/hashing/hash_enum.tcc"
