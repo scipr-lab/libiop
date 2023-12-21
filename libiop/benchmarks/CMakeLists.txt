@@ -1,0 +1,37 @@
+# BENCHMARKING
+
+add_executable(benchmark_gf64 benchmark_gf64.cpp)
+target_link_libraries(benchmark_gf64 iop benchmark)
+
+add_executable(benchmark_gf128 benchmark_gf128.cpp)
+target_link_libraries(benchmark_gf128 iop benchmark)
+
+add_executable(benchmark_gf192 benchmark_gf192.cpp)
+target_link_libraries(benchmark_gf192 iop benchmark)
+
+add_executable(benchmark_edwards benchmark_edwards.cpp)
+target_link_libraries(benchmark_edwards iop benchmark)
+
+add_executable(benchmark_alt_bn128 benchmark_alt_bn128.cpp)
+target_link_libraries(benchmark_alt_bn128 iop benchmark)
+
+add_executable(benchmark_gf256 benchmark_gf256.cpp)
+target_link_libraries(benchmark_gf256 iop benchmark)
+
+add_executable(benchmark_hashes benchmark_hashes.cpp)
+target_link_libraries(benchmark_hashes iop benchmark)
+
+add_executable(benchmark_fft benchmark_fft.cpp)
+target_link_libraries(benchmark_fft iop benchmark)
+
+add_executable(benchmark_lagrange benchmark_lagrange.cpp)
+target_link_libraries(benchmark_lagrange iop benchmark)
+
+add_executable(benchmark_polynomials benchmark_polynomials.cpp)
+target_link_libraries(benchmark_polynomials iop benchmark)
+
+add_executable(benchmark_sumcheck benchmark_sumcheck.cpp)
+target_link_libraries(benchmark_sumcheck iop benchmark gtest_main)
+
+add_executable(benchmark_vector_op benchmark_vector_op.cpp)
+target_link_libraries(benchmark_vector_op iop benchmark)
