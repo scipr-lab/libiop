@@ -17,3 +17,5 @@ else()
   target_link_libraries(instrument_ligero_snark iop ${Boost_LIBRARIES})
 endif()
 target_link_libraries(instrument_algebra iop ${Boost_LIBRARIES})
+
+add_custom_target(profiling DEPENDS instrument_algebra instrument_aurora_snark instrument_fractal_snark instrument_fri_snark instrument_ligero_snark)

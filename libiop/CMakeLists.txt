@@ -32,27 +32,6 @@ target_include_directories(
   ../depends/libfqfft
   ../depends/libff
 )
-option(BUILD_BENCHMARKS "Option to build benchmarks")
-set(benchmarks)
-if(BUILD_BENCHMARKS)
-   set(benchmarks EXCLUDE_FROM_ALL)
-endif()
-
-add_subdirectory(benchmarks ${benchmarks})
-
-
-option(BUILD_PROFILING "Option to build profiling")
-set(profiling)
-if(BUILD_PROFILING)
-  set(profiling EXCLUDE_FROM_ALL)
-endif()
-
-add_subdirectory(profiling ${profiling})
-
-option(BUILD_TESTS "Option to build tests")
-set(tests)
-if(BUILD_TESTS)
-  set(tests EXCLUDE_FROM_ALL)
-endif()
-
-add_subdirectory(tests ${tests})
+add_subdirectory(benchmarks EXCLUDE_FROM_ALL)
+add_subdirectory(profiling EXCLUDE_FROM_ALL)
+add_subdirectory(tests EXCLUDE_FROM_ALL)

@@ -35,3 +35,5 @@ target_link_libraries(benchmark_sumcheck iop benchmark gtest_main)
 
 add_executable(benchmark_vector_op benchmark_vector_op.cpp)
 target_link_libraries(benchmark_vector_op iop benchmark)
+
+add_custom_target(benchmarks DEPENDS benchmark_gf64 benchmark_gf128 benchmark_gf192 benchmark_edwards benchmark_alt_bn128 benchmark_gf256 benchmark_hashes benchmark_fft benchmark_lagrange benchmark_polynomials benchmark_sumcheck benchmark_vector_op)
