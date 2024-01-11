@@ -15,7 +15,6 @@ add_library(
 )
 
 OPTION(IS_LIBFF_PARENT OFF)
-add_subdirectory(libff)
 if(NOT TARGET ff)
     add_subdirectory(libff)
 endif()
