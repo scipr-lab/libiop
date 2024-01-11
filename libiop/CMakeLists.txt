@@ -32,6 +32,6 @@ target_include_directories(
   ../depends/libfqfft
   ../depends/libff
 )
-add_subdirectory(benchmarks EXCLUDE_FROM_ALL)
-add_subdirectory(profiling EXCLUDE_FROM_ALL)
-add_subdirectory(tests EXCLUDE_FROM_ALL)
+# add_subdirectory(benchmarks EXCLUDE_FROM_ALL)
+# add_subdirectory(profiling EXCLUDE_FROM_ALL)
+# add_subdirectory(tests EXCLUDE_FROM_ALL)
