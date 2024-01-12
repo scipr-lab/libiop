@@ -32,7 +32,19 @@ target_include_directories(
   ../depends/libfqfft
   ../depends/libff
 )
-
+set(IOP_HEADERS
+  common/common.hpp
+  
+  bcs/hashing/blake2b.hpp
+  protocols/ldt/ldt_reducer.hpp
+  protocols/ldt/fri/fri_ldt.hpp
+  protocols/ldt/fri/fri_aux.hpp
+  relations/sparse_matrix.hpp
+  iop/utilities/batching.hpp
+  algebra/utils.hpp
+)
+message(STATUS "IOP_HEADERS: ${IOP_HEADERS}")
+set_target_properties(iop PROPERTIES PUBLIC_HEADER "${IOP_HEADERS}")
 install(TARGETS iop)
 # add_subdirectory(benchmarks EXCLUDE_FROM_ALL)
 # add_subdirectory(profiling EXCLUDE_FROM_ALL)
