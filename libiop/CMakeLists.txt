@@ -45,7 +45,7 @@ set(IOP_HEADERS
 )
 message(STATUS "IOP_HEADERS: ${IOP_HEADERS}")
 set_target_properties(iop PROPERTIES PUBLIC_HEADER "${IOP_HEADERS}")
-install(TARGETS iop)
+install(TARGETS iop DESTINATION lib)
 # add_subdirectory(benchmarks EXCLUDE_FROM_ALL)
 # add_subdirectory(profiling EXCLUDE_FROM_ALL)
 # add_subdirectory(tests EXCLUDE_FROM_ALL)
