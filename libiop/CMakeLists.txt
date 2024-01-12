@@ -32,6 +32,8 @@ target_include_directories(
   ../depends/libfqfft
   ../depends/libff
 )
+
+install(TARGETS iop)
 # add_subdirectory(benchmarks EXCLUDE_FROM_ALL)
 # add_subdirectory(profiling EXCLUDE_FROM_ALL)
 # add_subdirectory(tests EXCLUDE_FROM_ALL)
