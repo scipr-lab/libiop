@@ -44,12 +44,8 @@ set(IOP_HEADERS
   algebra/utils.hpp
 )
 message(STATUS "IOP_HEADERS: ${IOP_HEADERS}")
-install(
-    DIRECTORY ""
-    DESTINATION "include/libiop"
-    FILES "${IOP_HEADERS}"
-)
-install(TARGETS iop DESTINATION lib)
+set_target_properties(iop PROPERTIES PUBLIC_HEADER "${IOP_HEADERS}")
+install(TARGETS iop LIBRARY DESTINATION lib PUBLIC_HEADER DESTINATION include/iop)
 # add_subdirectory(benchmarks EXCLUDE_FROM_ALL)
 # add_subdirectory(profiling EXCLUDE_FROM_ALL)
 # add_subdirectory(tests EXCLUDE_FROM_ALL)
